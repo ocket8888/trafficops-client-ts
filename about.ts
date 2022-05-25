@@ -10,7 +10,6 @@ import type { Client } from "./index";
  */
 export async function about(this: Client): Promise<About> {
 	const resp = await this.apiGet<About & {alerts?: Array<Alert>}>("about");
-	this.handleAlerts(resp.data.alerts, resp.status, resp.headers);
 	return resp.data;
 }
 
@@ -23,6 +22,5 @@ export async function about(this: Client): Promise<About> {
  */
 export async function systemInfo(this: Client): Promise<APIResponse<SystemInfo>> {
 	const resp = await this.apiGet<APIResponse<SystemInfo>>("system/info");
-	this.handleAlerts(resp.data.alerts);
 	return resp.data;
 }

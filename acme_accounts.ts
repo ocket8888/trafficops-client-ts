@@ -10,7 +10,6 @@ import type { Client } from "./index";
  */
 export async function getACMEAccounts(this: Client): Promise<APIResponse<Array<ACMEAccount>>> {
 	const resp = await this.apiGet<APIResponse<Array<ACMEAccount>>>("acme_accounts");
-	this.handleAlerts(resp);
 	return resp.data;
 }
 
@@ -23,7 +22,6 @@ export async function getACMEAccounts(this: Client): Promise<APIResponse<Array<A
  */
 export async function createACMEAccount(this: Client, account: ACMEAccount): Promise<APIResponse<ACMEAccount>> {
 	const resp = await this.apiPost<APIResponse<ACMEAccount>>("acme_accounts", account);
-	this.handleAlerts(resp.data.alerts, resp.status, resp.headers);
 	return resp.data;
 }
 
@@ -40,7 +38,6 @@ export async function createACMEAccount(this: Client, account: ACMEAccount): Pro
  */
 export async function updateACMEAccount(this: Client, account: ACMEAccount): Promise<APIResponse<ACMEAccount>> {
 	const resp = await this.apiPut<APIResponse<ACMEAccount>>("acme_accounts", account);
-	this.handleAlerts(resp);
 	return resp.data;
 }
 
@@ -88,7 +85,5 @@ export async function deleteACMEAccount(this: Client, accountOrEmail: ACMEAccoun
 	}
 
 	const path = `acme_accounts/${encodeURIComponent(prvdr)}/${encodeURIComponent(email)}`;
-	const resp = await this.apiDelete<APIResponse<undefined>>(path);
-	this.handleAlerts(resp);
-	return resp.data;
+	return (await this.apiDelete<APIResponse<undefined>>(path)).data;
 }

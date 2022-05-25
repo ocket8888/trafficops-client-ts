@@ -226,6 +226,7 @@ export class Client extends axios.Axios {
 		if (cookie) {
 			this.cookie = cookie;
 		}
+		this.handleAlerts(response);
 		return response;
 	}
 
