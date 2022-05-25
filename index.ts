@@ -213,14 +213,55 @@ export class Client extends axios.Axios {
 	 * is configured to throw error-level Alerts as errors and any error-level
 	 * alerts are found.
 	 *
+	 * @param resp The raw Axios response.
+	 * @throws {APIError} if the client is configured to throw error-level
+	 * Alerts as errors and `as` contains at least one error-level alert.
+	 */
+	protected handleAlerts(resp: AxiosResponse<{alerts?: Array<Alert>}>): void;
+	/**
+	 * Handles Alerts returned by Traffic Ops. This will log them if the client
+	 * is set to log Alerts, and will throw an {@link APIError} if the client is
+	 * is configured to throw error-level Alerts as errors and any error-level
+	 * alerts are found.
+	 *
 	 * @param as The returned Alerts.
 	 * @param code Optionally, the HTTP response status code.
 	 * @param headers Optionally, the response HTTP headers.
 	 * @throws {APIError} if the client is configured to throw error-level
 	 * Alerts as errors and `as` contains at least one error-level alert.
 	 */
-	protected handleAlerts(as: Array<Alert> | undefined, code?: number, headers?: AxiosResponseHeaders): void {
-		if (!as || as.length < 1) {
+	protected handleAlerts(as: Array<Alert> | undefined, code?: number, headers?: AxiosResponseHeaders): void;
+	/**
+	 * Handles Alerts returned by Traffic Ops. This will log them if the client
+	 * is set to log Alerts, and will throw an {@link APIError} if the client is
+	 * is configured to throw error-level Alerts as errors and any error-level
+	 * alerts are found.
+	 *
+	 * @param as The returned Alerts.
+	 * @param code Optionally, the HTTP response status code.
+	 * @param headers Optionally, the response HTTP headers.
+	 * @throws {APIError} if the client is configured to throw error-level
+	 * Alerts as errors and `as` contains at least one error-level alert.
+	 */
+	protected handleAlerts(as: Array<Alert> | AxiosResponse<{alerts?: Array<Alert>}> | undefined, code?: number, headers?: AxiosResponseHeaders): void {
+		let alerts;
+		let respCode;
+		let hdrs;
+		if (!as) {
+			return;
+		}
+		if (Array.isArray(as)) {
+			if (as.length < 1) {
+				return;
+			}
+			alerts = as;
+			respCode = code;
+			hdrs = headers;
+		} else if (as.data.alerts && as.data.alerts.length > 0) {
+			alerts = as.data.alerts;
+			respCode = as.status;
+			hdrs = as.headers;
+		} else {
 			return;
 		}
 
@@ -241,8 +282,8 @@ export class Client extends axios.Axios {
 				}
 			}
 		}
-		if (this.raiseErrorAlerts && errors(as).length > 0) {
-			throw new APIError(as, code, headers);
+		if (this.raiseErrorAlerts && errors(alerts).length > 0) {
+			throw new APIError(alerts, respCode, hdrs);
 		}
 	}
 
