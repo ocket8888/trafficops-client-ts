@@ -3,6 +3,69 @@ import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIRespon
 
 import { about, systemInfo } from "./about.js";
 import { APIError } from "./api.error.js";
+/**
+ * Loggers can be used by {@link Client} instances to log alerts. `error` will
+ * be used for error-level alerts, `info` for info-level alerts, `log` for
+ * success-level alerts (named "log" not "success" for compatibility with the
+ * standard Console API), and `warn` for warning-level alerts.
+ */
+export interface Logger {
+	error(...args: unknown[]): void | PromiseLike<void>;
+	info(...args: unknown[]): void | PromiseLike<void>;
+	log(...args: unknown[]): void | PromiseLike<void>;
+	warn(...args: unknown[]): void | PromiseLike<void>;
+}
+
+/**
+ * The client accepts several options to customize its behavior.
+ */
+type ClientOptions = {
+	/**
+	 * If `true`, the Client will log all incoming Alerts to its logger.
+	 *
+	 * @default false
+	 */
+	logAlerts: true;
+	/**
+	 * Specifies a logger for the client. It will use this to log Alerts from
+	 * the Traffic Ops API if `logAlerts` was passed as `true`. In the event
+	 * that the Client is configured to log Alerts but no logger was given (or
+	 * it was `null`), the Client will attempt to use the global `console`
+	 * object for logging.
+	 *
+	 * @default console
+	 */
+	logger?: Logger | null;
+	/**
+	 * If `true`, error-level Alerts received from Traffic Ops will be raised as
+	 * {@link APIError}s.
+	 */
+	raiseErrorAlerts?: boolean;
+} | {
+	/**
+	 * If `true`, the Client will log all incoming Alerts to its logger.
+	 *
+	 * @default false
+	 */
+	logAlerts?: false;
+	/**
+	 * Specifies a logger for the client. It will use this to log Alerts from
+	 * the Traffic Ops API if `logAlerts` was passed as `true`. In the event
+	 * that the Client is configured to log Alerts but no logger was given (or
+	 * it was `null`), the Client will attempt to use the global `console`
+	 * object for logging.
+	 *
+	 * @default null
+	 */
+	logger?: null;
+	/**
+	 * If `true`, error-level Alerts received from Traffic Ops will be raised as
+	 * {@link APIError}s.
+	 *
+	 * @default true
+	 */
+	raiseErrorAlerts?: boolean;
+};
 
 /**
  * A Traffic Ops API client. Instances of this class have a method for every
@@ -17,6 +80,7 @@ export class Client extends axios.Axios {
 	private readonly raiseErrorAlerts: boolean;
 
 	private cookie: string | null = null;
+	private readonly logger: Logger | null = null;
 
 	/**
 	 * Tells whether or not the client is authenticated with Traffic Ops.
@@ -38,10 +102,14 @@ export class Client extends axios.Axios {
 		return this.cookie;
 	}
 
-	constructor(trafficOpsURL: URL | string, options = {logAlerts: false, raiseErrorAlerts: true}) {
+	constructor(trafficOpsURL: URL | string, options: ClientOptions = {logAlerts: false, raiseErrorAlerts: true}) {
 		super({transformRequest: [(data: object): string => JSON.stringify(data)], transformResponse: [(x: string): object =>JSON.parse(x)]});
-		this.logAlerts = options.logAlerts;
-		this.raiseErrorAlerts = options.raiseErrorAlerts;
+		this.logAlerts = options.logAlerts ?? false;
+		this.raiseErrorAlerts = options.raiseErrorAlerts ?? true;
+		this.logger = options.logger ?? null;
+		if (this.logAlerts && !this.logger) {
+			this.logger = console;
+		}
 		if (trafficOpsURL instanceof URL) {
 			this.baseURL = trafficOpsURL;
 		} else {
@@ -55,6 +123,54 @@ export class Client extends axios.Axios {
 		if (this.baseURL.pathname !== "/") {
 			throw new Error(`the Traffic Ops URL must be only the server's root URL; path specified: '${this.baseURL.pathname}'`);
 		}
+	}
+
+	/**
+	 * Logs an error.
+	 *
+	 * @param args Arguments to pass to the Client's Logger.
+	 */
+	private logError(...args: unknown[]): void {
+		if (!this.logAlerts || !this.logger) {
+			return;
+		}
+		this.logger.error(...args);
+	}
+
+	/**
+	 * Logs an informational message.
+	 *
+	 * @param args Arguments to pass to the Client's Logger.
+	 */
+	private logInfo(...args: unknown[]): void {
+		if (!this.logAlerts || !this.logger) {
+			return;
+		}
+		this.logger.info(...args);
+	}
+
+	/**
+	 * Logs a success message.
+	 *
+	 * @param args Arguments to pass to the Client's Logger.
+	 */
+	private logSuccess(...args: unknown[]): void {
+		if (!this.logAlerts || !this.logger) {
+			return;
+		}
+		this.logger.log(...args);
+	}
+
+	/**
+	 * Logs a warning.
+	 *
+	 * @param args Arguments to pass to the Client's Logger.
+	 */
+	private logWarning(...args: unknown[]): void {
+		if (!this.logAlerts || !this.logger) {
+			return;
+		}
+		this.logger.warn(...args);
 	}
 
 	/**
@@ -107,20 +223,21 @@ export class Client extends axios.Axios {
 		if (!as || as.length < 1) {
 			return;
 		}
+
 		if (this.logAlerts) {
-			for (const a of as) {
+			for (const a of alerts) {
 				switch (a.level) {
 					case AlertLevel.ERROR:
-						console.error(a.text);
+						this.logError(a.text);
 						break;
 					case AlertLevel.WARNING:
-						console.warn(a.text);
+						this.logWarning(a.text);
 						break;
 					case AlertLevel.INFO:
-						console.info(a.text);
+						this.logInfo(a.text);
 						break;
 					default:
-						console.log(a.text);
+						this.logSuccess(a.text);
 				}
 			}
 		}
