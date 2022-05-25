@@ -189,6 +189,53 @@ export class Client extends axios.Axios {
 	}
 
 	/**
+	 * Makes a POST request to the Traffic Ops API.
+	 *
+	 * @param path The path to request - do **not** include `/api` or the API
+	 * version, this method will handle that for you.
+	 * @param data The request body to be sent.
+	 * @returns The server's response. Note that error responses are returned,
+	 * not thrown, but connection and transport layer errors (e.g. TCP dial
+	 * failure) are thrown.
+	 */
+	 public async apiPost<T>(path: string, data: object): Promise<AxiosResponse<T>> {
+		const url = this.makeURL(path);
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		return this.request<T>({data, headers: {"Cookie": this.authCookie}, method: "POST", url});
+	}
+
+	/**
+	 * Makes a DELETE request to the Traffic Ops API.
+	 *
+	 * @param path The path to request - do **not** include `/api` or the API
+	 * version, this method will handle that for you.
+	 * @returns The server's response. Note that error responses are returned,
+	 * not thrown, but connection and transport layer errors (e.g. TCP dial
+	 * failure) are thrown.
+	 */
+	 public async apiDelete<T>(path: string): Promise<AxiosResponse<T>> {
+		const url = this.makeURL(path);
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		return this.request<T>({headers: {"Cookie": this.authCookie}, method: "DELETE", url});
+	}
+
+	/**
+	 * Makes a PUT request to the Traffic Ops API.
+	 *
+	 * @param path The path to request - do **not** include `/api` or the API
+	 * version, this method will handle that for you.
+	 * @param data The request body to be sent.
+	 * @returns The server's response. Note that error responses are returned,
+	 * not thrown, but connection and transport layer errors (e.g. TCP dial
+	 * failure) are thrown.
+	 */
+	 public async apiPut<T>(path: string, data: object): Promise<AxiosResponse<T>> {
+		const url = this.makeURL(path);
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		return this.request<T>({data, headers: {"Cookie": this.authCookie}, method: "PUT", url});
+	}
+
+	/**
 	 * Creates a full request URL from the given request path and the client's
 	 * `baseURL` and `version`.
 	 *
