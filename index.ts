@@ -217,12 +217,13 @@ export class Client extends axios.Axios {
 	 * URL construction will be done here.
 	 * @param method The request method to use - practically one of GET,
 	 * OPTIONS, DELETE, PUT, or POST.
+	 * @param params Any and all query string parameters that should be passed.
 	 * @param data The request body, if any.
 	 * @returns  The server's response.
 	 */
-	private async apiRequest<T>(path: string, method: string, data?: object): Promise<AxiosResponse<T>> {
+	private async apiRequest<T>(path: string, method: string, params?: Record<string, string | number | boolean>, data?: object): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
-		const response = await this.request<T>({data, headers: this.headers, method, url});
+		const response = await this.request<T>({data, headers: this.headers, method, params, url});
 		const cookie = (response.headers["set-cookie"] ?? []).find(c=>c.startsWith("mojolicious="));
 		if (cookie) {
 			this.cookie = cookie;
@@ -236,12 +237,13 @@ export class Client extends axios.Axios {
 	 *
 	 * @param path The path to request - do **not** include `/api` or the API
 	 * version, this method will handle that for you.
+	 * @param params Any and all query string parameters to pass in the request.
 	 * @returns The server's response. Note that error responses are returned,
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiGet<T>(path: string): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "GET");
+	public async apiGet<T>(path: string, params?: {[param: string]: number | string | boolean}): Promise<AxiosResponse<T>> {
+		return this.apiRequest(path, "GET", params);
 	}
 
 	/**
@@ -255,7 +257,7 @@ export class Client extends axios.Axios {
 	 * failure) are thrown.
 	 */
 	 public async apiPost<T>(path: string, data: object): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "POST", data);
+		return this.apiRequest(path, "POST", undefined, data);
 	}
 
 	/**
@@ -282,7 +284,7 @@ export class Client extends axios.Axios {
 	 * failure) are thrown.
 	 */
 	 public async apiPut<T>(path: string, data: object): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "PUT", data);
+		return this.apiRequest(path, "PUT", undefined, data);
 	}
 
 	/**
