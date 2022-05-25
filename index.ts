@@ -4,7 +4,8 @@ import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIRespon
 import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
 import { APIError } from "./api.error.js";
-import * as pkgInfo from "./package.json";
+
+const pkgInfo = await import("./package.json", {assert: {type: "json"}});
 
 /**
  * Loggers can be used by {@link Client} instances to log alerts. `error` will
