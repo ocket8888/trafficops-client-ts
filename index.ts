@@ -5,6 +5,7 @@ import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
 import { APIError, ClientError } from "./api.error.js";
 import { getAPICapabilities } from "./api_capabilities.js";
+import { createParser } from "./util.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
 
@@ -84,6 +85,8 @@ type ClientOptions = {
 	userAgent?: string;
 };
 
+const DEFAULT_DATE_KEYS: readonly string[] = ["lastUpdated"];
+
 /**
  * Query-string parameters.
  */
@@ -142,7 +145,7 @@ export class Client extends axios.Axios {
 	}
 
 	constructor(trafficOpsURL: URL | string, options: ClientOptions = {logAlerts: false, raiseErrorAlerts: true}) {
-		super({transformRequest: [(data: object): string => JSON.stringify(data)], transformResponse: [(x: string): object =>JSON.parse(x)]});
+		super({transformRequest: [(data: object): string => JSON.stringify(data)]});
 		this.logAlerts = options.logAlerts ?? false;
 		this.raiseErrorAlerts = options.raiseErrorAlerts ?? true;
 		this.logger = options.logger ?? null;
@@ -226,6 +229,8 @@ export class Client extends axios.Axios {
 	 * OPTIONS, DELETE, PUT, or POST.
 	 * @param params Any and all query string parameters that should be passed.
 	 * @param data The request body, if any.
+	 * @param dateKeys Keys in the response (no matter how deeply nested) that
+	 * should be converted from their string native format to a Date.
 	 * @returns  The server's response.
 	 */
 	private async apiRequest<T>(
@@ -233,9 +238,11 @@ export class Client extends axios.Axios {
 		method: string,
 		params?: QueryParams,
 		data?: object,
+		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
 	): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
-		const response = await this.request<T>({data, headers: this.headers, method, params, url});
+		const transformResponse = [createParser(dateKeys)];
+		const response = await this.request<T>({data, headers: this.headers, method, params, transformResponse, url});
 		const cookie = (response.headers["set-cookie"] ?? []).find(c=>c.startsWith("mojolicious="));
 		if (cookie) {
 			this.cookie = cookie;
@@ -250,6 +257,8 @@ export class Client extends axios.Axios {
 	 * @param path The path to request - do **not** include `/api` or the API
 	 * version, this method will handle that for you.
 	 * @param params Any and all query string parameters to pass in the request.
+	 * @param dateKeys Keys in the response (no matter how deeply nested) that
+	 * should be converted from their string native format to a Date.
 	 * @returns The server's response. Note that error responses are returned,
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
@@ -257,6 +266,7 @@ export class Client extends axios.Axios {
 	public async apiGet<T>(
 		path: string,
 		params?: QueryParams,
+		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
 	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "GET", params, undefined, dateKeys);
 	}
@@ -267,12 +277,14 @@ export class Client extends axios.Axios {
 	 * @param path The path to request - do **not** include `/api` or the API
 	 * version, this method will handle that for you.
 	 * @param data The request body to be sent.
+	 * @param dateKeys Keys in the response (no matter how deeply nested) that
+	 * should be converted from their string native format to a Date.
 	 * @returns The server's response. Note that error responses are returned,
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	 public async apiPost<T>(path: string, data: object): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "POST", undefined, data);
+	 public async apiPost<T>(path: string, data: object, dateKeys: readonly string[] = DEFAULT_DATE_KEYS): Promise<AxiosResponse<T>> {
+		return this.apiRequest(path, "POST", undefined, data, dateKeys);
 	}
 
 	/**
@@ -280,12 +292,15 @@ export class Client extends axios.Axios {
 	 *
 	 * @param path The path to request - do **not** include `/api` or the API
 	 * version, this method will handle that for you.
+	 * @param params Any and all query string parameters to pass in the request.
+	 * @param dateKeys Keys in the response (no matter how deeply nested) that
+	 * should be converted from their string native format to a Date.
 	 * @returns The server's response. Note that error responses are returned,
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	 public async apiDelete<T>(path: string): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "DELETE");
+	 public async apiDelete<T>(path: string, params?: QueryParams, dateKeys: readonly string[] = DEFAULT_DATE_KEYS): Promise<AxiosResponse<T>> {
+		return this.apiRequest(path, "DELETE", params, dateKeys);
 	}
 
 	/**
@@ -294,12 +309,14 @@ export class Client extends axios.Axios {
 	 * @param path The path to request - do **not** include `/api` or the API
 	 * version, this method will handle that for you.
 	 * @param data The request body to be sent.
+	 * @param dateKeys Keys in the response (no matter how deeply nested) that
+	 * should be converted from their string native format to a Date.
 	 * @returns The server's response. Note that error responses are returned,
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	 public async apiPut<T>(path: string, data: object): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "PUT", undefined, data);
+	 public async apiPut<T>(path: string, data: object, dateKeys: readonly string[] = DEFAULT_DATE_KEYS): Promise<AxiosResponse<T>> {
+		return this.apiRequest(path, "PUT", undefined, data, dateKeys);
 	}
 
 	/**
