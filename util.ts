@@ -28,3 +28,27 @@ export type PaginationParams = {
 	 */
 	 limit?: number;
 };
+
+/**
+ * Creates a parser for transforming incoming API responses from raw JSON into
+ * actual objects.
+ *
+ * @param dateKeys A list of all keys that should be treated like Dates. If any
+ * of the keys in this list are found but aren't strings in the response, they
+ * will be silently ignored. Any dates that cannot be parsed are set to an
+ * "Invalid Date" value (one with a NaN numeric value) - errors are **not**
+ * thrown in that case and parsing does **not** fail.
+ * @returns A function suitable for use as an Axios `transformResponse`
+ * function.
+ */
+export function createParser(dateKeys: readonly string[]): (raw: string) => object {
+	const revivable = new Set(dateKeys);
+	return raw => JSON.parse(raw,
+		(key, value) => {
+			if (revivable.has(key) && typeof(value) === "string") {
+				return new Date(value.replace(" ", "T").replace("+00", "Z"));
+			}
+			return value;
+		}
+	);
+}
