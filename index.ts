@@ -4,6 +4,8 @@ import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIRespon
 import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
 import { APIError } from "./api.error.js";
+import * as pkgInfo from "./package.json";
+
 /**
  * Loggers can be used by {@link Client} instances to log alerts. `error` will
  * be used for error-level alerts, `info` for info-level alerts, `log` for
@@ -42,6 +44,12 @@ type ClientOptions = {
 	 * {@link APIError}s.
 	 */
 	raiseErrorAlerts?: boolean;
+	/**
+	 * Specify a user-agent string.
+	 *
+	 * @default `${pkgInfo.name}/${pkgInfo.version}`
+	 */
+	userAgent?: string;
 } | {
 	/**
 	 * If `true`, the Client will log all incoming Alerts to its logger.
@@ -66,6 +74,12 @@ type ClientOptions = {
 	 * @default true
 	 */
 	raiseErrorAlerts?: boolean;
+	/**
+	 * Specify a user-agent string.
+	 *
+	 * @default `${pkgInfo.name}/${pkgInfo.version}`
+	 */
+	userAgent?: string;
 };
 
 /**
@@ -74,11 +88,13 @@ type ClientOptions = {
  * refer to the [official TO API documentation](https://traffic-control-cdn.readthedocs.io/en/latest/api/index.html).
  */
 export class Client extends axios.Axios {
+	private static readonly DEFAULT_UA = `${pkgInfo.name}/${pkgInfo.version}`;
 	public readonly version = VERSION;
 
 	public readonly baseURL: URL;
 	private readonly logAlerts: boolean;
 	private readonly raiseErrorAlerts: boolean;
+	private readonly uaString: string;
 
 	private cookie: string | null = null;
 	private readonly logger: Logger | null = null;
@@ -103,6 +119,19 @@ export class Client extends axios.Axios {
 		return this.cookie;
 	}
 
+	/**
+	 * The headers that are passed in API requests.
+	 */
+	private get headers(): Record<PropertyKey, string> {
+		return {
+			// This naming convention is standard practice for HTTP headers.
+			/* eslint-disable @typescript-eslint/naming-convention*/
+			Cookie: this.authCookie,
+			"User-Agent": this.uaString
+			/* eslint-enable @typescript-eslint/naming-convention*/
+		};
+	}
+
 	constructor(trafficOpsURL: URL | string, options: ClientOptions = {logAlerts: false, raiseErrorAlerts: true}) {
 		super({transformRequest: [(data: object): string => JSON.stringify(data)], transformResponse: [(x: string): object =>JSON.parse(x)]});
 		this.logAlerts = options.logAlerts ?? false;
@@ -124,6 +153,7 @@ export class Client extends axios.Axios {
 		if (this.baseURL.pathname !== "/") {
 			throw new Error(`the Traffic Ops URL must be only the server's root URL; path specified: '${this.baseURL.pathname}'`);
 		}
+		this.uaString = options.userAgent || Client.DEFAULT_UA;
 	}
 
 	/**
@@ -185,8 +215,7 @@ export class Client extends axios.Axios {
 	 */
 	public async apiGet<T>(path: string): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		return this.request<T>({headers: {"Cookie": this.authCookie}, method: "GET", url});
+		return this.request<T>({headers: this.headers, method: "GET", url});
 	}
 
 	/**
@@ -201,8 +230,7 @@ export class Client extends axios.Axios {
 	 */
 	 public async apiPost<T>(path: string, data: object): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		return this.request<T>({data, headers: {"Cookie": this.authCookie}, method: "POST", url});
+		return this.request<T>({data, headers: this.headers, method: "POST", url});
 	}
 
 	/**
@@ -216,8 +244,7 @@ export class Client extends axios.Axios {
 	 */
 	 public async apiDelete<T>(path: string): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		return this.request<T>({headers: {"Cookie": this.authCookie}, method: "DELETE", url});
+		return this.request<T>({headers: this.headers, method: "DELETE", url});
 	}
 
 	/**
@@ -232,8 +259,7 @@ export class Client extends axios.Axios {
 	 */
 	 public async apiPut<T>(path: string, data: object): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		return this.request<T>({data, headers: {"Cookie": this.authCookie}, method: "PUT", url});
+		return this.request<T>({data, headers: this.headers, method: "PUT", url});
 	}
 
 	/**
