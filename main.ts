@@ -31,6 +31,26 @@ async function main(): Promise<number> {
 	const sysInf = await client.systemInfo();
 	code += checkAlerts(sysInf);
 	console.log("system/info:", sysInf);
+
+	let acmeAccount = {
+		email: "something@mail.com",
+		privateKey: "privkey",
+		provider: "provider",
+		uri: "https://uri.com/"
+	};
+	const newAcct = await client.createACMEAccount(acmeAccount);
+	code += checkAlerts(newAcct);
+	console.log("creating ACME account:", newAcct);
+	const accounts = await client.getACMEAccounts();
+	code += checkAlerts(accounts);
+	console.log("getting ACME accounts:", accounts);
+	acmeAccount.privateKey = "new privkey";
+	const updatedAcct = await client.updateACMEAccount(acmeAccount);
+	code += checkAlerts(updatedAcct);
+	console.log("updating ACME account:", updatedAcct);
+	const deletedAcct = await client.deleteACMEAccount(newAcct.response);
+	code += checkAlerts(deletedAcct);
+	console.log("deleting ACME account:", deletedAcct);
 	return code;
 }
 

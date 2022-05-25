@@ -2,6 +2,7 @@ import axios, { type AxiosResponseHeaders, type AxiosResponse } from "axios";
 import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIResponse, errors } from "trafficops-types";
 
 import { about, systemInfo } from "./about.js";
+import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
 import { APIError } from "./api.error.js";
 /**
  * Loggers can be used by {@link Client} instances to log alerts. `error` will
@@ -386,6 +387,13 @@ export class Client extends axios.Axios {
 		this.cookie = cookie;
 	}
 
+	// About/info routes
 	public about = about;
 	public systemInfo = systemInfo;
+
+	// ACME Accounts
+	public createACMEAccount = createACMEAccount;
+	public deleteACMEAccount = deleteACMEAccount;
+	public getACMEAccounts = getACMEAccounts;
+	public updateACMEAccount = updateACMEAccount;
 }
