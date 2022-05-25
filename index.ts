@@ -206,6 +206,30 @@ export class Client extends axios.Axios {
 	}
 
 	/**
+	 * Performs a request to the Traffic Ops API. This should only be called by
+	 * the publicly accessible methods, not used directly.
+	 *
+	 * This updates the client's "mojolicious" cookie with the one Traffic Ops
+	 * sends in responses automatically.
+	 *
+	 * @param path The path to request - should be passed directly as the full
+	 * URL construction will be done here.
+	 * @param method The request method to use - practically one of GET,
+	 * OPTIONS, DELETE, PUT, or POST.
+	 * @param data The request body, if any.
+	 * @returns  The server's response.
+	 */
+	private async apiRequest<T>(path: string, method: string, data?: object): Promise<AxiosResponse<T>> {
+		const url = this.makeURL(path);
+		const response = await this.request<T>({data, headers: this.headers, method, url});
+		const cookie = (response.headers["set-cookie"] ?? []).find(c=>c.startsWith("mojolicious="));
+		if (cookie) {
+			this.cookie = cookie;
+		}
+		return response;
+	}
+
+	/**
 	 * Makes a GET request to the Traffic Ops API.
 	 *
 	 * @param path The path to request - do **not** include `/api` or the API
@@ -215,8 +239,7 @@ export class Client extends axios.Axios {
 	 * failure) are thrown.
 	 */
 	public async apiGet<T>(path: string): Promise<AxiosResponse<T>> {
-		const url = this.makeURL(path);
-		return this.request<T>({headers: this.headers, method: "GET", url});
+		return this.apiRequest(path, "GET");
 	}
 
 	/**
@@ -230,8 +253,7 @@ export class Client extends axios.Axios {
 	 * failure) are thrown.
 	 */
 	 public async apiPost<T>(path: string, data: object): Promise<AxiosResponse<T>> {
-		const url = this.makeURL(path);
-		return this.request<T>({data, headers: this.headers, method: "POST", url});
+		return this.apiRequest(path, "POST", data);
 	}
 
 	/**
@@ -244,8 +266,7 @@ export class Client extends axios.Axios {
 	 * failure) are thrown.
 	 */
 	 public async apiDelete<T>(path: string): Promise<AxiosResponse<T>> {
-		const url = this.makeURL(path);
-		return this.request<T>({headers: this.headers, method: "DELETE", url});
+		return this.apiRequest(path, "DELETE");
 	}
 
 	/**
@@ -259,8 +280,7 @@ export class Client extends axios.Axios {
 	 * failure) are thrown.
 	 */
 	 public async apiPut<T>(path: string, data: object): Promise<AxiosResponse<T>> {
-		const url = this.makeURL(path);
-		return this.request<T>({data, headers: this.headers, method: "PUT", url});
+		return this.apiRequest(path, "PUT", data);
 	}
 
 	/**
