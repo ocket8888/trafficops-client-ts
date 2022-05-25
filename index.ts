@@ -85,6 +85,13 @@ type ClientOptions = {
 };
 
 /**
+ * Query-string parameters.
+ */
+interface QueryParams {
+	[param: string | symbol]: string | number | boolean;
+};
+
+/**
  * A Traffic Ops API client. Instances of this class have a method for every
  * operation one could want to perform using the Traffic Ops API. For details,
  * refer to the [official TO API documentation](https://traffic-control-cdn.readthedocs.io/en/latest/api/index.html).
@@ -221,7 +228,12 @@ export class Client extends axios.Axios {
 	 * @param data The request body, if any.
 	 * @returns  The server's response.
 	 */
-	private async apiRequest<T>(path: string, method: string, params?: Record<string, string | number | boolean>, data?: object): Promise<AxiosResponse<T>> {
+	private async apiRequest<T>(
+		path: string,
+		method: string,
+		params?: QueryParams,
+		data?: object,
+	): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
 		const response = await this.request<T>({data, headers: this.headers, method, params, url});
 		const cookie = (response.headers["set-cookie"] ?? []).find(c=>c.startsWith("mojolicious="));
@@ -242,8 +254,11 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiGet<T>(path: string, params?: {[param: string]: number | string | boolean}): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "GET", params);
+	public async apiGet<T>(
+		path: string,
+		params?: QueryParams,
+	): Promise<AxiosResponse<T>> {
+		return this.apiRequest(path, "GET", params, undefined, dateKeys);
 	}
 
 	/**
