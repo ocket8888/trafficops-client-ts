@@ -14,7 +14,7 @@ import { Client } from "./index.js";
  * @returns `1` if there were errors in the `chkMe` Alerts, `0` otherwise.
  */
 function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<Alert>} | null | undefined): 1 | 0 {
-	console.log(method, endpoint);
+	console.log(method, `/${endpoint.replace(/^\/+/, "")}`);
 	console.log(chkMe);
 	return chkMe && chkMe.alerts && chkMe.alerts.length > 0 && errors(chkMe.alerts).length > 0 ? 1 : 0;
 }

@@ -2,6 +2,48 @@ import type { AxiosResponse, AxiosResponseHeaders } from "axios";
 import { type Alert, type AlertLevel, type APIResponse, errors } from "trafficops-types";
 
 /**
+ * A ClientError is an error that results from improper use of the Client,
+ * rather than any issue actually communicating with the API.
+ */
+export class ClientError extends Error {
+
+	/**
+	 * Works just like the base `Error` class, just give it a message.
+	 *
+	 * @example
+	 * console.log((new ClientError("my message")).message);
+	 * // Output: my message
+	 *
+	 * @param message The error message.
+	 */
+	constructor(message: string);
+	/**
+	 * Formats a message about missing required parameters in a method call.
+	 *
+	 * @example
+	 * console.log((new ClientError("getFoos", "barID", "testquest")).message)
+	 * // Output: invalid call signature to getFoos - 'barID', and 'testquest' must be given
+	 *
+	 * @param methodName
+	 * @param missingParams
+	 */
+	constructor(methodName: string, ...missingParams: [string, ...string[]]);
+	constructor(methodNameOrMsg: string, ...missingParams: Array<string>) {
+		let msg;
+		if (missingParams.length > 1) {
+			msg = `invalid call signature to ${methodNameOrMsg} - `;
+			msg += missingParams.slice(0, -2).map(p=>`'${p}'`).join(", ");
+			msg += `, and '${missingParams[missingParams.length-1]} must be given`;
+		} else if (missingParams.length > 0) {
+			msg = `invalid call signature to ${methodNameOrMsg} - '${missingParams[0]}' must be given`;
+		} else {
+			msg = methodNameOrMsg;
+		}
+		super(msg);
+	}
+}
+
+/**
  * A custom Error class that stores some information about the HTTP response
  * that produced it.
  */

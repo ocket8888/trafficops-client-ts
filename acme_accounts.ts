@@ -1,5 +1,7 @@
 import type { ACMEAccount, APIResponse } from "trafficops-types";
 
+import { ClientError } from "./api.error.js";
+
 import type { Client } from "./index";
 
 /**
@@ -76,7 +78,7 @@ export async function deleteACMEAccount(this: Client, accountOrEmail: ACMEAccoun
 	if (typeof(accountOrEmail) === "string") {
 		email = accountOrEmail;
 		if (provider === undefined) {
-			throw new TypeError("invalid call signature to deleteACMEAccount - 'provider' must be given");
+			throw new ClientError("deleteACMEAccount", "provider");
 		}
 		prvdr = provider;
 	} else {

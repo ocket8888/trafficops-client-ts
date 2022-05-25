@@ -3,7 +3,7 @@ import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIRespon
 
 import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
-import { APIError } from "./api.error.js";
+import { APIError, ClientError } from "./api.error.js";
 import { getAPICapabilities } from "./api_capabilities.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
@@ -149,11 +149,11 @@ export class Client extends axios.Axios {
 				this.baseURL = new URL(trafficOpsURL);
 			} catch (e) {
 				const msg = e instanceof Error ? e.message : String(e);
-				throw new Error(`invalid Traffic Ops URL: ${msg}`);
+				throw new ClientError(`invalid Traffic Ops URL: ${msg}`);
 			}
 		}
 		if (this.baseURL.pathname !== "/") {
-			throw new Error(`the Traffic Ops URL must be only the server's root URL; path specified: '${this.baseURL.pathname}'`);
+			throw new ClientError(`the Traffic Ops URL must be only the server's root URL; path specified: '${this.baseURL.pathname}'`);
 		}
 		this.uaString = options.userAgent || Client.DEFAULT_UA;
 	}
