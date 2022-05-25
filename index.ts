@@ -4,6 +4,7 @@ import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIRespon
 import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
 import { APIError } from "./api.error.js";
+import { getAPICapabilities } from "./api_capabilities.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
 
@@ -444,4 +445,7 @@ export class Client extends axios.Axios {
 	public deleteACMEAccount = deleteACMEAccount;
 	public getACMEAccounts = getACMEAccounts;
 	public updateACMEAccount = updateACMEAccount;
+
+	// "API Capabilities"
+	public getAPICapabilities = getAPICapabilities;
 }

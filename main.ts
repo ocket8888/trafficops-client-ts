@@ -8,12 +8,17 @@ import { Client } from "./index.js";
  * Alerts, and returns a value that can be added to the return code to
  * effectively count errors encountered.
  *
+ * @param method The request method used.
+ * @param endpoint The requested endpoint.
  * @param chkMe The object containing the Alerts to check.
  * @returns `1` if there were errors in the `chkMe` Alerts, `0` otherwise.
  */
-function checkAlerts(chkMe?: {alerts?: Array<Alert>} | null | undefined): 1 | 0 {
+function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<Alert>} | null | undefined): 1 | 0 {
+	console.log(method, endpoint);
+	console.log(chkMe);
 	return chkMe && chkMe.alerts && chkMe.alerts.length > 0 && errors(chkMe.alerts).length > 0 ? 1 : 0;
 }
+
 /**
  * The main function.
  *
@@ -26,11 +31,8 @@ async function main(): Promise<number> {
 	let code = 0;
 	const client = new Client("https://localhost:6443", {logAlerts: true, logger: console, raiseErrorAlerts: false});
 	await client.login("admin", "twelve12");
-	const about = await client.about();
-	console.log("about:", about);
-	const sysInf = await client.systemInfo();
-	code += checkAlerts(sysInf);
-	console.log("system/info:", sysInf);
+	code += checkAlerts("GET", "about", await client.about() as {});
+	code += checkAlerts("GET", "system/info", await client.systemInfo());
 
 	let acmeAccount = {
 		email: "something@mail.com",
@@ -39,18 +41,13 @@ async function main(): Promise<number> {
 		uri: "https://uri.com/"
 	};
 	const newAcct = await client.createACMEAccount(acmeAccount);
-	code += checkAlerts(newAcct);
-	console.log("creating ACME account:", newAcct);
-	const accounts = await client.getACMEAccounts();
-	code += checkAlerts(accounts);
-	console.log("getting ACME accounts:", accounts);
+	code += checkAlerts("POST", "acme_accounts", newAcct);
+	code += checkAlerts("GET", "acme_accounts", await client.getACMEAccounts());
 	acmeAccount.privateKey = "new privkey";
-	const updatedAcct = await client.updateACMEAccount(acmeAccount);
-	code += checkAlerts(updatedAcct);
-	console.log("updating ACME account:", updatedAcct);
-	const deletedAcct = await client.deleteACMEAccount(newAcct.response);
-	code += checkAlerts(deletedAcct);
-	console.log("deleting ACME account:", deletedAcct);
+	code += checkAlerts("PUT", "acme_accounts", await client.updateACMEAccount(acmeAccount));
+	code += checkAlerts("DELETE", "acme_accounts/{{provider}}/{{email}}", await client.deleteACMEAccount(newAcct.response));
+
+	code += checkAlerts("GET", "api_capabilities", await client.getAPICapabilities());
 	return code;
 }
 
