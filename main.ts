@@ -55,6 +55,8 @@ async function main(): Promise<number> {
 	newASN.response.asn = 2;
 	code += checkAlerts("PUT", `asns/${newASN.response.id}`, await client.updateASN(newASN.response));
 	code += checkAlerts("DELETE", `asns/${newASN.response.id}`, await client.deleteASN(newASN.response.id));
+
+	code += checkAlerts("GET", "cache_stats", await client.cacheStats("CDN-in-a-Box", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 	return code;
 }
 

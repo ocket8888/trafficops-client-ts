@@ -6,6 +6,7 @@ import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccoun
 import { APIError, ClientError } from "./api.error.js";
 import { getAPICapabilities } from "./api_capabilities.js";
 import { createASN, deleteASN, getASNs, updateASN } from "./asn.js";
+import { cacheStats } from "./stats.js";
 import { createParser } from "./util.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
@@ -489,4 +490,7 @@ export class Client extends axios.Axios {
 	public deleteASN = deleteASN;
 	public getASNs = getASNs;
 	public updateASN = updateASN;
+
+	// Stats
+	public cacheStats = cacheStats;
 }
