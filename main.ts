@@ -48,6 +48,13 @@ async function main(): Promise<number> {
 	code += checkAlerts("DELETE", "acme_accounts/{{provider}}/{{email}}", await client.deleteACMEAccount(newAcct.response));
 
 	code += checkAlerts("GET", "api_capabilities", await client.getAPICapabilities());
+
+	const newASN = await client.createASN({asn: 1, cachegroupId: 1});
+	code += checkAlerts("POST", "asns", newASN);
+	code += checkAlerts("GET", "asns", await client.getASNs());
+	newASN.response.asn = 2;
+	code += checkAlerts("PUT", `asns/${newASN.response.id}`, await client.updateASN(newASN.response));
+	code += checkAlerts("DELETE", `asns/${newASN.response.id}`, await client.deleteASN(newASN.response.id));
 	return code;
 }
 

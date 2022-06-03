@@ -5,6 +5,7 @@ import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
 import { APIError, ClientError } from "./api.error.js";
 import { getAPICapabilities } from "./api_capabilities.js";
+import { createASN, deleteASN, getASNs, updateASN } from "./asn.js";
 import { createParser } from "./util.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
@@ -482,4 +483,10 @@ export class Client extends axios.Axios {
 
 	// "API Capabilities"
 	public getAPICapabilities = getAPICapabilities;
+
+	// ASNs
+	public createASN = createASN;
+	public deleteASN = deleteASN;
+	public getASNs = getASNs;
+	public updateASN = updateASN;
 }
