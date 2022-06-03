@@ -56,7 +56,11 @@ async function main(): Promise<number> {
 	code += checkAlerts("PUT", `asns/${newASN.response.id}`, await client.updateASN(newASN.response));
 	code += checkAlerts("DELETE", `asns/${newASN.response.id}`, await client.deleteASN(newASN.response.id));
 
-	code += checkAlerts("GET", "cache_stats", await client.cacheStats("CDN-in-a-Box", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
+	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(1, 1));
+	code += checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
+	code += checkAlerts("DELETE", "cachegroupparameters/{{Cache Group ID}}/{{Parameter ID}}", await client.removeParameterFromCacheGroup(1, 1));
+
+	code += checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 	return code;
 }
 
