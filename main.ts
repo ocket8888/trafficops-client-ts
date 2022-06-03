@@ -16,6 +16,7 @@ import { Client } from "./index.js";
 function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<Alert>} | null | undefined): 1 | 0 {
 	console.log(method, `/${endpoint.replace(/^\/+/, "")}`);
 	console.log(chkMe);
+	console.log();
 	return chkMe && chkMe.alerts && chkMe.alerts.length > 0 && errors(chkMe.alerts).length > 0 ? 1 : 0;
 }
 
@@ -30,6 +31,9 @@ function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<A
 async function main(): Promise<number> {
 	let code = 0;
 	const client = new Client("https://localhost:6443", {logAlerts: true, logger: console, raiseErrorAlerts: false});
+	console.log("GET /ping");
+	console.log((await client.ping()).data);
+	console.log();
 	await client.login("admin", "twelve12");
 	code += checkAlerts("GET", "about", await client.about() as {});
 	code += checkAlerts("GET", "system/info", await client.systemInfo());

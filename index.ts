@@ -1,5 +1,5 @@
 import axios, { type AxiosResponseHeaders, type AxiosResponse } from "axios";
-import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIResponse, errors } from "trafficops-types";
+import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIResponse, errors, PingResponse } from "trafficops-types";
 
 import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
@@ -129,7 +129,7 @@ export class Client extends axios.Axios {
 	 */
 	protected get authCookie(): string {
 		if (this.cookie === null) {
-			throw new APIError("not authenticated");
+			throw new ClientError("not authenticated");
 		}
 		return this.cookie;
 	}
@@ -471,6 +471,29 @@ export class Client extends axios.Axios {
 			throw new APIError("Traffic Ops did not set the mojolicious authentication cookie in login response", resp.status, resp.headers);
 		}
 		this.cookie = cookie;
+	}
+
+	/**
+	 * "Pings" the Traffic Ops server. This can be used to check if the server
+	 * is up and serving the API as intended before authenticating.
+	 *
+	 * Note that it is possible for Traffic Ops to return Alerts if the request
+	 * was unsuccessful, but because this endpoint doesn't respect the standard
+	 * format for API responses, {@link APIResponse} is powerless to represent
+	 * it. Therefore, it's possible for `ping` to return something that isn't a
+	 * valid response to the `/ping` endpoint of the Traffic Ops API. The client
+	 * will **not** raise any Alerts as errors, nor log any returned Alerts
+	 * regardless of its configuration because of this.
+	 *
+	 * @returns The server's response, and any Alerts it may have raised.
+	 */
+	public async ping(): Promise<AxiosResponse<PingResponse | APIResponse<undefined>>> {
+		const url = this.makeURL("ping");
+		// This is HTTP standard, should not be modified to fit this project's
+		// naming conventions.
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		const config = {headers: {"User-Agent": this.uaString}, method: "GET", transformResponse: [(x: string): object => JSON.parse(x)], url};
+		return this.request<PingResponse | APIResponse<undefined>>(config);
 	}
 
 	// About/info routes
