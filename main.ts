@@ -60,6 +60,11 @@ async function main(): Promise<number> {
 	code += checkAlerts("PUT", `asns/${newASN.response.id}`, await client.updateASN(newASN.response));
 	code += checkAlerts("DELETE", `asns/${newASN.response.id}`, await client.deleteASN(newASN.response.id));
 
+	const newType = await client.createType({description: "foo", name: "foo", useInTable: "server"});
+	code += checkAlerts("POST", "types", newType);
+	code += checkAlerts("GET", "types", await client.getTypes());
+	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
+
 	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(1, 1));
 	code += checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
 	code += checkAlerts("DELETE", "cachegroupparameters/{{Cache Group ID}}/{{Parameter ID}}", await client.removeParameterFromCacheGroup(1, 1));

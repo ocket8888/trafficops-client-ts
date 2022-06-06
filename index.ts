@@ -8,6 +8,7 @@ import { getAPICapabilities } from "./api_capabilities.js";
 import { createASN, deleteASN, getASNs, updateASN } from "./asn.js";
 import { assignParameterToCacheGroup, getCacheGroupParameters, removeParameterFromCacheGroup } from "./cache_group.js";
 import { cacheStats } from "./stats.js";
+import { createType, deleteType, getTypes } from "./types.js";
 import { createParser } from "./util.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
@@ -519,6 +520,11 @@ export class Client extends axios.Axios {
 	public getCacheGroupParameters = getCacheGroupParameters;
 	public assignParameterToCacheGroup = assignParameterToCacheGroup;
 	public removeParameterFromCacheGroup = removeParameterFromCacheGroup;
+
+	// Types
+	public getTypes = getTypes;
+	public createType = createType;
+	public deleteType = deleteType;
 
 	// Stats
 	public cacheStats = cacheStats;
