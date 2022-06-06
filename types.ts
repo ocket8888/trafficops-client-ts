@@ -1,5 +1,6 @@
-import { APIResponse, RequestType, TypeFromResponse } from "trafficops-types";
+import type { APIResponse, RequestType, TypeFromResponse } from "trafficops-types";
 
+import { APIError } from "./api.error.js";
 import type { PaginationParams } from "./util";
 
 import type { Client } from "./index";
@@ -42,8 +43,50 @@ type Params = PaginationParams & {
  * @param params Any and all optional settings to use in the request.
  * @returns The server's response.
  */
-export async function getTypes(this: Client, params?: Params): Promise<APIResponse<Array<TypeFromResponse>>> {
-	return (await this.apiGet<APIResponse<Array<TypeFromResponse>>>("types", params)).data;
+export async function getTypes(this: Client, identifier: string | number, params?: Params): Promise<APIResponse<TypeFromResponse>>;
+/**
+ * Retrieves the "Types" registered for Traffic Ops objects.
+ *
+ * @param this Tells TypeScript this is a Client method.
+ * @param params Any and all optional settings to use in the request.
+ * @returns The server's response.
+ */
+export async function getTypes(this: Client, params?: Params): Promise<APIResponse<Array<TypeFromResponse>>>;
+/**
+ * Retrieves the "Types" registered for Traffic Ops objects.
+ *
+ * @param this Tells TypeScript this is a Client method.
+ * @param paramsOrIdentifier If a single "Type" is being requested, this must be
+ * its Name or ID. If multiple "Types" are being requested, any and all optional
+ * settings to use in the request.
+ * @param params Any and all optional settings to use in the request. This is
+ * ignored if options are set by `paramsOrIdentifier`.
+ * @returns The server's response.
+ */
+export async function getTypes(this: Client, paramsOrIdentifier?: number  | string | Params, params?: Params): Promise<APIResponse<Array<TypeFromResponse>|TypeFromResponse>> {
+	let p;
+	let single = false;
+	switch (typeof(paramsOrIdentifier)) {
+		case "number":
+			p = {...params, id: paramsOrIdentifier};
+			single = true;
+			break;
+		case "string":
+			p = {...params, name: paramsOrIdentifier};
+			single = true;
+			break;
+		default:
+			p = paramsOrIdentifier;
+	}
+	const resp = await this.apiGet<APIResponse<Array<TypeFromResponse>>>("types", p);
+	if (single) {
+		const len = resp.data.response.length;
+		if (len !== 1) {
+			throw new APIError(`getting Type by identifier '${paramsOrIdentifier}' yielded ${len} results`, resp.status, resp.headers);
+		}
+		return {...resp.data, response: resp.data.response[0]};
+	}
+	return resp.data;
 }
 
 /**
