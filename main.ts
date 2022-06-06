@@ -53,7 +53,18 @@ async function main(): Promise<number> {
 
 	code += checkAlerts("GET", "api_capabilities", await client.getAPICapabilities());
 
-	const newASN = await client.createASN({asn: 1, cachegroupId: 1});
+	const cgType = await client.getTypes({useInTable: "cachegroup"});
+	if (cgType.response.length < 1) {
+		throw new Error("no cachegroup Types exist in TO");
+	}
+	code += checkAlerts("GET", "types?useInTable=cachegroup", cgType);
+	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: cgType.response[0].id});
+	code += checkAlerts("POST", "cachegroups", newCG);
+	code += checkAlerts("GET", `cachegroups?id=${newCG.response.id}`, await client.getCacheGroups(newCG.response.id));
+	newCG.response.fallbackToClosest = !newCG.response.fallbackToClosest;
+	code += checkAlerts("PUT", `cachegroups/${newCG.response.id}`, await client.updateCacheGroup(newCG.response));
+
+	const newASN = await client.createASN({asn: 1, cachegroupId: newCG.response.id});
 	code += checkAlerts("POST", "asns", newASN);
 	code += checkAlerts("GET", "asns", await client.getASNs());
 	newASN.response.asn = 2;
@@ -65,11 +76,13 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", "types", await client.getTypes());
 	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
 
-	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(1, 1));
+	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(newCG.response.id, 1));
 	code += checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
-	code += checkAlerts("DELETE", "cachegroupparameters/{{Cache Group ID}}/{{Parameter ID}}", await client.removeParameterFromCacheGroup(1, 1));
+	code += checkAlerts("DELETE", "cachegroupparameters/{{Cache Group ID}}/{{Parameter ID}}", await client.removeParameterFromCacheGroup(newCG.response.id, 1));
 
 	code += checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
+
+	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
 	return code;
 }
 

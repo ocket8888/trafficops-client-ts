@@ -6,7 +6,7 @@ import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccoun
 import { APIError, ClientError } from "./api.error.js";
 import { getAPICapabilities } from "./api_capabilities.js";
 import { createASN, deleteASN, getASNs, updateASN } from "./asn.js";
-import { assignParameterToCacheGroup, getCacheGroupParameters, removeParameterFromCacheGroup } from "./cache_group.js";
+import { assignParameterToCacheGroup, createCacheGroup, deleteCacheGroup, getCacheGroupParameters, getCacheGroups, removeParameterFromCacheGroup, updateCacheGroup } from "./cache_group.js";
 import { cacheStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import { createParser } from "./util.js";
@@ -517,6 +517,10 @@ export class Client extends axios.Axios {
 	public updateASN = updateASN;
 
 	// Cache Groups
+	public getCacheGroups = getCacheGroups;
+	public createCacheGroup = createCacheGroup;
+	public updateCacheGroup = updateCacheGroup;
+	public deleteCacheGroup = deleteCacheGroup;
 	public getCacheGroupParameters = getCacheGroupParameters;
 	public assignParameterToCacheGroup = assignParameterToCacheGroup;
 	public removeParameterFromCacheGroup = removeParameterFromCacheGroup;

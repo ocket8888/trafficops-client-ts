@@ -1,6 +1,6 @@
-import type { APIResponse, RequestCacheGroupParameter, ResponseCacheGroupParameters } from "trafficops-types";
+import type { APIResponse, RequestCacheGroup, RequestCacheGroupParameter, ResponseCacheGroup, ResponseCacheGroupParameters } from "trafficops-types";
 
-import { ClientError } from "./api.error.js";
+import { APIError, ClientError } from "./api.error.js";
 import type { PaginationParams } from "./util";
 
 import type { Client } from "./index";
@@ -9,7 +9,7 @@ import type { Client } from "./index";
  * Options that affect the result set returned by
  * {@link getCacheGroupParameters}.
  */
-type Params = PaginationParams & {
+type CGPParams = PaginationParams & {
 	/**
 	 * Sets the order of sorting - ASCending or DESCending.
 	 *
@@ -35,7 +35,7 @@ type Params = PaginationParams & {
  * @param params Any and all optional settings to use in the request.
  * @returns The server's response.
  */
-export async function getCacheGroupParameters(this: Client, params?: Params): Promise<APIResponse<ResponseCacheGroupParameters>> {
+export async function getCacheGroupParameters(this: Client, params?: CGPParams): Promise<APIResponse<ResponseCacheGroupParameters>> {
 	return (await this.apiGet<APIResponse<ResponseCacheGroupParameters>>("cachegroupparameters", params)).data;
 }
 
@@ -172,4 +172,151 @@ export async function removeParameterFromCacheGroup(this: Client, cacheGroupOrCG
 		({cacheGroupId, parameterId} = cacheGroupOrCGP);
 	}
 	return (await this.apiDelete<APIResponse<undefined>>(`cachegroupparameters/${cacheGroupId}/${parameterId}`)).data;
+}
+
+/**
+ * Options that affect the result set returned by {@link getCacheGroups}.
+ */
+type Params = PaginationParams & {
+	/** Filter results to those having this ID. */
+	id?: number;
+	/** Filter results to those Cache Groups having this name. */
+	name?: string;
+	/** Order results by the specified property (not all properties eligible). */
+	orderby?: "id" | "name" | "topology" | "type" | "lastUpdated";
+	/**
+	 * Sets the ordering direction; ASCending or DESCending.
+	 *
+	 * @default "asc"
+	 */
+	sortOrder?: "asc" | "desc";
+	/** Filter results to Cache Groups used in the named Topology. */
+	topology?: string;
+	/**
+	 * Filter results to those Cache Groups having the Type identified by this
+	 * Type ID.
+	 */
+	type?: number;
+};
+
+/**
+ * Retrieves a single Cache Group.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param identifier The name or ID of a Cache Group. The only result returned
+ * will be the single Cache Group that has the given identifier.
+ * @param params Any and all optional settings to use in the request.
+ * @returns The server's response.
+ * @throws {APIError} If Traffic Ops returns no Cache Groups matching the given
+ * identifier, or somehow returns more than one.
+ */
+export async function getCacheGroups(this: Client, identifier: number | string, params?: Params): Promise<APIResponse<ResponseCacheGroup>>;
+/**
+ * Retrieves Cache Groups.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings to use in the request.
+ * @returns The server's response.
+ */
+export async function getCacheGroups(this: Client, params?: Params): Promise<APIResponse<Array<ResponseCacheGroup>>>;
+/**
+ * Retrieves Cache Groups.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param paramsOrIdentifier If requesting a single Cache Group, this must be
+ * the identifier thereof. If not, this may be any and all optional settings to
+ * use in the request.
+ * @param params Any and all optional settings to use in the request.
+ * @returns The server's response.
+ */
+export async function getCacheGroups(this: Client, paramsOrIdentifier?: string | number | Params, params?: Params): Promise<APIResponse<Array<ResponseCacheGroup>|ResponseCacheGroup>> {
+	let p;
+	let single = false;
+	switch (typeof(paramsOrIdentifier)) {
+		case "string":
+			p = {...params, name: paramsOrIdentifier};
+			single = true;
+			break;
+		case "number":
+			p = {...params, id: paramsOrIdentifier};
+			single = true;
+			break;
+		default:
+			p = paramsOrIdentifier;
+	}
+	const resp = await this.apiGet<APIResponse<Array<ResponseCacheGroup>>>("cachegroups", p);
+	if (single) {
+		const len = resp.data.response.length;
+		if (len !== 1) {
+			throw new APIError(`requesting a single Cache Group by identifier '${paramsOrIdentifier}' yielded ${len} results`, resp.status, resp.headers);
+		}
+		return {...resp.data, response: resp.data.response[0]};
+	}
+	return resp.data;
+}
+
+/**
+ * Creates a new Cache Group.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cg The Cache Group to be created.
+ * @returns The server's response.
+ */
+export async function createCacheGroup(this: Client, cg: RequestCacheGroup): Promise<APIResponse<ResponseCacheGroup>> {
+	return (await this.apiPost<APIResponse<ResponseCacheGroup>>("cachegroups", cg)).data;
+}
+
+/**
+ * Deletes a Cache Group.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cg The Cache Group to be deleted, or its ID.
+ * @returns The server's response.
+ */
+export async function deleteCacheGroup(this: Client, cg: ResponseCacheGroup | number): Promise<APIResponse<undefined>> {
+	const id = typeof(cg) === "number" ? cg : cg.id;
+	return (await this.apiDelete<APIResponse<undefined>>(`cachegroups/${id}`)).data;
+}
+
+/**
+ * Replaces an existing Cache Group with the provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cg The Cache Group as desired to exist.
+ * @returns The server's response.
+ */
+export async function updateCacheGroup(this: Client, cg: ResponseCacheGroup): Promise<APIResponse<ResponseCacheGroup>>;
+/**
+ * Replaces an existing Cache Group with the provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param id The ID of the Cache Group being updated.
+ * @param cg The new definition of the Cache Group identified by `id`.
+ * @returns The server's response.
+ */
+export async function updateCacheGroup(this: Client, id: number, cg: RequestCacheGroup): Promise<APIResponse<ResponseCacheGroup>>;
+/**
+ * Replaces an existing Cache Group with the provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cgOrID The ID of the Cache Group being updated, or the entire
+ * definition. If this is an ID, `cg` is required.
+ * @param cg The new definition of the Cache Group identified by `cgOrID`. If
+ * `cgOrID` wasn't passed as an ID, this is ignored.
+ * @returns The server's response.
+ */
+export async function updateCacheGroup(this: Client, cgOrID: number | ResponseCacheGroup, cg?: RequestCacheGroup): Promise<APIResponse<ResponseCacheGroup>> {
+	let payload;
+	let id;
+	if (typeof(cgOrID) === "number") {
+		if (!cg) {
+			throw new ClientError("updateCacheGroup", "cg");
+		}
+		id = cgOrID;
+		payload = cg;
+	} else {
+		({id} = cgOrID);
+		payload = cgOrID;
+	}
+	return (await this.apiPut<APIResponse<ResponseCacheGroup>>(`cachegroups/${id}`, payload)).data;
 }
