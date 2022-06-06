@@ -10,17 +10,29 @@ import type { Client } from "./index";
  */
 type Params = PaginationParams & {
 	/**
+	 * Filter results to only the one Type with this ID.
+	 */
+	id?: number;
+	/**
+	 * Filter results to only the one Type with this name.
+	 */
+	name?: string;
+	/**
 	 * Sets which property of the response objects is used for sorting.
 	 *
 	 * @default "id"
 	 */
-	 orderby: keyof TypeFromResponse;
+	orderby?: keyof TypeFromResponse;
 	/**
 	 * Sets the order of sorting - ASCending or DESCending.
 	 *
 	 * @default "asc"
 	 */
-	sortOrder: "asc" | "desc";
+	sortOrder?: "asc" | "desc";
+	/**
+	 * Filter results to only those Types that have this `useInTable` property.
+	 */
+	useInTable?: string;
 };
 
 /**
