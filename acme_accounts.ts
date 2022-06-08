@@ -72,7 +72,11 @@ export async function deleteACMEAccount(this: Client, email: string, provider: s
  * has any meaning/purpose when `accountOrEmail` was given as an email address.
  * @returns The server's response.
  */
-export async function deleteACMEAccount(this: Client, accountOrEmail: ACMEAccount | string, provider?: string): Promise<APIResponse<undefined>> {
+export async function deleteACMEAccount(
+	this: Client,
+	accountOrEmail: ACMEAccount | string,
+	provider?: string
+): Promise<APIResponse<undefined>> {
 	let email: string;
 	let prvdr: string;
 	if (typeof(accountOrEmail) === "string") {

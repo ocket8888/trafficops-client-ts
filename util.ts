@@ -26,7 +26,7 @@ export type PaginationParams = {
 	/**
 	 * Limit the number of results returned.
 	 */
-	 limit?: number;
+	limit?: number;
 };
 
 /**

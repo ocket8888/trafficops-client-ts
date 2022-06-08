@@ -1,4 +1,10 @@
-import type { APIResponse, RequestCacheGroup, RequestCacheGroupParameter, ResponseCacheGroup, ResponseCacheGroupParameters } from "trafficops-types";
+import type {
+	APIResponse,
+	RequestCacheGroup,
+	RequestCacheGroupParameter,
+	ResponseCacheGroup,
+	ResponseCacheGroupParameters
+} from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
 import type { PaginationParams } from "./util";
@@ -54,7 +60,10 @@ export async function getCacheGroupParameters(this: Client, params?: CGPParams):
  * object.
  * @returns The server's response.
  */
-export async function assignParameterToCacheGroup(this: Client, ...pairs: ([number, number]|RequestCacheGroupParameter)[]): Promise<APIResponse<Array<RequestCacheGroupParameter>>>;
+export async function assignParameterToCacheGroup(
+	this: Client,
+	...pairs: ([number, number]|RequestCacheGroupParameter)[]
+): Promise<APIResponse<Array<RequestCacheGroupParameter>>>;
 /**
  * Creates an association between a Cache Group and a Parameter.
  *
@@ -69,7 +78,11 @@ export async function assignParameterToCacheGroup(this: Client, ...pairs: ([numb
  * Cache Group identified by `cacheGroup`.
  * @returns The server's response.
  */
-export async function assignParameterToCacheGroup(this: Client, cacheGroup: number, parameter: number): Promise<APIResponse<Array<RequestCacheGroupParameter>>>;
+export async function assignParameterToCacheGroup(
+	this: Client,
+	cacheGroup: number,
+	parameter: number
+): Promise<APIResponse<Array<RequestCacheGroupParameter>>>;
 /**
  * Creates one or more associations between Cache Groups and Parameters.
  *
@@ -90,7 +103,12 @@ export async function assignParameterToCacheGroup(this: Client, cacheGroup: numb
  * when `cacheGoupOrPair` and `parameters` were both given as IDs.
  * @returns The server's response.
  */
-export async function assignParameterToCacheGroup(this: Client, cacheGroupOrPair: [number, number] | RequestCacheGroupParameter | number, parameter?: [number, number] | RequestCacheGroupParameter | number, ...pairs: ([number, number]|RequestCacheGroupParameter)[]): Promise<APIResponse<Array<RequestCacheGroupParameter>>> {
+export async function assignParameterToCacheGroup(
+	this: Client,
+	cacheGroupOrPair: [number, number] | RequestCacheGroupParameter | number,
+	parameter?: [number, number] | RequestCacheGroupParameter | number,
+	...pairs: ([number, number]|RequestCacheGroupParameter)[]
+): Promise<APIResponse<Array<RequestCacheGroupParameter>>> {
 	let requests: Array<RequestCacheGroupParameter>;
 	if (typeof(cacheGroupOrPair) === "number") {
 		if (typeof(parameter) !== "number") {
@@ -160,7 +178,11 @@ export async function removeParameterFromCacheGroup(cacheGroupParameter: Request
  * the first argument instead.
  * @returns The server's response.
  */
-export async function removeParameterFromCacheGroup(this: Client, cacheGroupOrCGP: number | RequestCacheGroupParameter, parameter?: number): Promise<APIResponse<undefined>> {
+export async function removeParameterFromCacheGroup(
+	this: Client,
+	cacheGroupOrCGP: number | RequestCacheGroupParameter,
+	parameter?: number
+): Promise<APIResponse<undefined>> {
 	let cacheGroupId, parameterId;
 	if (typeof(cacheGroupOrCGP) === "number") {
 		cacheGroupId = cacheGroupOrCGP;
@@ -182,7 +204,9 @@ type Params = PaginationParams & {
 	id?: number;
 	/** Filter results to those Cache Groups having this name. */
 	name?: string;
-	/** Order results by the specified property (not all properties eligible). */
+	/**
+	 * Order results by the specified property (not all properties eligible).
+	 */
 	orderby?: "id" | "name" | "topology" | "type" | "lastUpdated";
 	/**
 	 * Sets the ordering direction; ASCending or DESCending.
@@ -229,7 +253,11 @@ export async function getCacheGroups(this: Client, params?: Params): Promise<API
  * @param params Any and all optional settings to use in the request.
  * @returns The server's response.
  */
-export async function getCacheGroups(this: Client, paramsOrIdentifier?: string | number | Params, params?: Params): Promise<APIResponse<Array<ResponseCacheGroup>|ResponseCacheGroup>> {
+export async function getCacheGroups(
+	this: Client,
+	paramsOrIdentifier?: string | number | Params,
+	params?: Params
+): Promise<APIResponse<Array<ResponseCacheGroup>|ResponseCacheGroup>> {
 	let p;
 	let single = false;
 	switch (typeof(paramsOrIdentifier)) {
@@ -305,7 +333,11 @@ export async function updateCacheGroup(this: Client, id: number, cg: RequestCach
  * `cgOrID` wasn't passed as an ID, this is ignored.
  * @returns The server's response.
  */
-export async function updateCacheGroup(this: Client, cgOrID: number | ResponseCacheGroup, cg?: RequestCacheGroup): Promise<APIResponse<ResponseCacheGroup>> {
+export async function updateCacheGroup(
+	this: Client,
+	cgOrID: number | ResponseCacheGroup,
+	cg?: RequestCacheGroup
+): Promise<APIResponse<ResponseCacheGroup>> {
 	let payload;
 	let id;
 	if (typeof(cgOrID) === "number") {

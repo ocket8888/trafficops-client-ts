@@ -75,7 +75,14 @@ type DateLike = DateString | number | Date;
  * @param params Additional query string parameters to send in the request.
  * @returns The server's response.
  */
-export async function cacheStats(this: Client, cdn: string, metricType: "connections" | "bandwidth" | "maxkbps", startDate: DateLike, endDate: DateLike, params: Params & {exclude: "series"}): Promise<APIResponse<{summary: CacheStatsSummary}>>;
+export async function cacheStats(
+	this: Client,
+	cdn: string,
+	metricType: "connections" | "bandwidth" | "maxkbps",
+	startDate: DateLike,
+	endDate: DateLike,
+	params: Params & {exclude: "series"}
+): Promise<APIResponse<{summary: CacheStatsSummary}>>;
 /**
  * Gets cache statistics for a specific CDN, excluding a summary of the data
  * returned.
@@ -88,7 +95,14 @@ export async function cacheStats(this: Client, cdn: string, metricType: "connect
  * @param params Additional query string parameters to send in the request.
  * @returns The server's response.
  */
-export async function cacheStats(this: Client, cdn: string, metricType: "connections" | "bandwidth" | "maxkbps", startDate: DateLike, endDate: DateLike, params: Params & {exclude: "summary"}): Promise<APIResponse<{series: CacheStatsSeries}>>;
+export async function cacheStats(
+	this: Client,
+	cdn: string,
+	metricType: "connections" | "bandwidth" | "maxkbps",
+	startDate: DateLike,
+	endDate: DateLike,
+	params: Params & {exclude: "summary"}
+): Promise<APIResponse<{series: CacheStatsSeries}>>;
 /**
  * Gets cache statistics for a specific CDN.
  *
@@ -100,7 +114,14 @@ export async function cacheStats(this: Client, cdn: string, metricType: "connect
  * @param params Additional query string parameters to send in the request.
  * @returns The server's response.
  */
-export async function cacheStats(this: Client, cdn: string, metricType: "connections" | "bandwidth" | "maxkbps", startDate: DateLike, endDate: DateLike, params?: Params & {exclude?: undefined}): Promise<APIResponse<{series: CacheStatsSeries; summary: CacheStatsSummary}>>;
+export async function cacheStats(
+	this: Client,
+	cdn: string,
+	metricType: "connections" | "bandwidth" | "maxkbps",
+	startDate: DateLike,
+	endDate: DateLike,
+	params?: Params & {exclude?: undefined}
+): Promise<APIResponse<{series: CacheStatsSeries; summary: CacheStatsSummary}>>;
 /**
  * Gets cache statistics for a specific CDN.
  *

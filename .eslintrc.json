@@ -221,6 +221,16 @@
 			"error",
 			"unix"
 		],
+		"max-len": [
+			"error",
+			{
+				"code": 140,
+				"comments": 80,
+				"ignoreTrailingComments": true,
+				"ignoreRegExpLiterals": true,
+				"ignoreTemplateLiterals": true
+			}
+		],
 		"no-bitwise": "off",
 		"no-duplicate-case": "error",
 		"no-duplicate-imports": "error",

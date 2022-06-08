@@ -86,7 +86,11 @@ async function main(): Promise<number> {
 
 	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(newCG.response.id, 1));
 	code += checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
-	code += checkAlerts("DELETE", "cachegroupparameters/{{Cache Group ID}}/{{Parameter ID}}", await client.removeParameterFromCacheGroup(newCG.response.id, 1));
+	code += checkAlerts(
+		"DELETE",
+		"cachegroupparameters/{{Cache Group ID}}/{{Parameter ID}}",
+		await client.removeParameterFromCacheGroup(newCG.response.id, 1)
+	);
 
 	code += checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 

@@ -63,7 +63,11 @@ export async function getTypes(this: Client, params?: Params): Promise<APIRespon
  * ignored if options are set by `paramsOrIdentifier`.
  * @returns The server's response.
  */
-export async function getTypes(this: Client, paramsOrIdentifier?: number  | string | Params, params?: Params): Promise<APIResponse<Array<TypeFromResponse>|TypeFromResponse>> {
+export async function getTypes(
+	this: Client,
+	paramsOrIdentifier?: number  | string | Params,
+	params?: Params
+): Promise<APIResponse<Array<TypeFromResponse>|TypeFromResponse>> {
 	let p;
 	let single = false;
 	switch (typeof(paramsOrIdentifier)) {
@@ -97,7 +101,10 @@ export async function getTypes(this: Client, paramsOrIdentifier?: number  | stri
  * `"server"` may be created; all other types are "immutable*†¹".
  * @returns The server's response.
  */
-export async function createType(this: Client, type: RequestType & {useInTable: "server"}): Promise<APIResponse<TypeFromResponse & {useInTable: "server"}>> {
+export async function createType(
+	this: Client,
+	type: RequestType & {useInTable: "server"}
+): Promise<APIResponse<TypeFromResponse & {useInTable: "server"}>> {
 	return (await this.apiPost<APIResponse<TypeFromResponse & {useInTable: "server"}>>("types", type)).data;
 }
 

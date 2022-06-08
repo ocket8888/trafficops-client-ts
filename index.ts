@@ -6,7 +6,15 @@ import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccoun
 import { APIError, ClientError } from "./api.error.js";
 import { getAPICapabilities, getCapabilities } from "./api_capabilities.js";
 import { createASN, deleteASN, getASNs, updateASN } from "./asn.js";
-import { assignParameterToCacheGroup, createCacheGroup, deleteCacheGroup, getCacheGroupParameters, getCacheGroups, removeParameterFromCacheGroup, updateCacheGroup } from "./cache_group.js";
+import {
+	assignParameterToCacheGroup,
+	createCacheGroup,
+	deleteCacheGroup,
+	getCacheGroupParameters,
+	getCacheGroups,
+	removeParameterFromCacheGroup,
+	updateCacheGroup
+} from "./cache_group.js";
 import { cacheStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import { createParser } from "./util.js";
@@ -98,12 +106,15 @@ interface QueryParams {
 	[param: string | symbol]: string | number | boolean;
 };
 
+/* eslint-disable max-len */
 /**
  * A Traffic Ops API client. Instances of this class have a method for every
  * operation one could want to perform using the Traffic Ops API. For details,
- * refer to the [official TO API documentation](https://traffic-control-cdn.readthedocs.io/en/latest/api/index.html).
+ * refer to the
+ * [official TO API documentation](https://traffic-control-cdn.readthedocs.io/en/latest/api/index.html).
  */
 export class Client extends axios.Axios {
+/* eslint-enable max-len */
 	private static readonly DEFAULT_UA = `${pkgInfo.name}/${pkgInfo.version}`;
 	public readonly version = VERSION;
 
@@ -287,7 +298,7 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	 public async apiPost<T>(path: string, data: object, dateKeys: readonly string[] = DEFAULT_DATE_KEYS): Promise<AxiosResponse<T>> {
+	public async apiPost<T>(path: string, data: object, dateKeys: readonly string[] = DEFAULT_DATE_KEYS): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "POST", undefined, data, dateKeys);
 	}
 
@@ -303,7 +314,11 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	 public async apiDelete<T>(path: string, params?: QueryParams, dateKeys: readonly string[] = DEFAULT_DATE_KEYS): Promise<AxiosResponse<T>> {
+	public async apiDelete<T>(
+		path: string,
+		params?: QueryParams,
+		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
+	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "DELETE", params, dateKeys);
 	}
 
@@ -319,10 +334,15 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	 public async apiPut<T>(path: string, data: object, dateKeys: readonly string[] = DEFAULT_DATE_KEYS): Promise<AxiosResponse<T>> {
+	public async apiPut<T>(
+		path: string,
+		data: object,
+		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
+	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "PUT", undefined, data, dateKeys);
 	}
 
+	/* eslint-disable max-len */
 	/**
 	 * Creates a full request URL from the given request path and the client's
 	 * `baseURL` and `version`.
@@ -338,6 +358,7 @@ export class Client extends axios.Axios {
 	 * @returns A full request URL.
 	 */
 	private makeURL(path: string): string {
+	/* eslint-enable max-len */
 		path = path.replace(/^\/+/, "");
 		return `${this.baseURL}api/${this.version}/${path}`;
 	}
@@ -378,7 +399,11 @@ export class Client extends axios.Axios {
 	 * @throws {APIError} if the client is configured to throw error-level
 	 * Alerts as errors and `as` contains at least one error-level alert.
 	 */
-	protected handleAlerts(as: Array<Alert> | AxiosResponse<{alerts?: Array<Alert>}> | undefined, code?: number, headers?: AxiosResponseHeaders): void {
+	protected handleAlerts(
+		as: Array<Alert> | AxiosResponse<{alerts?: Array<Alert>}> | undefined,
+		code?: number,
+		headers?: AxiosResponseHeaders
+	): void {
 		let alerts;
 		let respCode;
 		let hdrs;
@@ -469,7 +494,11 @@ export class Client extends axios.Axios {
 		this.handleAlerts(resp.data.alerts, resp.status, resp.headers);
 		const cookie = (resp.headers["set-cookie"] ?? []).find(c=>c.startsWith("mojolicious="));
 		if (!cookie) {
-			throw new APIError("Traffic Ops did not set the mojolicious authentication cookie in login response", resp.status, resp.headers);
+			throw new APIError(
+				"Traffic Ops did not set the mojolicious authentication cookie in login response",
+				resp.status,
+				resp.headers
+			);
 		}
 		this.cookie = cookie;
 	}
@@ -490,10 +519,15 @@ export class Client extends axios.Axios {
 	 */
 	public async ping(): Promise<AxiosResponse<PingResponse | APIResponse<undefined>>> {
 		const url = this.makeURL("ping");
-		// This is HTTP standard, should not be modified to fit this project's
-		// naming conventions.
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		const config = {headers: {"User-Agent": this.uaString}, method: "GET", transformResponse: [(x: string): object => JSON.parse(x)], url};
+		const config = {
+			// This is HTTP standard, should not be modified to fit this
+			// project's naming conventions.
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			headers: {"User-Agent": this.uaString},
+			method: "GET",
+			transformResponse: [(x: string): object => JSON.parse(x)],
+			url
+		};
 		return this.request<PingResponse | APIResponse<undefined>>(config);
 	}
 

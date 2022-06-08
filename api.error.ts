@@ -22,7 +22,9 @@ export class ClientError extends Error {
 	 *
 	 * @example
 	 * console.log((new ClientError("getFoos", "barID", "testquest")).message)
-	 * // Output: invalid call signature to getFoos - 'barID', and 'testquest' must be given
+	 * // Output:
+	 * // invalid call signature to getFoos - 'barID', and 'testquest' must be
+	 * // given
 	 *
 	 * @param methodName
 	 * @param missingParams
@@ -50,8 +52,9 @@ export class ClientError extends Error {
 export class APIError extends Error {
 
 	/**
-	 * The HTTP response status code - this will be `0` if it wasn't given in the constructor.
-	*/
+	 * The HTTP response status code - this will be `0` if it wasn't given in
+	 * the constructor.
+	 */
 	public readonly responseCode: number;
 
 	/**
@@ -67,7 +70,11 @@ export class APIError extends Error {
 	constructor(message: string, responseCode?: number, headers?: AxiosResponseHeaders);
 	constructor(alerts: Array<Alert> | (Alert & {level: AlertLevel.ERROR}), responseCode?: number, headers?: AxiosResponseHeaders);
 	constructor(response: AxiosResponse<APIResponse<unknown>>);
-	constructor(mar: string | Array<Alert> | (Alert & {level: AlertLevel.ERROR}) | AxiosResponse<APIResponse<unknown>>, responseCode?: number, headers?: AxiosResponseHeaders) {
+	constructor(
+		mar: string | Array<Alert> | (Alert & {level: AlertLevel.ERROR}) | AxiosResponse<APIResponse<unknown>>,
+		responseCode?: number,
+		headers?: AxiosResponseHeaders
+	) {
 		let msg;
 		let code;
 		let hdrs;
