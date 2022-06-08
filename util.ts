@@ -2,7 +2,7 @@
  * Query-string parameters that control pagination, which are supported by a
  * great many endpoints.
  */
-export type PaginationParams = {
+export type PaginationParams = ({
 	/**
 	 * Limit the number of results returned. When `page` is defined, this
 	 * instead sets the length of the "pages".
@@ -27,6 +27,13 @@ export type PaginationParams = {
 	 * Limit the number of results returned.
 	 */
 	limit?: number;
+}) & {
+	/**
+	 * Sets the order of sorting - ASCending or DESCending.
+	 *
+	 * @default "asc"
+	 */
+	 sortOrder?: "asc" | "desc";
 };
 
 /**

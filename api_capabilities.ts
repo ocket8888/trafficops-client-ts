@@ -46,12 +46,6 @@ type CapabilityParams = PaginationParams & {
 	 * @default "name"
 	 */
 	orderby?: "name";
-	/**
-	 * Sets the direction of ordering; ASCending or DESCending.
-	 *
-	 * @default "asc"
-	 */
-	sortOrder?: "asc" | "desc";
 };
 
 /**

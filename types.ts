@@ -25,12 +25,6 @@ type Params = PaginationParams & {
 	 */
 	orderby?: keyof TypeFromResponse;
 	/**
-	 * Sets the order of sorting - ASCending or DESCending.
-	 *
-	 * @default "asc"
-	 */
-	sortOrder?: "asc" | "desc";
-	/**
 	 * Filter results to only those Types that have this `useInTable` property.
 	 */
 	useInTable?: string;

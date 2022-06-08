@@ -17,12 +17,6 @@ import type { Client } from "./index";
  */
 type CGPParams = PaginationParams & {
 	/**
-	 * Sets the order of sorting - ASCending or DESCending.
-	 *
-	 * @default "asc"
-	 */
-	sortOrder?: "asc" | "desc";
-	/**
 	 * Sets which property of the response objects is used for sorting.
 	 *
 	 * @default "cachegroup"
@@ -208,12 +202,6 @@ type Params = PaginationParams & {
 	 * Order results by the specified property (not all properties eligible).
 	 */
 	orderby?: "id" | "name" | "topology" | "type" | "lastUpdated";
-	/**
-	 * Sets the ordering direction; ASCending or DESCending.
-	 *
-	 * @default "asc"
-	 */
-	sortOrder?: "asc" | "desc";
 	/** Filter results to Cache Groups used in the named Topology. */
 	topology?: string;
 	/**

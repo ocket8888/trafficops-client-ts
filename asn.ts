@@ -18,8 +18,6 @@ type Params = {
 	 * Order the returned results according to the specified response property.
 	 */
 	orderby?: keyof ResponseASN;
-	/** sort in "asc" (ascending) or "desc" (descending) order */
-	sortOrder?: "asc" | "desc";
 } & PaginationParams;
 
 /**
