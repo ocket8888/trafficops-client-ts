@@ -52,6 +52,7 @@ async function main(): Promise<number> {
 	code += checkAlerts("DELETE", "acme_accounts/{{provider}}/{{email}}", await client.deleteACMEAccount(newAcct.response));
 
 	code += checkAlerts("GET", "api_capabilities", await client.getAPICapabilities());
+	code += checkAlerts("GET", "capabilities", await client.getCapabilities());
 
 	const cgType = await client.getTypes({useInTable: "cachegroup"});
 	if (cgType.response.length < 1) {

@@ -4,7 +4,7 @@ import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIRespon
 import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
 import { APIError, ClientError } from "./api.error.js";
-import { getAPICapabilities } from "./api_capabilities.js";
+import { getAPICapabilities, getCapabilities } from "./api_capabilities.js";
 import { createASN, deleteASN, getASNs, updateASN } from "./asn.js";
 import { assignParameterToCacheGroup, createCacheGroup, deleteCacheGroup, getCacheGroupParameters, getCacheGroups, removeParameterFromCacheGroup, updateCacheGroup } from "./cache_group.js";
 import { cacheStats } from "./stats.js";
@@ -509,6 +509,7 @@ export class Client extends axios.Axios {
 
 	// "API Capabilities"
 	public getAPICapabilities = getAPICapabilities;
+	public getCapabilities = getCapabilities;
 
 	// ASNs
 	public createASN = createASN;
