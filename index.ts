@@ -248,7 +248,7 @@ export class Client extends axios.Axios {
 	 * should be converted from their string native format to a Date.
 	 * @returns  The server's response.
 	 */
-	private async apiRequest<T>(
+	private async apiRequest<T = APIResponse<undefined>>(
 		path: string,
 		method: string,
 		params?: QueryParams,
@@ -283,7 +283,7 @@ export class Client extends axios.Axios {
 		params?: QueryParams,
 		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
 	): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "GET", params, undefined, dateKeys);
+		return this.apiRequest<T>(path, "GET", params, undefined, dateKeys);
 	}
 
 	/**
@@ -298,7 +298,11 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiPost<T>(path: string, data: object, dateKeys: readonly string[] = DEFAULT_DATE_KEYS): Promise<AxiosResponse<T>> {
+	public async apiPost<T = APIResponse<undefined>>(
+		path: string,
+		data: object,
+		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
+	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "POST", undefined, data, dateKeys);
 	}
 
@@ -314,7 +318,7 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiDelete<T>(
+	public async apiDelete<T = APIResponse<undefined>>(
 		path: string,
 		params?: QueryParams,
 		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
@@ -334,7 +338,7 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiPut<T>(
+	public async apiPut<T = APIResponse<undefined>>(
 		path: string,
 		data: object,
 		dateKeys: readonly string[] = DEFAULT_DATE_KEYS

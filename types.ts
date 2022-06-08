@@ -23,7 +23,7 @@ type Params = PaginationParams & {
 	 *
 	 * @default "id"
 	 */
-	orderby?: keyof TypeFromResponse;
+	orderby?: Exclude<keyof TypeFromResponse, "lastUpdated">;
 	/**
 	 * Filter results to only those Types that have this `useInTable` property.
 	 */
