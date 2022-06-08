@@ -3,6 +3,8 @@ import { type Alert, errors } from "trafficops-types";
 
 import { Client } from "./index.js";
 
+const erroredRequests = new Set<string>();
+
 /**
  * Small convenience function that checks if a response object has any error
  * Alerts, and returns a value that can be added to the return code to
@@ -14,10 +16,15 @@ import { Client } from "./index.js";
  * @returns `1` if there were errors in the `chkMe` Alerts, `0` otherwise.
  */
 function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<Alert>} | null | undefined): 1 | 0 {
-	console.log(method, `/${endpoint.replace(/^\/+/, "")}`);
+	endpoint = `/${endpoint.replace(/^\/+/, "")}`;
+	console.log(method, endpoint);
 	console.log(chkMe);
 	console.log();
-	return chkMe && chkMe.alerts && chkMe.alerts.length > 0 && errors(chkMe.alerts).length > 0 ? 1 : 0;
+	const errored = chkMe && chkMe.alerts && chkMe.alerts.length > 0 && errors(chkMe.alerts).length > 0 ? 1 : 0;
+	if (errored) {
+		erroredRequests.add(`${method} ${endpoint}`);
+	}
+	return errored;
 }
 
 /**
@@ -84,6 +91,14 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 
 	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
+
+	if (erroredRequests.size > 0) {
+		console.error();
+		console.error("the following requests failed:");
+		for (const r of erroredRequests) {
+			console.error(`\t${r}`);
+		}
+	}
 	return code;
 }
 
