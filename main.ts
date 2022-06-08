@@ -84,17 +84,24 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", "types", await client.getTypes());
 	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
 
-	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(newCG.response.id, 1));
+	const newParam = await client.createParameter({configFile: "foo", name: "test", secure: false, value: "quest"});
+	code += checkAlerts("POST", "parameters", newParam);
+	code += checkAlerts("GET", "parameters", await client.getParameters());
+	newParam.response.value = "bar";
+	code += checkAlerts("PUT", `parameters/${newParam.response.id}`, await client.updateParameter(newParam.response));
+
+	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(newCG.response.id, newParam.response.id));
 	code += checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
 	code += checkAlerts(
 		"DELETE",
 		"cachegroupparameters/{{Cache Group ID}}/{{Parameter ID}}",
-		await client.removeParameterFromCacheGroup(newCG.response.id, 1)
+		await client.removeParameterFromCacheGroup(newCG.response.id, newParam.response.id)
 	);
 
 	code += checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 
 	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
+	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
 
 	if (erroredRequests.size > 0) {
 		console.error();
