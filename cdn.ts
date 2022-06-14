@@ -1,4 +1,4 @@
-import type { APIResponse, CDNQueueRequest, CDNQueueResponse, RequestCDN, ResponseCDN } from "trafficops-types";
+import type { APIResponse, CDN, CDNQueueRequest, CDNQueueResponse, RequestCDN, ResponseCDN } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
 import type { PaginationParams } from "./util";
@@ -190,4 +190,91 @@ export async function dequeueCDNUpdates(
 	params?: QueueParams
 ): Promise<APIResponse<CDNQueueResponse>> {
 	return this.queueCDNUpdates(cdn, "dequeue", params);
+}
+
+/**
+ * The type of responses from endpoints that return formless JSON "blobs"
+ * representing CDN configuration.
+ */
+type CDNBlobConfig = APIResponse<Record<string, unknown>>;
+
+/**
+ * Gets the Monitoring configuration of the requested CDN.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cdn Either the CDN for which to get Monitoring configuration, or its
+ * name.
+ * @returns An arbitrary mapping of monitoring configuration data. This endpoint
+ * is largely unversioned and has a highly unstable structure, so it must be
+ * manually inspected rather than explained here or in the typing. It is highly
+ * suggested that `noUncheckedIndexedAccess` be used for this reason.
+ */
+export async function getMonitoringConfiguration(this: Client, cdn: CDN | string): Promise<CDNBlobConfig> {
+	const name = typeof(cdn) === "string" ? cdn : cdn.name;
+	return (await this.apiGet<CDNBlobConfig>(`cdns/${name}/configs/monitoring`)).data;
+}
+
+/**
+ * Gets the *currently stored* Snapshot of the requested CDN. To get the current
+ * *Snapshot state* of the CDN, use {@link getSnapshotState}.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cdn Either the CDN for which to get a Snapshot, or its name.
+ * @returns An arbitrary mapping of monitoring configuration data. This endpoint
+ * is largely unversioned and has a highly unstable structure, so it must be
+ * manually inspected rather than explained here or in the typing. It is highly
+ * suggested that `noUncheckedIndexedAccess` be used for this reason.
+ */
+export async function getSnapshot(this: Client, cdn: CDN | string): Promise<CDNBlobConfig> {
+	const name = typeof(cdn) === "string" ? cdn : cdn.name;
+	return (await this.apiGet<CDNBlobConfig>(`cdns/${name}/snapshot`)).data;
+}
+
+/**
+ * Gets the *current state* of the requested CDN as a Snapshot, i.e. what the
+ * stored Snapshot would become if {@link_takeSnapshot} were called on it at the
+ * moment this function is called. To get the *currently stored* Snapshot in use
+ * by the CDN, use {@link getSnapshot}.
+ *
+ * Note that this does **not** show the current state of the monitoring
+ * configuration - which cannot be inspected - but taking Snapshots **does
+ * change the monitoring configuration!**
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cdn Either the CDN for which to get a Snapshot, or its name.
+ * @returns An arbitrary mapping of "snapshot" data. This endpoint is largely
+ * unversioned and has a highly unstable structure, so it must be manually
+ * inspected rather than explained here or in the typing. It is highly suggested
+ * that `noUncheckedIndexedAccess` be used for this reason.
+ */
+export async function getSnapshotState(this: Client, cdn: CDN | string): Promise<CDNBlobConfig> {
+	const name = typeof(cdn) === "string" ? cdn : cdn.name;
+	return (await this.apiGet<CDNBlobConfig>(`cdns/${name}/snapshot/new`)).data;
+}
+
+/**
+ * Performs a CDN Snapshot *which also updates the Monitoring configuration!*
+ * This effectively replaces the output of {@link getSnapshot} with the output
+ * of {@link getSnapshotState}.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cdn Either the CDN for which a Snapshot will be taken, or its name or
+ * ID.
+ * @returns Only a success message - in violation of the API rules, the
+ * `response` property contains the success message rather than any
+ * success-level alert.
+ */
+export async function takeSnapshot(this: Client, cdn: CDN | string | number): Promise<APIResponse<"SUCCESS">> {
+	let params;
+	switch (typeof(cdn)) {
+		case "number":
+			params = {cdnID: cdn};
+			break;
+		case "string":
+			params = {cdn};
+			break;
+		default:
+			params = {cdn: cdn.name};
+	}
+	return (await this.apiPut<APIResponse<"SUCCESS">>("snapshot", {}, params)).data;
 }

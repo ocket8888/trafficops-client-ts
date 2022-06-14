@@ -17,7 +17,18 @@ import {
 	removeParameterFromCacheGroup,
 	updateCacheGroup
 } from "./cache_group.js";
-import { createCDN, deleteCDN, dequeueCDNUpdates, getCDNs, queueCDNUpdates, updateCDN } from "./cdn.js";
+import {
+	createCDN,
+	deleteCDN,
+	dequeueCDNUpdates,
+	getCDNs,
+	getMonitoringConfiguration,
+	getSnapshot,
+	getSnapshotState,
+	queueCDNUpdates,
+	takeSnapshot,
+	updateCDN
+} from "./cdn.js";
 import { createParameter, deleteParameter, getParameters, updateParameter } from "./profile.js";
 import { cacheStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
@@ -581,6 +592,10 @@ export class Client extends axios.Axios {
 	public updateCDN = updateCDN;
 	public queueCDNUpdates = queueCDNUpdates;
 	public dequeueCDNUpdates = dequeueCDNUpdates;
+	public getSnapshot = getSnapshot;
+	public getSnapshotState = getSnapshotState;
+	public getMonitoringConfiguration = getMonitoringConfiguration;
+	public takeSnapshot = takeSnapshot;
 
 	// Profiles and Parameters
 	public getParameters = getParameters;

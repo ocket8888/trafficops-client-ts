@@ -110,6 +110,11 @@ async function main(): Promise<number> {
 
 	code += checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 
+	code += checkAlerts("GET", "cdns/{{name}}/snapshot/new", await client.getSnapshotState(newCDN.response));
+	code += checkAlerts("PUT", "snapshot", await client.takeSnapshot(newCDN.response));
+	code += checkAlerts("GET", "cdns/{{name}}/snapshot", await client.getSnapshot(newCDN.response));
+	code += checkAlerts("GET", "cdns/{{name}}/configs/monitoring", await client.getMonitoringConfiguration(newCDN.response));
+
 	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
 	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
 	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
