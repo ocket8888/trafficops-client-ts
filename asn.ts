@@ -50,7 +50,7 @@ export async function createASN(this: Client, asn: RequestASN): Promise<APIRespo
  * @returns The server's response.
  */
 export async function deleteASN(this: Client, id: number): Promise<APIResponse<undefined>> {
-	return (await this.apiDelete<APIResponse<undefined>>(`asns/${id}`)).data;
+	return (await this.apiDelete(`asns/${id}`)).data;
 }
 
 /**

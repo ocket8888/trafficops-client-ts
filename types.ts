@@ -117,5 +117,5 @@ export async function deleteType(this: Client, t: number | (TypeFromResponse & {
 	} else {
 		({id} = t);
 	}
-	return (await this.apiDelete<APIResponse<undefined>>(`types/${id}`)).data;
+	return (await this.apiDelete(`types/${id}`)).data;
 }

@@ -91,5 +91,5 @@ export async function deleteACMEAccount(
 	}
 
 	const path = `acme_accounts/${encodeURIComponent(prvdr)}/${encodeURIComponent(email)}`;
-	return (await this.apiDelete<APIResponse<undefined>>(path)).data;
+	return (await this.apiDelete(path)).data;
 }
