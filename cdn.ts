@@ -1,4 +1,4 @@
-import type { APIResponse, RequestCDN, ResponseCDN } from "trafficops-types";
+import type { APIResponse, CDNQueueRequest, CDNQueueResponse, RequestCDN, ResponseCDN } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
 import type { PaginationParams } from "./util";
@@ -138,4 +138,56 @@ export async function createCDN(this: Client, cdn: RequestCDN): Promise<APIRespo
 export async function deleteCDN(this: Client, cdn: ResponseCDN | number): Promise<APIResponse<undefined>> {
 	const id = typeof(cdn) === "number" ? cdn : cdn.id;
 	return (await this.apiDelete(`cdns/${id}`)).data;
+}
+
+/**
+ * Options that can be used to affect the behavior of {@link queueCDNUpdates}.
+ */
+type QueueParams = {
+	/**
+	 * Limit the queue/dequeue changes to servers with the specified Profile.
+	 */
+	profile?: string;
+	/** Limit the queue/dequeue changes to servers with the specified Type. */
+	type?: string;
+};
+
+/**
+ * Queues or clears updates on servers within a CDN.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cdn Either the CDN within which updates will be queued/dequeued or its
+ * ID.
+ * @param action The action to perform - `"queue"` to queue updates, `"dequeue"`
+ * to clear them.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function queueCDNUpdates(
+	this: Client,
+	cdn: ResponseCDN | number,
+	action: "queue" | "dequeue" = "queue",
+	params?: QueueParams
+): Promise<APIResponse<CDNQueueResponse>> {
+	const req: CDNQueueRequest = { action };
+	const id = typeof(cdn) === "number" ? cdn : cdn.id;
+	return (await this.apiPost<APIResponse<CDNQueueResponse>>(`cdns/${id}/queue_update`, req, params)).data;
+}
+
+/**
+ * Clears updates on servers within a CDN. This is equivalent to calling
+ * {@link queueCDNUpdates} with its `action` argument as `"dequeue"`.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cdn Either the CDN within which updates will be queued/dequeued or its
+ * ID.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function dequeueCDNUpdates(
+	this: Client,
+	cdn: ResponseCDN | number,
+	params?: QueueParams
+): Promise<APIResponse<CDNQueueResponse>> {
+	return this.queueCDNUpdates(cdn, "dequeue", params);
 }

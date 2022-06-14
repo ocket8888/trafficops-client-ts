@@ -66,6 +66,8 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", "cdns/{{ID}}", await client.getCDNs({id: newCDN.response.id}));
 	newCDN.response.dnssecEnabled = !newCDN.response.dnssecEnabled;
 	code += checkAlerts("PUT", "cdns/{{ID}}", await client.updateCDN(newCDN.response));
+	code += checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.queueCDNUpdates(newCDN.response));
+	code += checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.dequeueCDNUpdates(newCDN.response));
 
 	const cgType = await client.getTypes({useInTable: "cachegroup"});
 	if (cgType.response.length < 1) {
