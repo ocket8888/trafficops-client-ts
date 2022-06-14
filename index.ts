@@ -12,6 +12,7 @@ import {
 	deleteCacheGroup,
 	getCacheGroupParameters,
 	getCacheGroups,
+	queueCacheGroupUpdates,
 	removeParameterFromCacheGroup,
 	updateCacheGroup
 } from "./cache_group.js";
@@ -564,6 +565,7 @@ export class Client extends axios.Axios {
 	public getCacheGroupParameters = getCacheGroupParameters;
 	public assignParameterToCacheGroup = assignParameterToCacheGroup;
 	public removeParameterFromCacheGroup = removeParameterFromCacheGroup;
+	public queueCacheGroupUpdates = queueCacheGroupUpdates;
 
 	// Profiles and Parameters
 	public getParameters = getParameters;

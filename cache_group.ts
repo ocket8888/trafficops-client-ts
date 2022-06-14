@@ -1,9 +1,12 @@
 import type {
 	APIResponse,
+	CacheGroupQueueRequest,
+	CacheGroupQueueResponse,
 	RequestCacheGroup,
 	RequestCacheGroupParameter,
 	ResponseCacheGroup,
-	ResponseCacheGroupParameters
+	ResponseCacheGroupParameters,
+	ResponseCDN
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -187,7 +190,7 @@ export async function removeParameterFromCacheGroup(
 	} else {
 		({cacheGroupId, parameterId} = cacheGroupOrCGP);
 	}
-	return (await this.apiDelete<APIResponse<undefined>>(`cachegroupparameters/${cacheGroupId}/${parameterId}`)).data;
+	return (await this.apiDelete(`cachegroupparameters/${cacheGroupId}/${parameterId}`)).data;
 }
 
 /**
@@ -291,7 +294,7 @@ export async function createCacheGroup(this: Client, cg: RequestCacheGroup): Pro
  */
 export async function deleteCacheGroup(this: Client, cg: ResponseCacheGroup | number): Promise<APIResponse<undefined>> {
 	const id = typeof(cg) === "number" ? cg : cg.id;
-	return (await this.apiDelete<APIResponse<undefined>>(`cachegroups/${id}`)).data;
+	return (await this.apiDelete(`cachegroups/${id}`)).data;
 }
 
 /**
@@ -339,4 +342,50 @@ export async function updateCacheGroup(
 		payload = cgOrID;
 	}
 	return (await this.apiPut<APIResponse<ResponseCacheGroup>>(`cachegroups/${id}`, payload)).data;
+}
+
+/**
+ * Queue or dequeue updates on the servers in a Cache Group. Note that there is
+ * no restriction on the Type of the Cache Group that may be specified, nor is
+ * the operation restricted to only the servers within it that are cache
+ * servers.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cgOrID Either the specified Cache Group within which updates will be
+ * queued or dequeued, or its ID.
+ * @param cdn The CDN to which the operation will be limited - this is **not**
+ * optional. It can be an actual CDN as returned by Traffic Ops, or a CDN's ID
+ * or Name.
+ * @param action The action to perform. `"queue"` to queue updates, `"dequeue"`
+ * to clear them.
+ * @returns The server's response.
+ */
+export async function queueCacheGroupUpdates(
+	this: Client,
+	cgOrID: number | ResponseCacheGroup,
+	cdn: number | string | ResponseCDN,
+	action: "queue" | "dequeue" = "queue"
+): Promise<APIResponse<CacheGroupQueueResponse>> {
+	const id = typeof(cgOrID) === "number" ? cgOrID : cgOrID.id;
+	let payload: CacheGroupQueueRequest;
+	switch (typeof(cdn)) {
+		case  "number":
+			payload = {
+				action,
+				cdnId: cdn
+			};
+			break;
+		case "string":
+			payload = {
+				action,
+				cdn
+			};
+			break;
+		default:
+			payload = {
+				action,
+				cdnId: cdn.id
+			};
+	}
+	return (await this.apiPost<APIResponse<CacheGroupQueueResponse>>(`cachegroups/${id}/queue_update`, payload)).data;
 }

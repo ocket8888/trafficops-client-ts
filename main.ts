@@ -71,6 +71,7 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", `cachegroups?id=${newCG.response.id}`, await client.getCacheGroups(newCG.response.id));
 	newCG.response.fallbackToClosest = !newCG.response.fallbackToClosest;
 	code += checkAlerts("PUT", `cachegroups/${newCG.response.id}`, await client.updateCacheGroup(newCG.response));
+	code += checkAlerts("POST", `cachegroups/${newCG.response.id}/queue_updates`, await client.queueCacheGroupUpdates(newCG.response, 1, "queue"));
 
 	const newASN = await client.createASN({asn: 1, cachegroupId: newCG.response.id});
 	code += checkAlerts("POST", "asns", newASN);
@@ -81,12 +82,12 @@ async function main(): Promise<number> {
 
 	const newType = await client.createType({description: "foo", name: "foo", useInTable: "server"});
 	code += checkAlerts("POST", "types", newType);
-	code += checkAlerts("GET", "types", await client.getTypes());
+	code += checkAlerts("GET", "types", await client.getTypes({id: newType.response.id}));
 	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
 
 	const newParam = await client.createParameter({configFile: "foo", name: "test", secure: false, value: "quest"});
 	code += checkAlerts("POST", "parameters", newParam);
-	code += checkAlerts("GET", "parameters", await client.getParameters());
+	code += checkAlerts("GET", "parameters", await client.getParameters({id: newParam.response.id}));
 	newParam.response.value = "bar";
 	code += checkAlerts("PUT", `parameters/${newParam.response.id}`, await client.updateParameter(newParam.response));
 
