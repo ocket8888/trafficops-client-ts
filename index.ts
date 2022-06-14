@@ -338,6 +338,7 @@ export class Client extends axios.Axios {
 	 * @param path The path to request - do **not** include `/api` or the API
 	 * version, this method will handle that for you.
 	 * @param data The request body to be sent.
+	 * @param params Any and all query string parameters to pass in the request.
 	 * @param dateKeys Keys in the response (no matter how deeply nested) that
 	 * should be converted from their string native format to a Date.
 	 * @returns The server's response. Note that error responses are returned,
@@ -346,10 +347,11 @@ export class Client extends axios.Axios {
 	 */
 	public async apiPut<T = APIResponse<undefined>>(
 		path: string,
-		data: object,
+		data?: object,
+		params?: QueryParams,
 		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
 	): Promise<AxiosResponse<T>> {
-		return this.apiRequest(path, "PUT", undefined, data, dateKeys);
+		return this.apiRequest(path, "PUT", params, data, dateKeys);
 	}
 
 	/* eslint-disable max-len */
