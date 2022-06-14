@@ -389,3 +389,28 @@ export async function queueCacheGroupUpdates(
 	}
 	return (await this.apiPost<APIResponse<CacheGroupQueueResponse>>(`cachegroups/${id}/queue_update`, payload)).data;
 }
+
+/**
+ * Dequeue updates on the servers in a Cache Group. Note that there is
+ * no restriction on the Type of the Cache Group that may be specified, nor is
+ * the operation restricted to only the servers within it that are cache
+ * servers.
+ *
+ * This is equivalent to calling {@link queueCacheGroupUpdates} with its
+ * `action` argument as `"dequeue"`.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cgOrID Either the specified Cache Group within which updates will be
+ * queued or dequeued, or its ID.
+ * @param cdn The CDN to which the operation will be limited - this is **not**
+ * optional. It can be an actual CDN as returned by Traffic Ops, or a CDN's ID
+ * or Name.
+ * @returns The server's response.
+ */
+export async function dequeueCacheGroupUpdates(
+	this: Client,
+	cgOrID: number | ResponseCacheGroup,
+	cdn: number | string | ResponseCDN
+): Promise<APIResponse<CacheGroupQueueResponse>> {
+	return this.queueCacheGroupUpdates(cgOrID, cdn, "dequeue");
+}

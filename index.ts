@@ -10,6 +10,7 @@ import {
 	assignParameterToCacheGroup,
 	createCacheGroup,
 	deleteCacheGroup,
+	dequeueCacheGroupUpdates,
 	getCacheGroupParameters,
 	getCacheGroups,
 	queueCacheGroupUpdates,
@@ -567,6 +568,7 @@ export class Client extends axios.Axios {
 	public assignParameterToCacheGroup = assignParameterToCacheGroup;
 	public removeParameterFromCacheGroup = removeParameterFromCacheGroup;
 	public queueCacheGroupUpdates = queueCacheGroupUpdates;
+	public dequeueCacheGroupUpdates = dequeueCacheGroupUpdates;
 
 	// CDNs
 	public getCDNs = getCDNs;
