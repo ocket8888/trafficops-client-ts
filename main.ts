@@ -101,6 +101,13 @@ async function main(): Promise<number> {
 
 	code += checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 
+	const newCDN = await client.createCDN({dnssecEnabled: false, domainName: "test", name: "test-cdn"});
+	code += checkAlerts("POST", "cdns", newCDN);
+	code += checkAlerts("GET", "cdns/{{ID}}", await client.getCDNs({id: newCDN.response.id}));
+	newCDN.response.dnssecEnabled = !newCDN.response.dnssecEnabled;
+	code += checkAlerts("PUT", "cdns/{{ID}}", await client.updateCDN(newCDN.response));
+	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
+
 	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
 	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
 

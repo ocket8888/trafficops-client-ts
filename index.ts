@@ -16,6 +16,7 @@ import {
 	removeParameterFromCacheGroup,
 	updateCacheGroup
 } from "./cache_group.js";
+import { createCDN, deleteCDN, getCDNs, updateCDN } from "./cdn.js";
 import { createParameter, deleteParameter, getParameters, updateParameter } from "./profile.js";
 import { cacheStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
@@ -566,6 +567,12 @@ export class Client extends axios.Axios {
 	public assignParameterToCacheGroup = assignParameterToCacheGroup;
 	public removeParameterFromCacheGroup = removeParameterFromCacheGroup;
 	public queueCacheGroupUpdates = queueCacheGroupUpdates;
+
+	// CDNs
+	public getCDNs = getCDNs;
+	public createCDN = createCDN;
+	public deleteCDN = deleteCDN;
+	public updateCDN = updateCDN;
 
 	// Profiles and Parameters
 	public getParameters = getParameters;
