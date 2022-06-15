@@ -115,8 +115,24 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", "cdns/{{name}}/snapshot", await client.getSnapshot(newCDN.response));
 	code += checkAlerts("GET", "cdns/{{name}}/configs/monitoring", await client.getMonitoringConfiguration(newCDN.response));
 
+	code += checkAlerts("POST", "cdns/dnsseckeys/generate", await client.generateCDNDNSSECKeys(
+		{
+			key: newCDN.response.name,
+			kskExpirationDays: 1,
+			ttl: 100,
+			zskExpirationDays: 1
+		}
+	));
+	code += checkAlerts("POST", "cdns/{{name}}/dnsseckeys/ksk/generate", await client.generateCDNKSK(newCDN.response,
+		{
+			expirationDays: 1
+		}
+	));
+	code += checkAlerts("GET", "cdns/dnsseckeys/refresh", await client.refreshAllDNSSECKeys());
+
 	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
 	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
+	code += checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
 	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 
 	if (erroredRequests.size > 0) {
