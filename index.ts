@@ -32,7 +32,7 @@ import {
 import { createParameter, deleteParameter, getParameters, updateParameter } from "./profile.js";
 import { cacheStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
-import { createParser } from "./util.js";
+import { createParser, type DateKeySpec } from "./util.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
 
@@ -268,10 +268,10 @@ export class Client extends axios.Axios {
 		method: string,
 		params?: QueryParams,
 		data?: object,
-		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
+		dateKeys?: DateKeySpec
 	): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
-		const transformResponse = [createParser(dateKeys)];
+		const transformResponse = [createParser(dateKeys ?? {dateString: DEFAULT_DATE_KEYS})];
 		const response = await this.request<T>({data, headers: this.headers, method, params, transformResponse, url});
 		const cookie = (response.headers["set-cookie"] ?? []).find(c=>c.startsWith("mojolicious="));
 		if (cookie) {
@@ -296,7 +296,7 @@ export class Client extends axios.Axios {
 	public async apiGet<T = APIResponse<undefined>>(
 		path: string,
 		params?: QueryParams,
-		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
+		dateKeys?: DateKeySpec
 	): Promise<AxiosResponse<T>> {
 		return this.apiRequest<T>(path, "GET", params, undefined, dateKeys);
 	}
@@ -318,7 +318,7 @@ export class Client extends axios.Axios {
 		path: string,
 		data: object,
 		params?: QueryParams,
-		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
+		dateKeys?: DateKeySpec
 	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "POST", params, data, dateKeys);
 	}
@@ -360,7 +360,7 @@ export class Client extends axios.Axios {
 		path: string,
 		data?: object,
 		params?: QueryParams,
-		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
+		dateKeys?: DateKeySpec
 	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "PUT", params, data, dateKeys);
 	}
