@@ -293,7 +293,7 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiGet<T>(
+	public async apiGet<T = APIResponse<undefined>>(
 		path: string,
 		params?: QueryParams,
 		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
