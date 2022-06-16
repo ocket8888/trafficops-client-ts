@@ -119,6 +119,12 @@ async function main(): Promise<number> {
 	code += checkAlerts("POST", "cachegroups/{{ID}}/queue_updates", await client.queueCacheGroupUpdates(newCG.response, newCDN.response));
 	code += checkAlerts("POST", "cachegroups/{{ID}}/queue_updates", await client.dequeueCacheGroupUpdates(newCG.response, newCDN.response));
 
+	code += checkAlerts(
+		"POST",
+		"cachegroups/{{ID}}/deliveryservices",
+		await client.assignCacheGroupToDS(newCG.response, [newDS.response[0].id])
+	);
+
 	const newASN = await client.createASN({asn: 1, cachegroupId: newCG.response.id});
 	code += checkAlerts("POST", "asns", newASN);
 	code += checkAlerts("GET", "asns", await client.getASNs());

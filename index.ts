@@ -7,6 +7,7 @@ import { APIError, ClientError } from "./api.error.js";
 import { getAPICapabilities, getCapabilities } from "./api_capabilities.js";
 import { createASN, deleteASN, getASNs, updateASN } from "./asn.js";
 import {
+	assignCacheGroupToDS,
 	assignParameterToCacheGroup,
 	createCacheGroup,
 	deleteCacheGroup,
@@ -604,6 +605,9 @@ export class Client extends axios.Axios {
 	public createDeliveryService = createDeliveryService;
 	public updateDeliveryService = updateDeliveryService;
 	public deleteDeliveryService = deleteDeliveryService;
+
+	// Delivery Service assignments
+	public assignCacheGroupToDS = assignCacheGroupToDS;
 
 	// DNSSEC
 	public generateCDNKSK = generateCDNKSK;

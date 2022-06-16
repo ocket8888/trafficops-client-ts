@@ -1,5 +1,7 @@
 import type {
 	APIResponse,
+	CacheGroupDeliveryServiceAssignmentRequest,
+	CacheGroupDeliveryServiceAssignmentResponse,
 	CacheGroupQueueRequest,
 	CacheGroupQueueResponse,
 	RequestCacheGroup,
@@ -413,4 +415,29 @@ export async function dequeueCacheGroupUpdates(
 	cdn: number | string | ResponseCDN
 ): Promise<APIResponse<CacheGroupQueueResponse>> {
 	return this.queueCacheGroupUpdates(cgOrID, cdn, "dequeue");
+}
+
+/**
+ * Assigns all of the “assignable” servers within a Cache Group to one or more
+ * Delivery Services.
+ *
+ * @deprecated Directly assigning servers to Delivery Services is deprecated,
+ * and Topologies should be used instead.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cgOrID Either the Cache Group to be assigned, or its ID.
+ * @param dss The Delivery Service(s) to which the servers in the identified
+ * Cache Group will be assigned. This can be in the format required by API
+ * requests to the `cachegroups/{{ID}}/deliveryservices` API endpoint, or just a
+ * list of IDs.
+ * @returns The server's response.
+ */
+export async function assignCacheGroupToDS(
+	this: Client,
+	cgOrID: number | ResponseCacheGroup,
+	dss: CacheGroupDeliveryServiceAssignmentRequest | Array<number>
+): Promise<APIResponse<CacheGroupDeliveryServiceAssignmentResponse>> {
+	const payload = Array.isArray(dss) ? {deliveryServices: dss} : dss;
+	const id = typeof(cgOrID) === "number" ? cgOrID : cgOrID.id;
+	return (await this.apiPost<APIResponse<CacheGroupDeliveryServiceAssignmentResponse>>(`cachegroups/${id}/deliveryservices`, payload)).data;
 }
