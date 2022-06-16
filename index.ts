@@ -29,6 +29,7 @@ import {
 	takeSnapshot,
 	updateCDN
 } from "./cdn.js";
+import { createDeliveryService, deleteDeliveryService, getDeliveryServices, updateDeliveryService } from "./delivery_service.js";
 import { deleteCDNDNSSECKeys, generateCDNDNSSECKeys, generateCDNKSK, refreshAllDNSSECKeys } from "./dnssec.js";
 import { createParameter, deleteParameter, getParameters, updateParameter } from "./profile.js";
 import { cacheStats } from "./stats.js";
@@ -597,6 +598,12 @@ export class Client extends axios.Axios {
 	public getSnapshotState = getSnapshotState;
 	public getMonitoringConfiguration = getMonitoringConfiguration;
 	public takeSnapshot = takeSnapshot;
+
+	// Delivery Services
+	public getDeliveryServices = getDeliveryServices;
+	public createDeliveryService = createDeliveryService;
+	public updateDeliveryService = updateDeliveryService;
+	public deleteDeliveryService = deleteDeliveryService;
 
 	// DNSSEC
 	public generateCDNKSK = generateCDNKSK;

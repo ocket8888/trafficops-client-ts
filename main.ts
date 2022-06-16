@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { type Alert, errors } from "trafficops-types";
+import { type Alert, errors, Protocol, RangeRequestHandling, QStringHandling, GeoLimit, GeoProvider } from "trafficops-types";
 
 import { Client } from "./index.js";
 
@@ -74,6 +74,43 @@ async function main(): Promise<number> {
 		throw new Error("no cachegroup Types exist in TO");
 	}
 	code += checkAlerts("GET", "types?useInTable=cachegroup", cgType);
+	const dsType = await client.getTypes({useInTable: "deliveryservice"});
+	if (dsType.response.length < 1) {
+		throw new Error("no deliveryservice Types exist in TO");
+	}
+	code += checkAlerts("GET", "types?useInTable=deliveryservice", dsType);
+
+	const newDS = await client.createDeliveryService({
+		active: false,
+		cacheurl: null,
+		cdnId: newCDN.response.id,
+		displayName: "test ds",
+		dscp: 1,
+		geoLimit: GeoLimit.NONE,
+		geoProvider: GeoProvider.MAX_MIND,
+		httpBypassFqdn: "ciab.dev",
+		infoUrl: null,
+		initialDispersion: 2,
+		ipv6RoutingEnabled: true,
+		logsEnabled: true,
+		missLat: 0,
+		missLong: 0,
+		multiSiteOrigin: false,
+		orgServerFqdn: "https://ciab-dev.test",
+		protocol: Protocol.HTTP,
+		qstringIgnore: QStringHandling.USE,
+		rangeRequestHandling: RangeRequestHandling.NONE,
+		regionalGeoBlocking: false,
+		remapText: null,
+		tenantId: 1,
+		typeId: dsType.response[0].id,
+		xmlId: "test-ds",
+	});
+	code += checkAlerts("POST", "deliveryservices", newDS);
+	newDS.response[0].logsEnabled = !newDS.response[0].logsEnabled;
+	code += checkAlerts("PUT", "deliveryservices/{{ID}}", await client.updateDeliveryService(newDS.response[0]));
+	code += checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
+
 	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: cgType.response[0].id});
 	code += checkAlerts("POST", "cachegroups", newCG);
 	code += checkAlerts("GET", `cachegroups?id=${newCG.response.id}`, await client.getCacheGroups(newCG.response.id));
@@ -133,6 +170,7 @@ async function main(): Promise<number> {
 	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
 	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
 	code += checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
+	code += checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
 	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 
 	if (erroredRequests.size > 0) {
