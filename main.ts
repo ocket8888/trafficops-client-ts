@@ -1,5 +1,14 @@
 #!/usr/bin/env node
-import { type Alert, errors, Protocol, RangeRequestHandling, QStringHandling, GeoLimit, GeoProvider } from "trafficops-types";
+import {
+	type Alert,
+	errors,
+	Protocol,
+	RangeRequestHandling,
+	QStringHandling,
+	GeoLimit,
+	GeoProvider,
+	type TypeFromResponse
+} from "trafficops-types";
 
 import { Client } from "./index.js";
 
@@ -28,6 +37,75 @@ function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<A
 }
 
 /**
+ * Holds the different Types of things for later use in creating those things.
+ */
+interface Types {
+	cacheGroup: TypeFromResponse;
+	deliveryService: TypeFromResponse;
+	edgeCacheServer: TypeFromResponse;
+	midCacheServer: TypeFromResponse;
+	originCacheServer: TypeFromResponse;
+}
+
+/**
+ * Throws an error saying there're no Types of the requested kind in Traffic
+ * Ops.
+ *
+ * @param useInTable The `useInTable` value that Traffic Ops is missing.
+ * @throws {Error & {message: `Traffic Ops has no ${string} Types`}}
+ */
+function throwTypeError(useInTable: string): never {
+	throw new Error(`Traffic Ops has no ${useInTable} Types`);
+}
+
+/**
+ * Fetches certain necessary kinds of Types from Traffic Ops.
+ *
+ * For Delivery Services, it'll try to find 'HTTP' but if it can't it'll use one
+ * at random. For servers it looks specifically for 'EDGE', 'MID', and 'ORG' and
+ * throws an error if it can't find them.
+ *
+ * @param client An authenticated Traffic Ops client.
+ * @returns The Types of things.
+ */
+async function getTypes(client: Client): Promise<Types> {
+	const cgResp = await client.getTypes({useInTable: "cachegroup"});
+	const cgType = cgResp.response[0];
+	if (!cgType) {
+		throwTypeError("cachegroup");
+	}
+	const dsResp = await client.getTypes({useInTable: "deliveryservice"});
+	let dsType = dsResp.response.find(t=>t.name==="HTTP");
+	if (!dsType) {
+		console.warn("'HTTP' type not found");
+		dsType = dsResp.response[0];
+	}
+	if (!dsType) {
+		throwTypeError("deliveryservice");
+	}
+	let serverResp = await client.getTypes({useInTable: "server"});
+	const edgeType = serverResp.response.find(t=>t.name === "EDGE");
+	if (!edgeType) {
+		throwTypeError("'EDGE' server");
+	}
+	const midType = serverResp.response.find(t=>t.name === "MID");
+	if (!midType) {
+		throwTypeError("'MID' server");
+	}
+	const orgType = serverResp.response.find(t=>t.name === "ORG");
+	if (!orgType) {
+		throwTypeError("'ORG' server");
+	}
+	return {
+		cacheGroup: cgType,
+		deliveryService: dsType,
+		edgeCacheServer: edgeType,
+		midCacheServer: midType,
+		originCacheServer: orgType
+	};
+}
+
+/**
  * The main function.
  *
  * @todo Finish this. Right now, it just runs through all the methods and prints
@@ -45,7 +123,9 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", "about", await client.about() as {});
 	code += checkAlerts("GET", "system/info", await client.systemInfo());
 
-	let acmeAccount = {
+	const types = await getTypes(client);
+
+	const acmeAccount = {
 		email: "something@mail.com",
 		privateKey: "privkey",
 		provider: "provider",
@@ -68,17 +148,6 @@ async function main(): Promise<number> {
 	code += checkAlerts("PUT", "cdns/{{ID}}", await client.updateCDN(newCDN.response));
 	code += checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.queueCDNUpdates(newCDN.response));
 	code += checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.dequeueCDNUpdates(newCDN.response));
-
-	const cgType = await client.getTypes({useInTable: "cachegroup"});
-	if (cgType.response.length < 1) {
-		throw new Error("no cachegroup Types exist in TO");
-	}
-	code += checkAlerts("GET", "types?useInTable=cachegroup", cgType);
-	const dsType = await client.getTypes({useInTable: "deliveryservice"});
-	if (dsType.response.length < 1) {
-		throw new Error("no deliveryservice Types exist in TO");
-	}
-	code += checkAlerts("GET", "types?useInTable=deliveryservice", dsType);
 
 	const newDS = await client.createDeliveryService({
 		active: false,
@@ -103,7 +172,7 @@ async function main(): Promise<number> {
 		regionalGeoBlocking: false,
 		remapText: null,
 		tenantId: 1,
-		typeId: dsType.response[0].id,
+		typeId: types.deliveryService.id,
 		xmlId: "test-ds",
 	});
 	code += checkAlerts("POST", "deliveryservices", newDS);
@@ -111,7 +180,7 @@ async function main(): Promise<number> {
 	code += checkAlerts("PUT", "deliveryservices/{{ID}}", await client.updateDeliveryService(newDS.response[0]));
 	code += checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
 
-	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: cgType.response[0].id});
+	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: types.cacheGroup.id});
 	code += checkAlerts("POST", "cachegroups", newCG);
 	code += checkAlerts("GET", `cachegroups?id=${newCG.response.id}`, await client.getCacheGroups(newCG.response.id));
 	newCG.response.fallbackToClosest = !newCG.response.fallbackToClosest;
