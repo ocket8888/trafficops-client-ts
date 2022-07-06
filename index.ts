@@ -32,6 +32,20 @@ import {
 } from "./cdn.js";
 import { createDeliveryService, deleteDeliveryService, getDeliveryServices, updateDeliveryService } from "./delivery_service.js";
 import { deleteCDNDNSSECKeys, generateCDNDNSSECKeys, generateCDNKSK, refreshAllDNSSECKeys } from "./dnssec.js";
+import {
+	createDivision,
+	createPhysicalLocation,
+	createRegion,
+	deleteDivision,
+	deletePhysicalLocation,
+	deleteRegion,
+	getDivisions,
+	getPhysicalLocations,
+	getRegions,
+	updateDivision,
+	updatePhysicalLocation,
+	updateRegion
+} from "./physical_location.js";
 import { createParameter, deleteParameter, getParameters, updateParameter } from "./profile.js";
 import { cacheStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
@@ -614,6 +628,20 @@ export class Client extends axios.Axios {
 	public generateCDNDNSSECKeys = generateCDNDNSSECKeys;
 	public refreshAllDNSSECKeys = refreshAllDNSSECKeys;
 	public deleteCDNDNSSECKeys = deleteCDNDNSSECKeys;
+
+	// Physical Locations/Regions/Divisions
+	public getDivisions = getDivisions;
+	public createDivision = createDivision;
+	public updateDivision = updateDivision;
+	public deleteDivision = deleteDivision;
+	public getRegions = getRegions;
+	public createRegion = createRegion;
+	public updateRegion = updateRegion;
+	public deleteRegion = deleteRegion;
+	public getPhysicalLocations = getPhysicalLocations;
+	public createPhysicalLocation = createPhysicalLocation;
+	public updatePhysicalLocation = updatePhysicalLocation;
+	public deletePhysicalLocation = deletePhysicalLocation;
 
 	// Profiles and Parameters
 	public getParameters = getParameters;

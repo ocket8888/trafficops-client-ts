@@ -148,6 +148,20 @@ async function main(): Promise<number> {
 	code += checkAlerts("PUT", "cdns/{{ID}}", await client.updateCDN(newCDN.response));
 	code += checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.queueCDNUpdates(newCDN.response));
 	code += checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.dequeueCDNUpdates(newCDN.response));
+	code += checkAlerts("POST", "cdns/dnsseckeys/generate", await client.generateCDNDNSSECKeys(
+		{
+			key: newCDN.response.name,
+			kskExpirationDays: 1,
+			ttl: 100,
+			zskExpirationDays: 1
+		}
+	));
+	code += checkAlerts("POST", "cdns/{{name}}/dnsseckeys/ksk/generate", await client.generateCDNKSK(newCDN.response,
+		{
+			expirationDays: 1
+		}
+	));
+	code += checkAlerts("GET", "cdns/dnsseckeys/refresh", await client.refreshAllDNSSECKeys());
 
 	const newDS = await client.createDeliveryService({
 		active: false,
@@ -227,21 +241,33 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", "cdns/{{name}}/snapshot", await client.getSnapshot(newCDN.response));
 	code += checkAlerts("GET", "cdns/{{name}}/configs/monitoring", await client.getMonitoringConfiguration(newCDN.response));
 
-	code += checkAlerts("POST", "cdns/dnsseckeys/generate", await client.generateCDNDNSSECKeys(
-		{
-			key: newCDN.response.name,
-			kskExpirationDays: 1,
-			ttl: 100,
-			zskExpirationDays: 1
-		}
-	));
-	code += checkAlerts("POST", "cdns/{{name}}/dnsseckeys/ksk/generate", await client.generateCDNKSK(newCDN.response,
-		{
-			expirationDays: 1
-		}
-	));
-	code += checkAlerts("GET", "cdns/dnsseckeys/refresh", await client.refreshAllDNSSECKeys());
+	const newDivision = await client.createDivision("test");
+	code += checkAlerts("POST", "divisions", newDivision);
+	code += checkAlerts("GET", "divisions", await client.getDivisions(newDivision.response.id));
+	newDivision.response.name = "testquest";
+	code += checkAlerts("PUT", "divisions/{{ID}}", await client.updateDivision(newDivision.response));
+	const newRegion = await client.createRegion({division: newDivision.response.id, name: "test"});
+	code += checkAlerts("POST", "regions", newRegion);
+	code += checkAlerts("GET", "regions", await client.getRegions(newRegion.response.id));
+	newRegion.response.name = "testquest";
+	code += checkAlerts("PUT", "regions/{{ID}}", await client.updateRegion(newRegion.response));
+	const newPhysLoc = await client.createPhysicalLocation({
+		address: "123 You Got Your Life Back Lane",
+		city: "Monstropolis",
+		name: "test",
+		regionId: newRegion.response.id,
+		shortName: "test",
+		state: "Denial",
+		zip: "0"
+	});
+	code += checkAlerts("POST", "phys_locations", newPhysLoc);
+	code += checkAlerts("GET", "phys_locations", await client.getPhysicalLocations(newPhysLoc.response.id));
+	newPhysLoc.response.state = "Decay";
+	code += checkAlerts("PUT", "phys_locations/{{ID}}", await client.updatePhysicalLocation(newPhysLoc.response));
 
+	code += checkAlerts("DELETE", "phys_locations/{{ID}}", await client.deletePhysicalLocation(newPhysLoc.response));
+	code += checkAlerts("DELETE", "regions/{{ID}}", await client.deleteRegion(newRegion.response));
+	code += checkAlerts("DELETE", "divisions/{{ID}}", await client.deleteDivision(newDivision.response));
 	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
 	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
 	code += checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
