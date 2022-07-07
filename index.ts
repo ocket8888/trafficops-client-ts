@@ -46,7 +46,6 @@ import {
 	updatePhysicalLocation,
 	updateRegion
 } from "./physical_location.js";
-import { createStatus, deleteStatus, getStatuses, updateStatus } from "./server.js";
 import {
 	assignParametersToProfile,
 	assignParametersToProfiles,
@@ -62,6 +61,16 @@ import {
 	updateParameter,
 	updateProfile
 } from "./profile.js";
+import {
+	createServer,
+	createStatus,
+	deleteServer,
+	deleteStatus,
+	getServers,
+	getStatuses,
+	updateServer,
+	updateStatus
+} from "./server.js";
 import { cacheStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import { createParser, type DateKeySpec } from "./util.js";
@@ -683,6 +692,10 @@ export class Client extends axios.Axios {
 	public createStatus = createStatus;
 	public updateStatus = updateStatus;
 	public deleteStatus = deleteStatus;
+	public getServers = getServers;
+	public createServer = createServer;
+	public updateServer = updateServer;
+	public deleteServer = deleteServer;
 
 	// Stats
 	public cacheStats = cacheStats;

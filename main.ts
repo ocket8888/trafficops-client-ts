@@ -203,12 +203,6 @@ async function main(): Promise<number> {
 	code += checkAlerts("POST", "cachegroups/{{ID}}/queue_updates", await client.queueCacheGroupUpdates(newCG.response, newCDN.response));
 	code += checkAlerts("POST", "cachegroups/{{ID}}/queue_updates", await client.dequeueCacheGroupUpdates(newCG.response, newCDN.response));
 
-	code += checkAlerts(
-		"POST",
-		"cachegroups/{{ID}}/deliveryservices",
-		await client.assignCacheGroupToDS(newCG.response, [newDS.response[0].id])
-	);
-
 	const newASN = await client.createASN({asn: 1, cachegroupId: newCG.response.id});
 	code += checkAlerts("POST", "asns", newASN);
 	code += checkAlerts("GET", "asns", await client.getASNs());
@@ -219,7 +213,6 @@ async function main(): Promise<number> {
 	const newType = await client.createType({description: "foo", name: "foo", useInTable: "server"});
 	code += checkAlerts("POST", "types", newType);
 	code += checkAlerts("GET", "types", await client.getTypes({id: newType.response.id}));
-	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
 
 	const newParam = await client.createParameter({configFile: "foo", name: "test", secure: false, value: "quest"});
 	code += checkAlerts("POST", "parameters", newParam);
@@ -285,6 +278,42 @@ async function main(): Promise<number> {
 	code += checkAlerts("PUT", "statuses/{{ID}}", await client.updateStatus(newStatus.response));
 	code += checkAlerts("GET", "statuses?id={{ID}}", await client.getStatuses(newStatus.response.id));
 
+	const newServer = await client.createServer({
+		cachegroupId: newCG.response.id,
+		cdnId: newCDN.response.id,
+		domainName: "test",
+		hostName: "test",
+		interfaces: [
+			{
+				ipAddresses: [
+					{
+						address: "127.0.0.1",
+						gateway: null,
+						serviceAddress: true
+					}
+				],
+				maxBandwidth: null,
+				monitor: true,
+				mtu: null,
+				name: "eth0"
+			}
+		],
+		physLocationId: newPhysLoc.response.id,
+		profileId: newProfile.response.id,
+		statusId: newStatus.response.id,
+		typeId: newType.response.id
+	});
+	newServer.response.domainName = "quest";
+	code += checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
+	code += checkAlerts("GET", "servers?id={{ID}}", await client.getServers(newServer.response.id));
+
+	code += checkAlerts(
+		"POST",
+		"cachegroups/{{ID}}/deliveryservices",
+		await client.assignCacheGroupToDS(newCG.response, [newDS.response[0].id])
+	);
+
+	code += checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
 	code += checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));
 	code += checkAlerts("DELETE", "phys_locations/{{ID}}", await client.deletePhysicalLocation(newPhysLoc.response));
 	code += checkAlerts("DELETE", "regions/{{ID}}", await client.deleteRegion(newRegion.response));
@@ -300,6 +329,7 @@ async function main(): Promise<number> {
 	code += checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
 	code += checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
 	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
+	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
 
 	if (erroredRequests.size > 0) {
 		console.error();
