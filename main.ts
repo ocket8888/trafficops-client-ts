@@ -7,7 +7,8 @@ import {
 	QStringHandling,
 	GeoLimit,
 	GeoProvider,
-	type TypeFromResponse
+	type TypeFromResponse,
+	ProfileType
 } from "trafficops-types";
 
 import { Client } from "./index.js";
@@ -226,6 +227,19 @@ async function main(): Promise<number> {
 	newParam.response.value = "bar";
 	code += checkAlerts("PUT", `parameters/${newParam.response.id}`, await client.updateParameter(newParam.response));
 
+	const newProfile = await client.createProfile({
+		cdn: newCDN.response.id,
+		description: "test",
+		name: "test",
+		routingDisabled: false,
+		type: ProfileType.ATS_PROFILE
+	});
+	code += checkAlerts("POST", "profiles", newProfile);
+	newProfile.response.description = "quest";
+	code += checkAlerts("PUT", "profiles/{{ID}}", await client.updateProfile(newProfile.response));
+	code += checkAlerts("GET", "profiles?id={{ID}}", await client.getProfiles(newProfile.response.id));
+	code += checkAlerts("POST", "profileparameters", await client.assignParameterToProfile(newProfile.response, newParam.response));
+
 	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(newCG.response.id, newParam.response.id));
 	code += checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
 	code += checkAlerts(
@@ -276,7 +290,13 @@ async function main(): Promise<number> {
 	code += checkAlerts("DELETE", "regions/{{ID}}", await client.deleteRegion(newRegion.response));
 	code += checkAlerts("DELETE", "divisions/{{ID}}", await client.deleteDivision(newDivision.response));
 	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
+	code += checkAlerts(
+		"DELETE",
+		"profileparameters/{{Profile ID}}/{{Parameter ID}}",
+		await client.removeParameterFromProfile(newProfile.response, newParam.response)
+	);
 	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
+	code += checkAlerts("DELETE", "profiles/{{ID}}", await client.deleteProfile(newProfile.response));
 	code += checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
 	code += checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
 	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
