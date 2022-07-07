@@ -265,6 +265,13 @@ async function main(): Promise<number> {
 	newPhysLoc.response.state = "Decay";
 	code += checkAlerts("PUT", "phys_locations/{{ID}}", await client.updatePhysicalLocation(newPhysLoc.response));
 
+	const newStatus = await client.createStatus({description: "test status", name: "test"});
+	code += checkAlerts("POST", "statuses", newStatus);
+	newStatus.response.description = "a status for testing the TS client";
+	code += checkAlerts("PUT", "statuses/{{ID}}", await client.updateStatus(newStatus.response));
+	code += checkAlerts("GET", "statuses?id={{ID}}", await client.getStatuses(newStatus.response.id));
+
+	code += checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));
 	code += checkAlerts("DELETE", "phys_locations/{{ID}}", await client.deletePhysicalLocation(newPhysLoc.response));
 	code += checkAlerts("DELETE", "regions/{{ID}}", await client.deleteRegion(newRegion.response));
 	code += checkAlerts("DELETE", "divisions/{{ID}}", await client.deleteDivision(newDivision.response));
