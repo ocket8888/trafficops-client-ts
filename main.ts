@@ -9,7 +9,7 @@ import {
 	GeoProvider,
 	type TypeFromResponse,
 	ProfileType,
-	ResponseParameter
+	type ResponseParameter
 } from "trafficops-types";
 
 import { Client } from "./index.js";
@@ -239,6 +239,12 @@ async function main(): Promise<number> {
 	code += checkAlerts("PUT", "deliveryservices/{{ID}}", await client.updateDeliveryService(newDS.response[0]));
 	code += checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
 
+	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});
+	code += checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
+	newCDNFed.response.description = "quest";
+	code += checkAlerts("PUT", "cdns/{{name}}/federations/{{ID}}", await client.updateCDNFederation(newCDN.response, newCDNFed.response));
+	code += checkAlerts("GET", "cdns/{{name}}/federations", await client.getCDNFederations(newCDN.response, {limit: 1}));
+
 	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: types.cacheGroup.id});
 	code += checkAlerts("POST", "cachegroups", newCG);
 	code += checkAlerts("GET", `cachegroups?id=${newCG.response.id}`, await client.getCacheGroups(newCG.response.id));
@@ -374,6 +380,11 @@ async function main(): Promise<number> {
 	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
 	code += checkAlerts("DELETE", "profiles/{{ID}}", await client.deleteProfile(newProfile.response));
 	code += checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
+	code += checkAlerts(
+		"DELETE",
+		"cdns/{{name}}/federations/{{ID}}",
+		await client.deleteCDNFederation(newCDN.response, newCDNFed.response)
+	);
 	code += checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
 	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 
