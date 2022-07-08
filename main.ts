@@ -29,7 +29,7 @@ const erroredRequests = new Set<string>();
 function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<Alert>} | null | undefined): 1 | 0 {
 	endpoint = `/${endpoint.replace(/^\/+/, "")}`;
 	console.log(method, endpoint);
-	console.log(chkMe);
+	console.log(JSON.stringify(chkMe, undefined, "\t"));
 	console.log();
 	const errored = chkMe && chkMe.alerts && chkMe.alerts.length > 0 && errors(chkMe.alerts).length > 0 ? 1 : 0;
 	if (errored) {
@@ -357,6 +357,8 @@ async function main(): Promise<number> {
 		"cachegroups/{{ID}}/deliveryservices",
 		await client.assignCacheGroupToDS(newCG.response, [newDS.response[0].id])
 	);
+
+	code += checkAlerts("GET", "cdns/health", await client.getCDNsHealth());
 
 	code += checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
 	code += checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));

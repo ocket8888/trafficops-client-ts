@@ -72,7 +72,7 @@ import {
 	updateServer,
 	updateStatus
 } from "./server.js";
-import { cacheStats } from "./stats.js";
+import { cacheStats, getCDNsHealth } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import { createParser, type DateKeySpec } from "./util.js";
 
@@ -701,4 +701,5 @@ export class Client extends axios.Axios {
 
 	// Stats
 	public cacheStats = cacheStats;
+	public getCDNsHealth = getCDNsHealth;
 }

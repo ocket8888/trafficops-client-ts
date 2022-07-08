@@ -1,4 +1,4 @@
-import type { APIResponse, CacheStats, CacheStatsSeries, CacheStatsSummary } from "trafficops-types";
+import type { APIResponse, CacheStats, CacheStatsSeries, CacheStatsSummary, Health } from "trafficops-types";
 
 import type { Client } from "./index";
 
@@ -160,4 +160,14 @@ export async function cacheStats(
 		startDate: start,
 		...params
 	})).data;
+}
+
+/**
+ * Extract health information from all Cache Groups across all CDNs.
+ *
+ * @param this Tells TypeScript this is a Client method.
+ * @returns The server's response.
+ */
+export async function getCDNsHealth(this: Client): Promise<APIResponse<Health>> {
+	return (await this.apiGet<APIResponse<Health>>("cdns/health")).data;
 }
