@@ -8,7 +8,8 @@ import type {
 	RequestCacheGroupParameter,
 	ResponseCacheGroup,
 	ResponseCacheGroupParameters,
-	ResponseCDN
+	ResponseCDN,
+	ResponseParameter
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -18,7 +19,8 @@ import type { Client } from "./index";
 
 /**
  * Options that affect the result set returned by
- * {@link getCacheGroupParameters}.
+ * {@link getCacheGroupParameters} when not requesting the Parameters of a
+ * single Cache Group.
  */
 type CGPParams = PaginationParams & {
 	/**
@@ -28,6 +30,35 @@ type CGPParams = PaginationParams & {
 	 */
 	orderby?: "parameter" | "cachegroup";
 };
+
+/**
+ * Options that affect the result set returned by
+ * {@link getCacheGroupParameters} when requesting the Parameters of a single
+ * Cache Group.
+ */
+type SingleCGPParams = PaginationParams & {
+	/**
+	 * Choose a property by which results are ordered.
+	 *
+	 * @default "id"
+	 */
+	orderby?: "id";
+	/**
+	 * Filter results to only include Parameters with this ID.
+	 */
+	parameterId?: number;
+};
+
+/**
+ * Checks if an argument to {@link getCacheGroupParameters} is actually a Cache
+ * Group or just some optional parameters.
+ *
+ * @param o The object to check.
+ * @returns `true` if `o` is a {@link ResponseCacheGroup}, `false` otherwise.
+ */
+function isCG(o: ResponseCacheGroup | CGPParams | undefined): o is ResponseCacheGroup {
+	return o !== undefined && Object.prototype.hasOwnProperty.call(o, "id");
+}
 
 /**
  * Retrieves associations between Cache Groups and Parameters.
@@ -40,8 +71,52 @@ type CGPParams = PaginationParams & {
  * @param params Any and all optional settings to use in the request.
  * @returns The server's response.
  */
-export async function getCacheGroupParameters(this: Client, params?: CGPParams): Promise<APIResponse<ResponseCacheGroupParameters>> {
-	return (await this.apiGet<APIResponse<ResponseCacheGroupParameters>>("cachegroupparameters", params)).data;
+export async function getCacheGroupParameters(this: Client, params?: CGPParams): Promise<APIResponse<ResponseCacheGroupParameters>>;
+/**
+ * Retrieves the Parameters associated with a single Cache Group.
+ *
+ * @deprecated This functionality has been removed from the latest version of
+ * the Traffic Ops API; an association between a Cache Group and any number of
+ * Parameters has no meaning in any supported version of Apache Traffic Control.
+ *
+ * @param this Tells TypeScript this is a Client method.
+ * @param cacheGroup The Cache Group for which Parameters will be retrieved, or
+ * just its ID.
+ * @param params Any and all optional settings to use in the request.
+ * @returns The server's response.
+ */
+export async function getCacheGroupParameters(
+	this: Client,
+	cacheGroup: number | ResponseCacheGroup,
+	params?: SingleCGPParams
+): Promise<APIResponse<Array<ResponseParameter>>>;
+/**
+ * Retrieves associations between Cache Groups and Parameters.
+ *
+ * @deprecated This functionality has been removed from the latest version of
+ * the Traffic Ops API; an association between a Cache Group and any number of
+ * Parameters has no meaning in any supported version of Apache Traffic Control.
+ *
+ * @param this Tells TypeScript this is a Client method.
+ * @param paramsOrCG To fetch the Parameters associated with a single Cache
+ * Group, this may specify that Cache Group or its ID. Otherwise, it should be
+ * any and all optional settings to use in the request.
+ * @param params Any and all optional settings to use in the request. This is
+ * ignored unless `paramsOrCG` was a Cache Group or its ID.
+ * @returns The server's response.
+ */
+export async function getCacheGroupParameters(
+	this: Client,
+	paramsOrCG?: number | ResponseCacheGroup | CGPParams,
+	params?: SingleCGPParams
+): Promise<APIResponse<ResponseCacheGroupParameters | Array<ResponseParameter>>> {
+	if (typeof(paramsOrCG) === "number") {
+		return (await this.apiGet<APIResponse<Array<ResponseParameter>>>(`cachegroups/${paramsOrCG}/parameters`, params)).data;
+	}
+	if (isCG(paramsOrCG)) {
+		return (await this.apiGet<APIResponse<Array<ResponseParameter>>>(`cachegroups/${paramsOrCG.id}/parameters`, params)).data;
+	}
+	return (await this.apiGet<APIResponse<ResponseCacheGroupParameters>>("cachegroupparameters", paramsOrCG)).data;
 }
 
 /**
