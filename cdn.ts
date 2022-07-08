@@ -1,4 +1,4 @@
-import type { APIResponse, CDN, CDNQueueRequest, CDNQueueResponse, RequestCDN, ResponseCDN } from "trafficops-types";
+import type { APIResponse, CDN, CDNDomain, CDNQueueRequest, CDNQueueResponse, RequestCDN, ResponseCDN } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
 import type { PaginationParams } from "./util";
@@ -277,4 +277,15 @@ export async function takeSnapshot(this: Client, cdn: CDN | string | number): Pr
 			params = {cdn: cdn.name};
 	}
 	return (await this.apiPut<APIResponse<"SUCCESS">>("snapshot", {}, params)).data;
+}
+
+/**
+ * Gets a list of domains and their related Traffic Router Profiles for all
+ * CDNs.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @returns The server's response.
+ */
+export async function getCDNDomains(this: Client): Promise<APIResponse<Array<CDNDomain>>> {
+	return (await this.apiGet<APIResponse<Array<CDNDomain>>>("cdns/domains")).data;
 }

@@ -22,6 +22,7 @@ import {
 	createCDN,
 	deleteCDN,
 	dequeueCDNUpdates,
+	getCDNDomains,
 	getCDNs,
 	getMonitoringConfiguration,
 	getSnapshot,
@@ -637,6 +638,7 @@ export class Client extends axios.Axios {
 	public getSnapshotState = getSnapshotState;
 	public getMonitoringConfiguration = getMonitoringConfiguration;
 	public takeSnapshot = takeSnapshot;
+	public getCDNDomains = getCDNDomains;
 
 	// Delivery Services
 	public getDeliveryServices = getDeliveryServices;
