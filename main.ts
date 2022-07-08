@@ -8,7 +8,8 @@ import {
 	GeoLimit,
 	GeoProvider,
 	type TypeFromResponse,
-	ProfileType
+	ProfileType,
+	ResponseParameter
 } from "trafficops-types";
 
 import { Client } from "./index.js";
@@ -35,6 +36,46 @@ function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<A
 		erroredRequests.add(`${method} ${endpoint}`);
 	}
 	return errored;
+}
+
+const remapConfigParam = {
+	configFile: "remap.config",
+	name: "location"
+};
+
+/**
+ * Ensures a "location" Parameter for remap.config exists, creating one if none
+ * do, and returns either the newly created one or some random pre-existing one.
+ *
+ * @param client A Client with which to make requests
+ * @returns Some remap.config "location" Parameter.
+ * @throws {Error} if no existing "location" Parameter exists for the
+ * "remap.config" Config File can be successfully retrieved and creating one
+ * fails.
+ */
+async function getOrCreateRemapDotConfigParameter(client: Client): Promise<ResponseParameter> {
+	const remapResponse = await client.getParameters(remapConfigParam);
+	if (remapResponse.alerts) {
+		const errs = errors(remapResponse.alerts);
+		if (errs.length > 0) {
+			console.error("error fetching remap.config location parameter:", errs.join("\n\t"));
+		}
+	} else if (remapResponse?.response?.length > 0) {
+		return remapResponse.response[0];
+	}
+	console.warn("No remap.config 'location' Parameter found; creating one - will NOT be removed by these tests!");
+	const newParam = await client.createParameter({
+		...remapConfigParam,
+		secure: false,
+		value: "/anywhere"
+	});
+	if (newParam.alerts) {
+		const errs = errors(newParam.alerts);
+		if (errs.length > 0) {
+			throw new Error(`failed to create remap.config Parameter: ${errs.join("\n\t")}`);
+		}
+	}
+	return newParam.response;
 }
 
 /**
@@ -125,6 +166,8 @@ async function main(): Promise<number> {
 	code += checkAlerts("GET", "system/info", await client.systemInfo());
 
 	const types = await getTypes(client);
+	const remapDotConfigLocationParam = await getOrCreateRemapDotConfigParameter(client);
+	console.info("remap.config location:", remapDotConfigLocationParam.value);
 
 	const acmeAccount = {
 		email: "something@mail.com",
@@ -213,6 +256,7 @@ async function main(): Promise<number> {
 	const newType = await client.createType({description: "foo", name: "foo", useInTable: "server"});
 	code += checkAlerts("POST", "types", newType);
 	code += checkAlerts("GET", "types", await client.getTypes({id: newType.response.id}));
+	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
 
 	const newParam = await client.createParameter({configFile: "foo", name: "test", secure: false, value: "quest"});
 	code += checkAlerts("POST", "parameters", newParam);
@@ -301,7 +345,7 @@ async function main(): Promise<number> {
 		physLocationId: newPhysLoc.response.id,
 		profileId: newProfile.response.id,
 		statusId: newStatus.response.id,
-		typeId: newType.response.id
+		typeId: types.edgeCacheServer.id
 	});
 	newServer.response.domainName = "quest";
 	code += checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
@@ -329,7 +373,6 @@ async function main(): Promise<number> {
 	code += checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
 	code += checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
 	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
-	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
 
 	if (erroredRequests.size > 0) {
 		console.error();
