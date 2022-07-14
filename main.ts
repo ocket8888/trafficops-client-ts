@@ -366,6 +366,7 @@ async function main(): Promise<number> {
 	);
 
 	code += checkAlerts("GET", "cdns/health", await client.getCDNsHealth());
+	code += checkAlerts("GET", "cdns/routing", await client.getCDNsRoutingInfo());
 
 	code += checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
 	code += checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));
