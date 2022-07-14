@@ -370,6 +370,13 @@ async function main(): Promise<number> {
 
 	code += checkAlerts("POST", "consistenthash", await client.testConsistentHashingRegexp(newCDN.response, /some regexp/, "/asset.m3u8"));
 
+	const newCoordinate = await client.createCoordinate({latitude: 1, longitude: -1, name: "test"});
+	code += checkAlerts("POST", "coordinates", newCoordinate);
+	++newCoordinate.response.latitude;
+	code += checkAlerts("PUT", "coordinates", await client.updateCoordinate(newCoordinate.response));
+	code += checkAlerts("GET", "coordinates", await client.getCoordinates(newCoordinate.response));
+
+	code += checkAlerts("DELETE", "coordinates", await client.deleteCoordinate(newCoordinate.response));
 	code += checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
 	code += checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));
 	code += checkAlerts("DELETE", "phys_locations/{{ID}}", await client.deletePhysicalLocation(newPhysLoc.response));

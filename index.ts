@@ -31,6 +31,7 @@ import {
 	takeSnapshot,
 	updateCDN
 } from "./cdn.js";
+import { createCoordinate, deleteCoordinate, getCoordinates, updateCoordinate } from "./coordinate.js";
 import { createDeliveryService, deleteDeliveryService, getDeliveryServices, updateDeliveryService } from "./delivery_service.js";
 import { deleteCDNDNSSECKeys, generateCDNDNSSECKeys, generateCDNKSK, refreshAllDNSSECKeys } from "./dnssec.js";
 import { createCDNFederation, deleteCDNFederation, getCDNFederations, updateCDNFederation } from "./federations.js";
@@ -642,6 +643,12 @@ export class Client extends axios.Axios {
 	public getMonitoringConfiguration = getMonitoringConfiguration;
 	public takeSnapshot = takeSnapshot;
 	public getCDNDomains = getCDNDomains;
+
+	// Coordinates
+	public getCoordinates = getCoordinates;
+	public createCoordinate = createCoordinate;
+	public updateCoordinate = updateCoordinate;
+	public deleteCoordinate = deleteCoordinate;
 
 	// Delivery Services
 	public getDeliveryServices = getDeliveryServices;
