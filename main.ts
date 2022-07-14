@@ -207,6 +207,7 @@ async function main(): Promise<number> {
 	));
 	code += checkAlerts("GET", "cdns/dnsseckeys/refresh", await client.refreshAllDNSSECKeys());
 	code += checkAlerts("GET", "cdns/domains", await client.getCDNDomains());
+	code += checkAlerts("GET", "cdns/name/{{name}}/sslkeys", await client.getCDNSSLKeys(newCDN.response));
 
 	const newDS = await client.createDeliveryService({
 		active: false,

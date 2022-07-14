@@ -73,6 +73,7 @@ import {
 	updateServer,
 	updateStatus
 } from "./server.js";
+import { getCDNSSLKeys } from "./ssl.js";
 import { cacheStats, getCDNsHealth } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import { createParser, type DateKeySpec } from "./util.js";
@@ -705,6 +706,9 @@ export class Client extends axios.Axios {
 	public createServer = createServer;
 	public updateServer = updateServer;
 	public deleteServer = deleteServer;
+
+	// SSL
+	public getCDNSSLKeys = getCDNSSLKeys;
 
 	// Stats
 	public cacheStats = cacheStats;
