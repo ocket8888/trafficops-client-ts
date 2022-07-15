@@ -377,6 +377,14 @@ async function main(): Promise<number> {
 	code += checkAlerts("PUT", "coordinates", await client.updateCoordinate(newCoordinate.response));
 	code += checkAlerts("GET", "coordinates", await client.getCoordinates(newCoordinate.response));
 
+	try {
+		await client.dbdump();
+	} catch (e) {
+		console.error("dbdump failed:", e);
+		++code;
+		erroredRequests.add("GET /dbdump");
+	}
+
 	code += checkAlerts("DELETE", "coordinates", await client.deleteCoordinate(newCoordinate.response));
 	code += checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
 	code += checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));

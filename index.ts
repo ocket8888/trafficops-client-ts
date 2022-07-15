@@ -32,6 +32,7 @@ import {
 	updateCDN
 } from "./cdn.js";
 import { createCoordinate, deleteCoordinate, getCoordinates, updateCoordinate } from "./coordinate.js";
+import { dbdump } from "./dbdump.js";
 import { createDeliveryService, deleteDeliveryService, getDeliveryServices, updateDeliveryService } from "./delivery_service.js";
 import { deleteCDNDNSSECKeys, generateCDNDNSSECKeys, generateCDNKSK, refreshAllDNSSECKeys } from "./dnssec.js";
 import { createCDNFederation, deleteCDNFederation, getCDNFederations, updateCDNFederation } from "./federations.js";
@@ -181,7 +182,7 @@ export class Client extends axios.Axios {
 
 	public readonly baseURL: URL;
 	private readonly logAlerts: boolean;
-	private readonly raiseErrorAlerts: boolean;
+	protected readonly raiseErrorAlerts: boolean;
 	private readonly uaString: string;
 
 	private cookie: string | null = null;
@@ -210,7 +211,7 @@ export class Client extends axios.Axios {
 	/**
 	 * The headers that are passed in API requests.
 	 */
-	private get headers(): Record<PropertyKey, string> {
+	protected get headers(): Record<PropertyKey, string> {
 		return {
 			// This naming convention is standard practice for HTTP headers.
 			/* eslint-disable @typescript-eslint/naming-convention*/
@@ -426,7 +427,7 @@ export class Client extends axios.Axios {
 	 * endpoint e.g. `/servers` as opposed to `/api/0.0/servers`.
 	 * @returns A full request URL.
 	 */
-	private makeURL(path: string): string {
+	protected makeURL(path: string): string {
 	/* eslint-enable max-len */
 		path = path.replace(/^\/+/, "");
 		return `${this.baseURL}api/${this.version}/${path}`;
@@ -649,6 +650,9 @@ export class Client extends axios.Axios {
 	public createCoordinate = createCoordinate;
 	public updateCoordinate = updateCoordinate;
 	public deleteCoordinate = deleteCoordinate;
+
+	// DB Dump
+	public dbdump = dbdump;
 
 	// Delivery Services
 	public getDeliveryServices = getDeliveryServices;
