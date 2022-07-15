@@ -171,6 +171,30 @@ async function main(): Promise<number> {
 	const remapDotConfigLocationParam = await getOrCreateRemapDotConfigParameter(client);
 	console.info("remap.config location:", remapDotConfigLocationParam.value);
 
+	code += checkAlerts("POST", "deliveryservices/request", await client.sendDeliveryServicesRequest({
+		details: {
+			contentType: "VOD",
+			customer: "someone",
+			deepCachingType: "NEVER",
+			deliveryProtocol: "http",
+			hasNegativeCachingCustomization: false,
+			hasOriginACLWhitelist: false,
+			hasOriginDynamicRemap: false,
+			hasSignedURLs: false,
+			maxLibrarySizeEstimate: "50G",
+			negativeCachingCustomizationNote: "but it's false...",
+			originTestFile: "/test",
+			originURL: "https://google.com",
+			peakBPSEstimate: "100",
+			peakTPSEstimate: "100",
+			queryStringHandling: "DROP",
+			rangeRequestHandling: "HANDLE",
+			routingType: "HTTP",
+			serviceDesc: "test"
+		},
+		emailTo: "someone@ciab.test"
+	}));
+
 	const acmeAccount = {
 		email: "something@mail.com",
 		privateKey: "privkey",

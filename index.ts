@@ -38,6 +38,7 @@ import {
 	createDeliveryServiceRequest,
 	deleteDeliveryServiceRequest,
 	getDeliveryServiceRequests,
+	sendDeliveryServicesRequest,
 	updateDeliveryServiceRequest
 } from "./delivery_service_request.js";
 import { deleteCDNDNSSECKeys, generateCDNDNSSECKeys, generateCDNKSK, refreshAllDNSSECKeys } from "./dnssec.js";
@@ -678,6 +679,7 @@ export class Client extends axios.Axios {
 	public updateDSR = updateDeliveryServiceRequest;
 	public deleteDeliveryServiceRequest = deleteDeliveryServiceRequest;
 	public deleteDSR = deleteDeliveryServiceRequest;
+	public sendDeliveryServicesRequest = sendDeliveryServicesRequest;
 
 	// DNSSEC
 	public generateCDNKSK = generateCDNKSK;

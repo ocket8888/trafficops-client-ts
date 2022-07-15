@@ -1,5 +1,6 @@
 import type {
 	APIResponse,
+	DeliveryServicesRequest,
 	DSRChangeType,
 	DSRStatus,
 	RequestDeliveryServiceRequest,
@@ -198,4 +199,19 @@ export async function deleteDeliveryServiceRequest(
 ): Promise<APIResponse<undefined>> {
 	const id = typeof(dsr) === "number" ? dsr : dsr.id;
 	return (await this.apiDelete("deliveryservice_requests", {id})).data;
+}
+
+/**
+ * Creates a new DeliveryServicesRequest sent via email to Traffic Ops's
+ * configured DeliveryServicesRequest recipient.
+ *
+ * @deprecated This has been removed from the latest API, in favor of proper
+ * DSRs.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param request The request to send.
+ * @returns The server's response.
+ */
+export async function sendDeliveryServicesRequest(this: Client, request: DeliveryServicesRequest): Promise<APIResponse<undefined>> {
+	return (await this.apiPost("deliveryservices/request", request)).data;
 }
