@@ -34,6 +34,12 @@ import {
 import { createCoordinate, deleteCoordinate, getCoordinates, updateCoordinate } from "./coordinate.js";
 import { dbdump } from "./dbdump.js";
 import { createDeliveryService, deleteDeliveryService, getDeliveryServices, updateDeliveryService } from "./delivery_service.js";
+import {
+	createDeliveryServiceRequest,
+	deleteDeliveryServiceRequest,
+	getDeliveryServiceRequests,
+	updateDeliveryServiceRequest
+} from "./delivery_service_request.js";
 import { deleteCDNDNSSECKeys, generateCDNDNSSECKeys, generateCDNKSK, refreshAllDNSSECKeys } from "./dnssec.js";
 import { createCDNFederation, deleteCDNFederation, getCDNFederations, updateCDNFederation } from "./federations.js";
 import {
@@ -165,7 +171,7 @@ const DEFAULT_DATE_KEYS: readonly string[] = ["lastUpdated"];
  * Query-string parameters.
  */
 interface QueryParams {
-	[param: string | symbol]: string | number | boolean;
+	[param: string | symbol]: string | number | boolean | Date;
 };
 
 /* eslint-disable max-len */
@@ -662,6 +668,16 @@ export class Client extends axios.Axios {
 
 	// Delivery Service assignments
 	public assignCacheGroupToDS = assignCacheGroupToDS;
+
+	// Delivery Service Requests
+	public getDeliveryServiceRequests = getDeliveryServiceRequests;
+	public getDSRs = getDeliveryServiceRequests;
+	public createDeliveryServiceRequest = createDeliveryServiceRequest;
+	public createDSR = createDeliveryServiceRequest;
+	public updateDeliveryServiceRequest = updateDeliveryServiceRequest;
+	public updateDSR = updateDeliveryServiceRequest;
+	public deleteDeliveryServiceRequest = deleteDeliveryServiceRequest;
+	public deleteDSR = deleteDeliveryServiceRequest;
 
 	// DNSSEC
 	public generateCDNKSK = generateCDNKSK;

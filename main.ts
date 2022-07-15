@@ -10,6 +10,8 @@ import {
 	type TypeFromResponse,
 	ProfileType,
 	type ResponseParameter,
+	DSRChangeType,
+	DSRStatus,
 } from "trafficops-types";
 
 import { Client } from "./index.js";
@@ -239,6 +241,17 @@ async function main(): Promise<number> {
 	newDS.response[0].logsEnabled = !newDS.response[0].logsEnabled;
 	code += checkAlerts("PUT", "deliveryservices/{{ID}}", await client.updateDeliveryService(newDS.response[0]));
 	code += checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
+
+	const newDSR = await client.createDSR({
+		changeType: DSRChangeType.DELETE,
+		deliveryService: newDS.response[0],
+		status: DSRStatus.DRAFT
+	});
+	code += checkAlerts("POST", "deliveryservice_requests", newDSR);
+	newDSR.response.status = DSRStatus.SUBMITTED;
+	code += checkAlerts("PUT", "deliveryservice_requests", await client.updateDSR(newDSR.response));
+	code += checkAlerts("GET", "deliveryservice_requests", await client.getDSRs(newDSR.response.id));
+	code += checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));
 
 	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});
 	code += checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
