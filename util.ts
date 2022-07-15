@@ -1,3 +1,8 @@
+import { AxiosResponse } from "axios";
+import type { Alert, APIResponse } from "trafficops-types";
+
+import { APIError } from "./api.error.js";
+
 /**
  * Query-string parameters that control pagination, which are supported by a
  * great many endpoints.
@@ -129,4 +134,58 @@ export function createParser(dateKeys?: DateKeySpec): (raw: string) => object {
 			return value;
 		}
 	);
+}
+
+/**
+ * Returns a string used in error messages in {@link getSingleResponse} based on
+ * some information about what was requested
+ *
+ * @example
+ * console.log(requestingYieldedStr("test", "quest"));
+ * // Output: "requesting test by identifier 'quest' yielded"
+ *
+ * @param objectType The type of object requested.
+ * @param identifier The identifier that should have identified a single object.
+ * @returns A string that can be used as an {@link APIError} message prefix.
+ */
+function requestingYieldedStr(objectType: string, identifier: string | number): string {
+	return `requesting ${objectType} by identifier '${identifier}' yielded`;
+}
+
+/**
+ * Utility for extracting a singular response from an array filtered response.
+ *
+ * @param response The raw response from the server.
+ * @param objectType The type of object requested.
+ * @param identifier The identifier that should have identified a single object.
+ * @param zeroResultsIsError If given and `false`, errors will not be thrown if
+ * the response is a success but contains a list of zero results (i.e. the
+ * identified object did not exist).
+ * @returns A faked response that has a single object as the `response` property
+ * so that the caller of the Client method that calls this function doesn't need
+ * to manually check for results.
+ * @throws {APIError} If the `response` property of `response.data` contains any
+ * number of results besides one, or is malformed (missing, not an array etc.) -
+ * unless that number is zero and `zeroResultsIsError` was given as `false`.
+ */
+export function getSingleResponse<T>(
+	response: AxiosResponse<{alerts?: Array<Alert>; response?: Array<T>}>,
+	objectType: string,
+	identifier: string | number,
+	zeroResultsIsError = true
+): APIResponse<T> {
+	if (response.data && response.data.response && Array.isArray(response.data.response)) {
+		const len = response.data.response.length;
+		if (len > 1) {
+			throw new APIError(`${requestingYieldedStr(objectType, identifier)} ${len} results`, response.status, response.headers);
+		}
+		const t = response.data.response[0];
+		if (!t) {
+			if (zeroResultsIsError) {
+				throw new APIError(`${requestingYieldedStr(objectType, identifier)} 0 results`, response.status, response.headers);
+			}
+		}
+		return {...response.data, response: t};
+	}
+	throw new APIError(`${requestingYieldedStr(objectType, identifier)} malformed response`, response.status, response.headers);
 }
