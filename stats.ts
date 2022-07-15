@@ -1,4 +1,4 @@
-import type { APIResponse, CacheStats, CacheStatsSeries, CacheStatsSummary, Health, Routing } from "trafficops-types";
+import type { APIResponse, CacheStats, CacheStatsSeries, CacheStatsSummary, CurrentStats, Health, Routing } from "trafficops-types";
 
 import type { Client } from "./index";
 
@@ -180,4 +180,14 @@ export async function getCDNsHealth(this: Client): Promise<APIResponse<Health>> 
  */
 export async function getCDNsRoutingInfo(this: Client): Promise<APIResponse<Routing>> {
 	return (await this.apiGet<APIResponse<Routing>>("cdns/routing")).data;
+}
+
+/**
+ * Retrieves current statistics for each CDN and an aggregate across them all.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @returns The server's response.
+ */
+export async function getCurrentStats(this: Client): Promise<APIResponse<CurrentStats>> {
+	return (await this.apiGet<APIResponse<CurrentStats>>("current_stats")).data;
 }

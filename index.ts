@@ -76,7 +76,7 @@ import {
 	updateStatus
 } from "./server.js";
 import { getCDNSSLKeys } from "./ssl.js";
-import { cacheStats, getCDNsHealth, getCDNsRoutingInfo } from "./stats.js";
+import { cacheStats, getCDNsHealth, getCDNsRoutingInfo, getCurrentStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import { createParser, type DateKeySpec } from "./util.js";
 
@@ -725,4 +725,5 @@ export class Client extends axios.Axios {
 	public cacheStats = cacheStats;
 	public getCDNsHealth = getCDNsHealth;
 	public getCDNsRoutingInfo = getCDNsRoutingInfo;
+	public getCurrentStats = getCurrentStats;
 }

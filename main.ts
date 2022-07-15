@@ -367,6 +367,7 @@ async function main(): Promise<number> {
 
 	code += checkAlerts("GET", "cdns/health", await client.getCDNsHealth());
 	code += checkAlerts("GET", "cdns/routing", await client.getCDNsRoutingInfo());
+	code += checkAlerts("GET", "current_stats", await client.getCurrentStats());
 
 	code += checkAlerts("POST", "consistenthash", await client.testConsistentHashingRegexp(newCDN.response, /some regexp/, "/asset.m3u8"));
 
