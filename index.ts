@@ -63,6 +63,7 @@ import {
 	updateParameter,
 	updateProfile
 } from "./profile.js";
+import { testConsistentHashingRegexp } from "./router.js";
 import {
 	createServer,
 	createStatus,
@@ -696,6 +697,9 @@ export class Client extends axios.Axios {
 	public getTypes = getTypes;
 	public createType = createType;
 	public deleteType = deleteType;
+
+	// Router
+	public testConsistentHashingRegexp = testConsistentHashingRegexp;
 
 	// Servers
 	public getStatuses = getStatuses;
