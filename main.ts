@@ -12,6 +12,7 @@ import {
 	type ResponseParameter,
 	DSRChangeType,
 	DSRStatus,
+	type ResponseUser,
 	type ResponseCurrentUser,
 } from "trafficops-types";
 
@@ -96,6 +97,68 @@ async function getCurrentUser(client: Client): Promise<ResponseCurrentUser> {
 	}
 	return cachedCurrentUser;
 }
+
+/**
+ * Checks if the given Client's permissions level and tenancy are sufficient to
+ * run tests.
+ *
+ * @param client An API client for sending requests.
+ * @returns `true` if testing can proceed, `false` otherwise.
+ */
+async function checkRunningUser(client: Client): Promise<boolean> {
+	const me = await getCurrentUser(client);
+	let canContinue = true;
+
+	const myTenant = (await client.getTenants(me.tenantId)).response;
+	if (myTenant.parentId !== null) {
+		console.error("running user has non-root Tenant", myTenant.name);
+		canContinue = false;
+	}
+
+	const myRole = (await client.getRoles(me.role)).response;
+	if (myRole.privLevel < 30) {
+		console.error("running user has insufficient Role", myRole.name, "with privilege level", myRole.privLevel, "(need at least 30)");
+		canContinue = false;
+	}
+
+	return canContinue;
+}
+
+const testingUsername = "TSClientTestingUser";
+const testingUserPassword = "twelve12!";
+
+/**
+ * Because users cannot be deleted, this function ensures that the testing user
+ * is only created once for use in the GET and PUT tests. If the testing user
+ * does not already exist, it is created. Note that, once again because users
+ * cannot be deleted, the user created by this function is not cleaned up by the
+ * tests.
+ *
+ * @param client An API client for sending requests.
+ * @returns The client testing user.
+ */
+async function getOrCreateTSClientTestingUser(client: Client): Promise<ResponseUser> {
+	try {
+		return (await client.getUsers(testingUsername)).response;
+	} catch (e) {
+		console.warn("testing user doesn't exist; it will be created - will NOT be removed by these tests!");
+		console.error(e);
+	}
+
+	const me = await getCurrentUser(client);
+	const newUser = await client.createUser({
+		confirmLocalPasswd: testingUserPassword,
+		email: "em@i.l",
+		fullName: testingUsername,
+		localPasswd: testingUserPassword,
+		role: me.role,
+		tenantID: me.tenantId,
+		username: testingUsername,
+	});
+	checkAlerts("POST", "users", newUser);
+	return newUser.response;
+}
+
 /**
  * Holds the different Types of things for later use in creating those things.
  */
@@ -179,6 +242,10 @@ async function main(): Promise<number> {
 	console.log((await client.ping()).data);
 	console.log();
 	await client.login("admin", "twelve12");
+	if (!(await checkRunningUser(client))) {
+		console.error("testing cannot continue due to insufficient permissions");
+		return 1;
+	}
 	checkAlerts("GET", "about", await client.about() as {});
 	checkAlerts("GET", "system/info", await client.systemInfo());
 
@@ -371,6 +438,16 @@ async function main(): Promise<number> {
 		parentId: myTenant.id
 	});
 	checkAlerts("GET", "tenants?id={{ID}}", await client.getTenants(newTenant.response.id));
+
+	const newUser = await getOrCreateTSClientTestingUser(client);
+	const [originalRole, originalTenant] = [newUser.role, newUser.tenantId];
+	newUser.role = newRole.response.id;
+	newUser.tenantId = newTenant.response.id;
+	checkAlerts("PUT", "users/{{ID}}", await client.updateUser(newUser));
+	newUser.role = originalRole;
+	newUser.tenantId = originalTenant;
+	checkAlerts("PUT2", "users/{{ID}}", await client.updateUser(newUser));
+
 	const newDivision = await client.createDivision("test");
 	checkAlerts("POST", "divisions", newDivision);
 	checkAlerts("GET", "divisions", await client.getDivisions(newDivision.response.id));

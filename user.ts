@@ -1,16 +1,141 @@
 import type {
 	APIResponse,
+	GetResponseUser,
+	PostRequestUser,
+	PutOrPostResponseUser,
+	PutRequestUser,
 	RequestRole,
 	RequestTenant,
 	ResponseCurrentUser,
 	ResponseRole,
 	ResponseTenant,
+	ResponseUser
 } from "trafficops-types";
 
 import { ClientError } from "./api.error.js";
 import { getSingleResponse, type PaginationParams } from "./util.js";
 
 import type { Client } from "./index";
+
+/**
+ * Creates a new user.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param user The user to create.
+ * @returns The server's response.
+ */
+export async function createUser(this: Client, user: PostRequestUser): Promise<APIResponse<PutOrPostResponseUser>> {
+	return (await this.apiPost<APIResponse<PutOrPostResponseUser>>("users", user)).data;
+}
+
+/**
+ * Optional settings that can affect the behavior of {@link getUsers}.
+ */
+type Params = PaginationParams & {
+	id?: number;
+	role?: string;
+	tenant?: string;
+	username?: string;
+	orderby?: "id" | "role" | "tenant" | "username";
+};
+
+/**
+ * Retrieves Users.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getUsers(this: Client, params?: Params): Promise<APIResponse<Array<GetResponseUser>>>;
+/**
+ * Retrieves a single User.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param identifier Either the ID or username of a single User to retrieve.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ * @throws {APIError} if the server responds with any number of Users other than
+ * one.
+ */
+export async function getUsers(this: Client, identifier: number | string, params?: Params): Promise<APIResponse<GetResponseUser>>;
+/**
+ * Retrieves Users.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param paramsOrIdentifier Either the ID or username of a single User to
+ * retrieve, or any and all optional settings for retrieving multiple.
+ * @param params Any and all optional settings for the request. This is ignored
+ * if settings were provided in `paramsOrIdentifier`.
+ * @returns The server's response.
+ */
+export async function getUsers(
+	this: Client,
+	paramsOrIdentifier?: Params | number | string,
+	params?: Params
+): Promise<APIResponse<Array<GetResponseUser> | GetResponseUser>> {
+	let p;
+	switch (typeof(paramsOrIdentifier)) {
+		case "number":
+			p = {...params, id: paramsOrIdentifier};
+			break;
+		case "string":
+			p = {...params, username: paramsOrIdentifier};
+			break;
+		default:
+			p = paramsOrIdentifier;
+	}
+	const resp = await this.apiGet<APIResponse<Array<GetResponseUser>>>("users", p);
+	if (typeof(paramsOrIdentifier) === "number" || typeof(paramsOrIdentifier) === "string") {
+		return getSingleResponse(resp, "user", paramsOrIdentifier);
+	}
+	return resp.data;
+}
+
+/**
+ * Replaces an existing user with the provided definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param user The full, desired, new definition of the user.
+ * @returns The server's response.
+ */
+export async function updateUser(this: Client, user: ResponseUser): Promise<APIResponse<PutOrPostResponseUser>>;
+/**
+ * Replaces an existing user with the provided definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param userOrID The ID of the user being updated.
+ * @param user The desired new definition of the user.
+ * @returns The server's response.
+ */
+export async function updateUser(this: Client, id: number, user: PutRequestUser): Promise<APIResponse<PutOrPostResponseUser>>;
+/**
+ * Replaces an existing user with the provided definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param userOrID Either the full desired new definition of the User, or just
+ * its ID.
+ * @param user The desired new definition of the user. This is required if
+ * `userOrID` is an ID, and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function updateUser(
+	this: Client,
+	userOrID: ResponseUser | number,
+	user?: PutRequestUser
+): Promise<APIResponse<PutOrPostResponseUser>> {
+	let id, p;
+	if (typeof(userOrID) === "number") {
+		id = userOrID;
+		if (!user) {
+			throw new ClientError("updateUser", "user");
+		}
+		p = user;
+	} else {
+		({id} = userOrID);
+		p = userOrID;
+	}
+	return (await this.apiPut<APIResponse<PutOrPostResponseUser>>(`users/${id}`, p)).data;
+}
 
 /**
  * Gets details about the user as whom the client is authenticated.
