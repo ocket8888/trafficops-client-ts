@@ -91,6 +91,7 @@ import {
 	deleteRole,
 	getRoles,
 	updateRole,
+	getCurrentUser
 } from "./user.js";
 import { createParser, type DateKeySpec } from "./util.js";
 
@@ -760,4 +761,5 @@ export class Client extends axios.Axios {
 	public createRole = createRole;
 	public updateRole = updateRole;
 	public deleteRole = deleteRole;
+	public getCurrentUser = getCurrentUser;
 }

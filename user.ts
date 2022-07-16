@@ -1,6 +1,7 @@
 import type {
 	APIResponse,
 	RequestRole,
+	ResponseCurrentUser,
 	ResponseRole,
 } from "trafficops-types";
 
@@ -8,6 +9,17 @@ import { ClientError } from "./api.error.js";
 import { getSingleResponse, type PaginationParams } from "./util.js";
 
 import type { Client } from "./index";
+
+/**
+ * Gets details about the user as whom the client is authenticated.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @returns The server's response.
+ */
+export async function getCurrentUser(this: Client): Promise<APIResponse<ResponseCurrentUser>> {
+	return (await this.apiGet<APIResponse<ResponseCurrentUser>>("user/current")).data;
+}
+
 /**
  * Creates a new Role.
  *
