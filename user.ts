@@ -1,8 +1,10 @@
 import type {
 	APIResponse,
 	RequestRole,
+	RequestTenant,
 	ResponseCurrentUser,
 	ResponseRole,
+	ResponseTenant,
 } from "trafficops-types";
 
 import { ClientError } from "./api.error.js";
@@ -149,4 +151,135 @@ export async function updateRole(
 export async function deleteRole(this: Client, role: number | ResponseRole): Promise<APIResponse<undefined>> {
 	const id = typeof(role) === "number" ? role : role.id;
 	return (await this.apiDelete("roles", {id})).data;
+}
+
+/**
+ * Creates a new Tenant.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param tenant The Tenant to create.
+ * @returns The server's response.
+ */
+export async function createTenant(this: Client, tenant: RequestTenant): Promise<APIResponse<ResponseTenant>> {
+	return (await this.apiPost<APIResponse<ResponseTenant>>("tenants", tenant)).data;
+}
+
+/**
+ * Optional settings that affect the behavior of {@link getTenants}.
+ */
+type TenantParams = PaginationParams & {
+	active?: boolean;
+	id?: number;
+	name?: string;
+	orderby?: "id" | "name";
+};
+
+/**
+ * Retrieves Tenants.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getTenants(this: Client, params?: TenantParams): Promise<APIResponse<Array<ResponseTenant>>>;
+/**
+ * Retrieves a single Tenant.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param identifier Either the ID or name of a single Tenant to retrieve.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ * @throws {APIError} if the server responds with any number of Tenants other
+ * than one.
+ */
+export async function getTenants(this: Client, identifier: number | string, params?: TenantParams): Promise<APIResponse<ResponseTenant>>;
+/**
+ * Retrieves Tenants.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param paramsOrIdentifier Either the ID or name of a single Tenant to
+ * retrieve, or any and all optional settings for retrieving multiple.
+ * @param params Any and all optional settings for the request. This is ignored
+ * if settings were provided in `paramsOrIdentifier`.
+ * @returns The server's response.
+ */
+export async function getTenants(
+	this: Client,
+	paramsOrIdentifier?: string | number | TenantParams,
+	params?: TenantParams
+): Promise<APIResponse<ResponseTenant | Array<ResponseTenant>>> {
+	let p;
+	switch (typeof(paramsOrIdentifier)) {
+		case "number":
+			p = {...params, id: paramsOrIdentifier};
+			break;
+		case "string":
+			p = {...params, name: paramsOrIdentifier};
+			break;
+		default:
+			p = paramsOrIdentifier;
+	}
+	const resp = await this.apiGet<APIResponse<Array<ResponseTenant>>>("tenants", p);
+	if (typeof(paramsOrIdentifier) === "number" || typeof(paramsOrIdentifier) === "string") {
+		return getSingleResponse(resp, "tenant", paramsOrIdentifier);
+	}
+	return resp.data;
+}
+
+/**
+ * Replaces an existing Tenant with the provided definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param tenant The full, desired, new definition of the Tenant.
+ * @returns The server's response.
+ */
+export async function updateTenant(this: Client, tenant: ResponseTenant): Promise<APIResponse<ResponseTenant>>;
+/**
+ * Replaces an existing Tenant with the provided definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param id The ID of the Tenant being updated.
+ * @param tenant The desired new definition of the Tenant.
+ * @returns The server's response.
+ */
+export async function updateTenant(this: Client, id: number, tenant: RequestTenant): Promise<APIResponse<ResponseTenant>>;
+/**
+ * Replaces an existing Tenant with the provided definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param tenantOrID Either the full desired new definition of the Tenant, or
+ * just its ID.
+ * @param tenant The desired new definition of the Tenant. This is required if
+ * `tenantOrID` is an ID, and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function updateTenant(
+	this: Client,
+	tenantOrID: ResponseTenant | number,
+	tenant?: RequestTenant
+): Promise<APIResponse<ResponseTenant>> {
+	let id, p;
+	if (typeof(tenantOrID) === "number") {
+		id = tenantOrID;
+		if (!tenant) {
+			throw new ClientError("updateTenant", "tenant");
+		}
+		p = tenant;
+	} else {
+		({id} = tenantOrID);
+		p = tenantOrID;
+	}
+	return (await this.apiPut<APIResponse<ResponseTenant>>(`tenants/${id}`, p)).data;
+}
+
+/**
+ * Deletes a Tenant.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param tenant The Tenant to delete, or just its ID.
+ * @returns The server's response.
+ */
+export async function deleteTenant(this: Client, tenant: number | ResponseTenant): Promise<APIResponse<undefined>> {
+	const id = typeof(tenant) === "number" ? tenant : tenant.id;
+	return (await this.apiDelete(`tenants/${id}`)).data;
 }

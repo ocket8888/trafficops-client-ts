@@ -12,6 +12,7 @@ import {
 	type ResponseParameter,
 	DSRChangeType,
 	DSRStatus,
+	type ResponseCurrentUser,
 } from "trafficops-types";
 
 import { Client } from "./index.js";
@@ -80,6 +81,21 @@ async function getOrCreateRemapDotConfigParameter(client: Client): Promise<Respo
 	return newParam.response;
 }
 
+let cachedCurrentUser: ResponseCurrentUser | null = null;
+
+/**
+ * Retrieves the current user. This sends an API request a maximum of once per
+ * run.
+ *
+ * @param client An API client for sending requests.
+ * @returns The currently authenticated user.
+ */
+async function getCurrentUser(client: Client): Promise<ResponseCurrentUser> {
+	if (cachedCurrentUser === null) {
+		cachedCurrentUser = (await client.getCurrentUser()).response;
+	}
+	return cachedCurrentUser;
+}
 /**
  * Holds the different Types of things for later use in creating those things.
  */
@@ -347,6 +363,14 @@ async function main(): Promise<number> {
 	newRole.response.description += "quest";
 	checkAlerts("PUT", "roles?id={{ID}}", await client.updateRole(newRole.response));
 
+	const me = await getCurrentUser(client);
+	const myTenant = (await client.getTenants(me.tenantId)).response;
+	const newTenant = await client.createTenant({
+		active: true,
+		name: "TSClientTestingTenant",
+		parentId: myTenant.id
+	});
+	checkAlerts("GET", "tenants?id={{ID}}", await client.getTenants(newTenant.response.id));
 	const newDivision = await client.createDivision("test");
 	checkAlerts("POST", "divisions", newDivision);
 	checkAlerts("GET", "divisions", await client.getDivisions(newDivision.response.id));
@@ -452,6 +476,7 @@ async function main(): Promise<number> {
 		await client.deleteCDNFederation(newCDN.response, newCDNFed.response)
 	);
 	checkAlerts("DELETE", "roles?id={{ID}}", await client.deleteRole(newRole.response));
+	checkAlerts("DELETE", "tenants?id={{ID}}", await client.deleteTenant(newTenant.response));
 	checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
 	checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 

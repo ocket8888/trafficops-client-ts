@@ -88,9 +88,13 @@ import { cacheStats, getCDNsHealth, getCDNsRoutingInfo, getCurrentStats } from "
 import { createType, deleteType, getTypes } from "./types.js";
 import {
 	createRole,
+	createTenant,
 	deleteRole,
+	deleteTenant,
 	getRoles,
+	getTenants,
 	updateRole,
+	updateTenant,
 	getCurrentUser
 } from "./user.js";
 import { createParser, type DateKeySpec } from "./util.js";
@@ -761,5 +765,9 @@ export class Client extends axios.Axios {
 	public createRole = createRole;
 	public updateRole = updateRole;
 	public deleteRole = deleteRole;
+	public getTenants = getTenants;
+	public createTenant = createTenant;
+	public updateTenant = updateTenant;
+	public deleteTenant = deleteTenant;
 	public getCurrentUser = getCurrentUser;
 }
