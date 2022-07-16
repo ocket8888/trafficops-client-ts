@@ -86,6 +86,12 @@ import {
 import { getCDNSSLKeys } from "./ssl.js";
 import { cacheStats, getCDNsHealth, getCDNsRoutingInfo, getCurrentStats } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
+import {
+	createRole,
+	deleteRole,
+	getRoles,
+	updateRole,
+} from "./user.js";
 import { createParser, type DateKeySpec } from "./util.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
@@ -748,4 +754,10 @@ export class Client extends axios.Axios {
 	public getCDNsHealth = getCDNsHealth;
 	public getCDNsRoutingInfo = getCDNsRoutingInfo;
 	public getCurrentStats = getCurrentStats;
+
+	// Users
+	public getRoles = getRoles;
+	public createRole = createRole;
+	public updateRole = updateRole;
+	public deleteRole = deleteRole;
 }

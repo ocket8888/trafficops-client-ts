@@ -336,6 +336,16 @@ async function main(): Promise<number> {
 	checkAlerts("GET", "cdns/{{name}}/snapshot", await client.getSnapshot(newCDN.response));
 	checkAlerts("GET", "cdns/{{name}}/configs/monitoring", await client.getMonitoringConfiguration(newCDN.response));
 
+	const newRole = await client.createRole({
+		capabilities: [],
+		description: "test",
+		name: "test",
+		privLevel: 30
+	});
+	checkAlerts("POST", "roles", newRole);
+	checkAlerts("GET", "roles?id={{ID}}", await client.getRoles(newRole.response.id));
+	newRole.response.description += "quest";
+	checkAlerts("PUT", "roles?id={{ID}}", await client.updateRole(newRole.response));
 
 	const newDivision = await client.createDivision("test");
 	checkAlerts("POST", "divisions", newDivision);
@@ -441,6 +451,7 @@ async function main(): Promise<number> {
 		"cdns/{{name}}/federations/{{ID}}",
 		await client.deleteCDNFederation(newCDN.response, newCDNFed.response)
 	);
+	checkAlerts("DELETE", "roles?id={{ID}}", await client.deleteRole(newRole.response));
 	checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
 	checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 
