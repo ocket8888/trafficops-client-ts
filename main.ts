@@ -158,20 +158,19 @@ async function getTypes(client: Client): Promise<Types> {
  * @returns An exit code for the script.
  */
 async function main(): Promise<number> {
-	let code = 0;
 	const client = new Client("https://localhost:6443", {logAlerts: true, logger: console, raiseErrorAlerts: false});
 	console.log("GET /ping");
 	console.log((await client.ping()).data);
 	console.log();
 	await client.login("admin", "twelve12");
-	code += checkAlerts("GET", "about", await client.about() as {});
-	code += checkAlerts("GET", "system/info", await client.systemInfo());
+	checkAlerts("GET", "about", await client.about() as {});
+	checkAlerts("GET", "system/info", await client.systemInfo());
 
 	const types = await getTypes(client);
 	const remapDotConfigLocationParam = await getOrCreateRemapDotConfigParameter(client);
 	console.info("remap.config location:", remapDotConfigLocationParam.value);
 
-	code += checkAlerts("POST", "deliveryservices/request", await client.sendDeliveryServicesRequest({
+	checkAlerts("POST", "deliveryservices/request", await client.sendDeliveryServicesRequest({
 		details: {
 			contentType: "VOD",
 			customer: "someone",
@@ -202,23 +201,23 @@ async function main(): Promise<number> {
 		uri: "https://uri.com/"
 	};
 	const newAcct = await client.createACMEAccount(acmeAccount);
-	code += checkAlerts("POST", "acme_accounts", newAcct);
-	code += checkAlerts("GET", "acme_accounts", await client.getACMEAccounts());
+	checkAlerts("POST", "acme_accounts", newAcct);
+	checkAlerts("GET", "acme_accounts", await client.getACMEAccounts());
 	acmeAccount.privateKey = "new privkey";
-	code += checkAlerts("PUT", "acme_accounts", await client.updateACMEAccount(acmeAccount));
-	code += checkAlerts("DELETE", "acme_accounts/{{provider}}/{{email}}", await client.deleteACMEAccount(newAcct.response));
+	checkAlerts("PUT", "acme_accounts", await client.updateACMEAccount(acmeAccount));
+	checkAlerts("DELETE", "acme_accounts/{{provider}}/{{email}}", await client.deleteACMEAccount(newAcct.response));
 
-	code += checkAlerts("GET", "api_capabilities", await client.getAPICapabilities());
-	code += checkAlerts("GET", "capabilities", await client.getCapabilities());
+	checkAlerts("GET", "api_capabilities", await client.getAPICapabilities());
+	checkAlerts("GET", "capabilities", await client.getCapabilities());
 
 	const newCDN = await client.createCDN({dnssecEnabled: false, domainName: "test", name: "test-cdn"});
-	code += checkAlerts("POST", "cdns", newCDN);
-	code += checkAlerts("GET", "cdns/{{ID}}", await client.getCDNs({id: newCDN.response.id}));
+	checkAlerts("POST", "cdns", newCDN);
+	checkAlerts("GET", "cdns/{{ID}}", await client.getCDNs({id: newCDN.response.id}));
 	newCDN.response.dnssecEnabled = !newCDN.response.dnssecEnabled;
-	code += checkAlerts("PUT", "cdns/{{ID}}", await client.updateCDN(newCDN.response));
-	code += checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.queueCDNUpdates(newCDN.response));
-	code += checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.dequeueCDNUpdates(newCDN.response));
-	code += checkAlerts("POST", "cdns/dnsseckeys/generate", await client.generateCDNDNSSECKeys(
+	checkAlerts("PUT", "cdns/{{ID}}", await client.updateCDN(newCDN.response));
+	checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.queueCDNUpdates(newCDN.response));
+	checkAlerts("POST", "cdns/{{ID}}/queue_updates", await client.dequeueCDNUpdates(newCDN.response));
+	checkAlerts("POST", "cdns/dnsseckeys/generate", await client.generateCDNDNSSECKeys(
 		{
 			key: newCDN.response.name,
 			kskExpirationDays: 1,
@@ -226,14 +225,14 @@ async function main(): Promise<number> {
 			zskExpirationDays: 1
 		}
 	));
-	code += checkAlerts("POST", "cdns/{{name}}/dnsseckeys/ksk/generate", await client.generateCDNKSK(newCDN.response,
+	checkAlerts("POST", "cdns/{{name}}/dnsseckeys/ksk/generate", await client.generateCDNKSK(newCDN.response,
 		{
 			expirationDays: 1
 		}
 	));
-	code += checkAlerts("GET", "cdns/dnsseckeys/refresh", await client.refreshAllDNSSECKeys());
-	code += checkAlerts("GET", "cdns/domains", await client.getCDNDomains());
-	code += checkAlerts("GET", "cdns/name/{{name}}/sslkeys", await client.getCDNSSLKeys(newCDN.response));
+	checkAlerts("GET", "cdns/dnsseckeys/refresh", await client.refreshAllDNSSECKeys());
+	checkAlerts("GET", "cdns/domains", await client.getCDNDomains());
+	checkAlerts("GET", "cdns/name/{{name}}/sslkeys", await client.getCDNSSLKeys(newCDN.response));
 
 	const newDS = await client.createDeliveryService({
 		active: false,
@@ -261,53 +260,53 @@ async function main(): Promise<number> {
 		typeId: types.deliveryService.id,
 		xmlId: "test-ds",
 	});
-	code += checkAlerts("POST", "deliveryservices", newDS);
+	checkAlerts("POST", "deliveryservices", newDS);
 	newDS.response[0].logsEnabled = !newDS.response[0].logsEnabled;
-	code += checkAlerts("PUT", "deliveryservices/{{ID}}", await client.updateDeliveryService(newDS.response[0]));
-	code += checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
+	checkAlerts("PUT", "deliveryservices/{{ID}}", await client.updateDeliveryService(newDS.response[0]));
+	checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
 
 	const newDSR = await client.createDSR({
 		changeType: DSRChangeType.DELETE,
 		deliveryService: newDS.response[0],
 		status: DSRStatus.DRAFT
 	});
-	code += checkAlerts("POST", "deliveryservice_requests", newDSR);
+	checkAlerts("POST", "deliveryservice_requests", newDSR);
 	newDSR.response.status = DSRStatus.SUBMITTED;
-	code += checkAlerts("PUT", "deliveryservice_requests", await client.updateDSR(newDSR.response));
-	code += checkAlerts("GET", "deliveryservice_requests", await client.getDSRs(newDSR.response.id));
-	code += checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));
+	checkAlerts("PUT", "deliveryservice_requests", await client.updateDSR(newDSR.response));
+	checkAlerts("GET", "deliveryservice_requests", await client.getDSRs(newDSR.response.id));
+	checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));
 
 	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});
-	code += checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
+	checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
 	newCDNFed.response.description = "quest";
-	code += checkAlerts("PUT", "cdns/{{name}}/federations/{{ID}}", await client.updateCDNFederation(newCDN.response, newCDNFed.response));
-	code += checkAlerts("GET", "cdns/{{name}}/federations", await client.getCDNFederations(newCDN.response, {limit: 1}));
+	checkAlerts("PUT", "cdns/{{name}}/federations/{{ID}}", await client.updateCDNFederation(newCDN.response, newCDNFed.response));
+	checkAlerts("GET", "cdns/{{name}}/federations", await client.getCDNFederations(newCDN.response, {limit: 1}));
 
 	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: types.cacheGroup.id});
-	code += checkAlerts("POST", "cachegroups", newCG);
-	code += checkAlerts("GET", `cachegroups?id=${newCG.response.id}`, await client.getCacheGroups(newCG.response.id));
+	checkAlerts("POST", "cachegroups", newCG);
+	checkAlerts("GET", `cachegroups?id=${newCG.response.id}`, await client.getCacheGroups(newCG.response.id));
 	newCG.response.fallbackToClosest = !newCG.response.fallbackToClosest;
-	code += checkAlerts("PUT", "cachegroups/{{ID}}", await client.updateCacheGroup(newCG.response));
-	code += checkAlerts("POST", "cachegroups/{{ID}}/queue_updates", await client.queueCacheGroupUpdates(newCG.response, newCDN.response));
-	code += checkAlerts("POST", "cachegroups/{{ID}}/queue_updates", await client.dequeueCacheGroupUpdates(newCG.response, newCDN.response));
+	checkAlerts("PUT", "cachegroups/{{ID}}", await client.updateCacheGroup(newCG.response));
+	checkAlerts("POST", "cachegroups/{{ID}}/queue_updates", await client.queueCacheGroupUpdates(newCG.response, newCDN.response));
+	checkAlerts("POST", "cachegroups/{{ID}}/queue_updates", await client.dequeueCacheGroupUpdates(newCG.response, newCDN.response));
 
 	const newASN = await client.createASN({asn: 1, cachegroupId: newCG.response.id});
-	code += checkAlerts("POST", "asns", newASN);
-	code += checkAlerts("GET", "asns", await client.getASNs());
+	checkAlerts("POST", "asns", newASN);
+	checkAlerts("GET", "asns", await client.getASNs());
 	newASN.response.asn = 2;
-	code += checkAlerts("PUT", `asns/${newASN.response.id}`, await client.updateASN(newASN.response));
-	code += checkAlerts("DELETE", `asns/${newASN.response.id}`, await client.deleteASN(newASN.response.id));
+	checkAlerts("PUT", `asns/${newASN.response.id}`, await client.updateASN(newASN.response));
+	checkAlerts("DELETE", `asns/${newASN.response.id}`, await client.deleteASN(newASN.response.id));
 
 	const newType = await client.createType({description: "foo", name: "foo", useInTable: "server"});
-	code += checkAlerts("POST", "types", newType);
-	code += checkAlerts("GET", "types", await client.getTypes({id: newType.response.id}));
-	code += checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
+	checkAlerts("POST", "types", newType);
+	checkAlerts("GET", "types", await client.getTypes({id: newType.response.id}));
+	checkAlerts("DELETE", "types/{{ID}}", await client.deleteType(newType.response));
 
 	const newParam = await client.createParameter({configFile: "foo", name: "test", secure: false, value: "quest"});
-	code += checkAlerts("POST", "parameters", newParam);
-	code += checkAlerts("GET", "parameters", await client.getParameters({id: newParam.response.id}));
+	checkAlerts("POST", "parameters", newParam);
+	checkAlerts("GET", "parameters", await client.getParameters({id: newParam.response.id}));
 	newParam.response.value = "bar";
-	code += checkAlerts("PUT", `parameters/${newParam.response.id}`, await client.updateParameter(newParam.response));
+	checkAlerts("PUT", `parameters/${newParam.response.id}`, await client.updateParameter(newParam.response));
 
 	const newProfile = await client.createProfile({
 		cdn: newCDN.response.id,
@@ -316,37 +315,38 @@ async function main(): Promise<number> {
 		routingDisabled: false,
 		type: ProfileType.ATS_PROFILE
 	});
-	code += checkAlerts("POST", "profiles", newProfile);
+	checkAlerts("POST", "profiles", newProfile);
 	newProfile.response.description = "quest";
-	code += checkAlerts("PUT", "profiles/{{ID}}", await client.updateProfile(newProfile.response));
-	code += checkAlerts("GET", "profiles?id={{ID}}", await client.getProfiles(newProfile.response.id));
-	code += checkAlerts("POST", "profileparameters", await client.assignParameterToProfile(newProfile.response, newParam.response));
+	checkAlerts("PUT", "profiles/{{ID}}", await client.updateProfile(newProfile.response));
+	checkAlerts("GET", "profiles?id={{ID}}", await client.getProfiles(newProfile.response.id));
+	checkAlerts("POST", "profileparameters", await client.assignParameterToProfile(newProfile.response, newParam.response));
 
-	code += checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(newCG.response.id, newParam.response.id));
-	code += checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
-	code += checkAlerts(
+	checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(newCG.response.id, newParam.response.id));
+	checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
+	checkAlerts(
 		"DELETE",
 		"cachegroupparameters/{{Cache Group ID}}/{{Parameter ID}}",
 		await client.removeParameterFromCacheGroup(newCG.response.id, newParam.response.id)
 	);
 
-	code += checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
+	checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 
-	code += checkAlerts("GET", "cdns/{{name}}/snapshot/new", await client.getSnapshotState(newCDN.response));
-	code += checkAlerts("PUT", "snapshot", await client.takeSnapshot(newCDN.response));
-	code += checkAlerts("GET", "cdns/{{name}}/snapshot", await client.getSnapshot(newCDN.response));
-	code += checkAlerts("GET", "cdns/{{name}}/configs/monitoring", await client.getMonitoringConfiguration(newCDN.response));
+	checkAlerts("GET", "cdns/{{name}}/snapshot/new", await client.getSnapshotState(newCDN.response));
+	checkAlerts("PUT", "snapshot", await client.takeSnapshot(newCDN.response));
+	checkAlerts("GET", "cdns/{{name}}/snapshot", await client.getSnapshot(newCDN.response));
+	checkAlerts("GET", "cdns/{{name}}/configs/monitoring", await client.getMonitoringConfiguration(newCDN.response));
+
 
 	const newDivision = await client.createDivision("test");
-	code += checkAlerts("POST", "divisions", newDivision);
-	code += checkAlerts("GET", "divisions", await client.getDivisions(newDivision.response.id));
+	checkAlerts("POST", "divisions", newDivision);
+	checkAlerts("GET", "divisions", await client.getDivisions(newDivision.response.id));
 	newDivision.response.name = "testquest";
-	code += checkAlerts("PUT", "divisions/{{ID}}", await client.updateDivision(newDivision.response));
+	checkAlerts("PUT", "divisions/{{ID}}", await client.updateDivision(newDivision.response));
 	const newRegion = await client.createRegion({division: newDivision.response.id, name: "test"});
-	code += checkAlerts("POST", "regions", newRegion);
-	code += checkAlerts("GET", "regions", await client.getRegions(newRegion.response.id));
+	checkAlerts("POST", "regions", newRegion);
+	checkAlerts("GET", "regions", await client.getRegions(newRegion.response.id));
 	newRegion.response.name = "testquest";
-	code += checkAlerts("PUT", "regions/{{ID}}", await client.updateRegion(newRegion.response));
+	checkAlerts("PUT", "regions/{{ID}}", await client.updateRegion(newRegion.response));
 	const newPhysLoc = await client.createPhysicalLocation({
 		address: "123 You Got Your Life Back Lane",
 		city: "Monstropolis",
@@ -356,16 +356,16 @@ async function main(): Promise<number> {
 		state: "Denial",
 		zip: "0"
 	});
-	code += checkAlerts("POST", "phys_locations", newPhysLoc);
-	code += checkAlerts("GET", "phys_locations", await client.getPhysicalLocations(newPhysLoc.response.id));
+	checkAlerts("POST", "phys_locations", newPhysLoc);
+	checkAlerts("GET", "phys_locations", await client.getPhysicalLocations(newPhysLoc.response.id));
 	newPhysLoc.response.state = "Decay";
-	code += checkAlerts("PUT", "phys_locations/{{ID}}", await client.updatePhysicalLocation(newPhysLoc.response));
+	checkAlerts("PUT", "phys_locations/{{ID}}", await client.updatePhysicalLocation(newPhysLoc.response));
 
 	const newStatus = await client.createStatus({description: "test status", name: "test"});
-	code += checkAlerts("POST", "statuses", newStatus);
+	checkAlerts("POST", "statuses", newStatus);
 	newStatus.response.description = "a status for testing the TS client";
-	code += checkAlerts("PUT", "statuses/{{ID}}", await client.updateStatus(newStatus.response));
-	code += checkAlerts("GET", "statuses?id={{ID}}", await client.getStatuses(newStatus.response.id));
+	checkAlerts("PUT", "statuses/{{ID}}", await client.updateStatus(newStatus.response));
+	checkAlerts("GET", "statuses?id={{ID}}", await client.getStatuses(newStatus.response.id));
 
 	const newServer = await client.createServer({
 		cachegroupId: newCG.response.id,
@@ -393,57 +393,56 @@ async function main(): Promise<number> {
 		typeId: types.edgeCacheServer.id
 	});
 	newServer.response.domainName = "quest";
-	code += checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
-	code += checkAlerts("GET", "servers?id={{ID}}", await client.getServers(newServer.response.id));
+	checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
+	checkAlerts("GET", "servers?id={{ID}}", await client.getServers(newServer.response.id));
 
-	code += checkAlerts(
+	checkAlerts(
 		"POST",
 		"cachegroups/{{ID}}/deliveryservices",
 		await client.assignCacheGroupToDS(newCG.response, [newDS.response[0].id])
 	);
 
-	code += checkAlerts("GET", "cdns/health", await client.getCDNsHealth());
-	code += checkAlerts("GET", "cdns/routing", await client.getCDNsRoutingInfo());
-	code += checkAlerts("GET", "current_stats", await client.getCurrentStats());
+	checkAlerts("GET", "cdns/health", await client.getCDNsHealth());
+	checkAlerts("GET", "cdns/routing", await client.getCDNsRoutingInfo());
+	checkAlerts("GET", "current_stats", await client.getCurrentStats());
 
-	code += checkAlerts("POST", "consistenthash", await client.testConsistentHashingRegexp(newCDN.response, /some regexp/, "/asset.m3u8"));
+	checkAlerts("POST", "consistenthash", await client.testConsistentHashingRegexp(newCDN.response, /some regexp/, "/asset.m3u8"));
 
 	const newCoordinate = await client.createCoordinate({latitude: 1, longitude: -1, name: "test"});
-	code += checkAlerts("POST", "coordinates", newCoordinate);
+	checkAlerts("POST", "coordinates", newCoordinate);
 	++newCoordinate.response.latitude;
-	code += checkAlerts("PUT", "coordinates", await client.updateCoordinate(newCoordinate.response));
-	code += checkAlerts("GET", "coordinates", await client.getCoordinates(newCoordinate.response));
+	checkAlerts("PUT", "coordinates", await client.updateCoordinate(newCoordinate.response));
+	checkAlerts("GET", "coordinates", await client.getCoordinates(newCoordinate.response));
 
 	try {
 		await client.dbdump();
 	} catch (e) {
 		console.error("dbdump failed:", e);
-		++code;
 		erroredRequests.add("GET /dbdump");
 	}
 
-	code += checkAlerts("DELETE", "coordinates", await client.deleteCoordinate(newCoordinate.response));
-	code += checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
-	code += checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));
-	code += checkAlerts("DELETE", "phys_locations/{{ID}}", await client.deletePhysicalLocation(newPhysLoc.response));
-	code += checkAlerts("DELETE", "regions/{{ID}}", await client.deleteRegion(newRegion.response));
-	code += checkAlerts("DELETE", "divisions/{{ID}}", await client.deleteDivision(newDivision.response));
-	code += checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
-	code += checkAlerts(
+	checkAlerts("DELETE", "coordinates", await client.deleteCoordinate(newCoordinate.response));
+	checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
+	checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));
+	checkAlerts("DELETE", "phys_locations/{{ID}}", await client.deletePhysicalLocation(newPhysLoc.response));
+	checkAlerts("DELETE", "regions/{{ID}}", await client.deleteRegion(newRegion.response));
+	checkAlerts("DELETE", "divisions/{{ID}}", await client.deleteDivision(newDivision.response));
+	checkAlerts("DELETE", `cachegroups/${newCG.response.id}`, await client.deleteCacheGroup(newCG.response));
+	checkAlerts(
 		"DELETE",
 		"profileparameters/{{Profile ID}}/{{Parameter ID}}",
 		await client.removeParameterFromProfile(newProfile.response, newParam.response)
 	);
-	code += checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
-	code += checkAlerts("DELETE", "profiles/{{ID}}", await client.deleteProfile(newProfile.response));
-	code += checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
-	code += checkAlerts(
+	checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
+	checkAlerts("DELETE", "profiles/{{ID}}", await client.deleteProfile(newProfile.response));
+	checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
+	checkAlerts(
 		"DELETE",
 		"cdns/{{name}}/federations/{{ID}}",
 		await client.deleteCDNFederation(newCDN.response, newCDNFed.response)
 	);
-	code += checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
-	code += checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
+	checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
+	checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 
 	if (erroredRequests.size > 0) {
 		console.error();
@@ -452,7 +451,7 @@ async function main(): Promise<number> {
 			console.error(`\t${r}`);
 		}
 	}
-	return code;
+	return erroredRequests.size;
 }
 
 /**
