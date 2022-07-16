@@ -4,7 +4,8 @@ import type {
 	DSRChangeType,
 	DSRStatus,
 	RequestDeliveryServiceRequest,
-	ResponseDeliveryServiceRequest
+	ResponseDeliveryServiceRequest,
+	ResponseUser
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -199,6 +200,31 @@ export async function deleteDeliveryServiceRequest(
 ): Promise<APIResponse<undefined>> {
 	const id = typeof(dsr) === "number" ? dsr : dsr.id;
 	return (await this.apiDelete("deliveryservice_requests", {id})).data;
+}
+
+/**
+ * Assigns a Delivery Service Request (DSR) to a user (or unassigns it).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsr The DSR being assigned, or just its ID.
+ * @param assignee The user or ID of the user being assigned to the DSR given by
+ * `dsr`, or `null`/`undefined` to instead *un*assign the DSR.
+ * @returns The server's response.
+ */
+export async function assignDeliveryServiceRequest(
+	this: Client,
+	dsr: number | ResponseDeliveryServiceRequest,
+	assignee: number | ResponseUser | null | undefined
+): Promise<APIResponse<ResponseDeliveryServiceRequest>> {
+	const dsrID = typeof(dsr) === "number" ? dsr : dsr.id;
+	let assigneeId;
+	if (assignee === null || assignee === undefined) {
+		assigneeId = null;
+	} else {
+		assigneeId = typeof(assignee) === "number" ? assignee : assignee.id;
+	}
+
+	return (await this.apiPut<APIResponse<ResponseDeliveryServiceRequest>>(`deliveryservice_requests/${dsrID}/assign`, {assigneeId})).data;
 }
 
 /**

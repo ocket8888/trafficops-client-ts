@@ -348,17 +348,6 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "deliveryservices/{{ID}}", await client.updateDeliveryService(newDS.response[0]));
 	checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
 
-	const newDSR = await client.createDSR({
-		changeType: DSRChangeType.DELETE,
-		deliveryService: newDS.response[0],
-		status: DSRStatus.DRAFT
-	});
-	checkAlerts("POST", "deliveryservice_requests", newDSR);
-	newDSR.response.status = DSRStatus.SUBMITTED;
-	checkAlerts("PUT", "deliveryservice_requests", await client.updateDSR(newDSR.response));
-	checkAlerts("GET", "deliveryservice_requests", await client.getDSRs(newDSR.response.id));
-	checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));
-
 	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});
 	checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
 	newCDNFed.response.description = "quest";
@@ -446,7 +435,19 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "users/{{ID}}", await client.updateUser(newUser));
 	newUser.role = originalRole;
 	newUser.tenantId = originalTenant;
-	checkAlerts("PUT2", "users/{{ID}}", await client.updateUser(newUser));
+	checkAlerts("PUT", "users/{{ID}} (restoring)", await client.updateUser(newUser));
+
+	const newDSR = await client.createDSR({
+		changeType: DSRChangeType.DELETE,
+		deliveryService: newDS.response[0],
+		status: DSRStatus.DRAFT
+	});
+	checkAlerts("POST", "deliveryservice_requests", newDSR);
+	newDSR.response.status = DSRStatus.SUBMITTED;
+	checkAlerts("PUT", "deliveryservice_requests", await client.updateDSR(newDSR.response));
+	checkAlerts("GET", "deliveryservice_requests", await client.getDSRs(newDSR.response.id));
+
+	checkAlerts("POST", "deliveryservice_requests/{{ID}}/assign", await client.assignDSR(newDSR.response, newUser));
 
 	const newDivision = await client.createDivision("test");
 	checkAlerts("POST", "divisions", newDivision);
@@ -532,6 +533,8 @@ async function main(): Promise<number> {
 		erroredRequests.add("GET /dbdump");
 	}
 
+	checkAlerts("POST", "deliveryservices/{{ID}}/assign (unassign)", await client.unAssignDSR(newDSR.response));
+	checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));
 	checkAlerts("DELETE", "coordinates", await client.deleteCoordinate(newCoordinate.response));
 	checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
 	checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));

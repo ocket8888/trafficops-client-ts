@@ -1,5 +1,14 @@
 import axios, { type AxiosResponseHeaders, type AxiosResponse } from "axios";
-import { type Alert, AlertLevel, VERSION, type OAuthLoginRequest, type APIResponse, errors, PingResponse } from "trafficops-types";
+import {
+	type Alert,
+	AlertLevel,
+	VERSION,
+	type OAuthLoginRequest,
+	type APIResponse,
+	errors,
+	type PingResponse,
+	type ResponseDeliveryServiceRequest
+} from "trafficops-types";
 
 import { about, systemInfo } from "./about.js";
 import { createACMEAccount, deleteACMEAccount, getACMEAccounts, updateACMEAccount } from "./acme_accounts.js";
@@ -35,6 +44,7 @@ import { createCoordinate, deleteCoordinate, getCoordinates, updateCoordinate } 
 import { dbdump } from "./dbdump.js";
 import { createDeliveryService, deleteDeliveryService, getDeliveryServices, updateDeliveryService } from "./delivery_service.js";
 import {
+	assignDeliveryServiceRequest,
 	createDeliveryServiceRequest,
 	deleteDeliveryServiceRequest,
 	getDeliveryServiceRequests,
@@ -693,6 +703,35 @@ export class Client extends axios.Axios {
 	public updateDSR = updateDeliveryServiceRequest;
 	public deleteDeliveryServiceRequest = deleteDeliveryServiceRequest;
 	public deleteDSR = deleteDeliveryServiceRequest;
+	public assignDeliveryServiceRequest = assignDeliveryServiceRequest;
+	public assignDSR = assignDeliveryServiceRequest;
+	/**
+	 * Unassigns a Delivery Service Request (DSR) from any user to which it may
+	 * be assigned.
+	 *
+	 * This is equivalent to calling {@link Client.assignDeliveryServiceRequest}
+	 * with `null` or `undefined` as the assignee.
+	 *
+	 * @param dsr The DSR to be unassigned.
+	 * @returns The server's response.
+	 */
+	public async unAssignDeliveryServiceRequest(
+		dsr: number | ResponseDeliveryServiceRequest
+	): Promise<APIResponse<ResponseDeliveryServiceRequest>> {
+		return this.assignDeliveryServiceRequest(dsr, null);
+	}
+	/**
+	 * Alias of {@link Client.unAssignDeliveryServiceRequest}.
+	 *
+	 * This is equivalent to calling {@link Client.assignDSR} with `null` or
+	 * `undefined` as the assignee.
+	 *
+	 * @param dsr The DSR to be unassigned.
+	 * @returns The server's response.
+	 */
+	public async unAssignDSR(dsr: number | ResponseDeliveryServiceRequest): Promise<APIResponse<ResponseDeliveryServiceRequest>> {
+		return this.unAssignDeliveryServiceRequest(dsr);
+	}
 	public sendDeliveryServicesRequest = sendDeliveryServicesRequest;
 
 	// DNSSEC
