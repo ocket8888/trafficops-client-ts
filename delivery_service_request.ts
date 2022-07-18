@@ -4,12 +4,14 @@ import type {
 	DSRChangeType,
 	DSRStatus,
 	RequestDeliveryServiceRequest,
+	RequestDeliveryServiceRequestComment,
 	ResponseDeliveryServiceRequest,
+	ResponseDeliveryServiceRequestComment,
 	ResponseUser
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
-import type { PaginationParams } from "./util";
+import { getSingleResponse, type PaginationParams } from "./util.js";
 
 import type { Client } from "./index";
 
@@ -225,6 +227,218 @@ export async function assignDeliveryServiceRequest(
 	}
 
 	return (await this.apiPut<APIResponse<ResponseDeliveryServiceRequest>>(`deliveryservice_requests/${dsrID}/assign`, {assigneeId})).data;
+}
+
+/**
+ * Optional settings that can affect the behavior of
+ * {@link getDeliveryServiceRequestComments}.
+ */
+type DSRCParams = {
+	author?: string;
+	authorId?: number;
+	deliveryServiceRequestId?: number;
+	id?: number;
+};
+
+/**
+ * Retrieves comments left on Delivery Service Requests (DSRs).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceRequestComments(
+	this: Client,
+	params?: DSRCParams
+): Promise<APIResponse<Array<ResponseDeliveryServiceRequestComment>>>;
+/**
+ * Retrieves a single comment left on a Delivery Service Request (DSR).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param id The ID of a single DSR comment to fetch.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ * @throws {APIError} if Traffic Ops responds with any number of DSR comments
+ * other than one.
+ */
+export async function getDeliveryServiceRequestComments(
+	this: Client,
+	id: number,
+	params?: DSRCParams
+): Promise<APIResponse<ResponseDeliveryServiceRequestComment>>;
+/**
+ * Retrieves comments left on Delivery Service Requests (DSRs).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param paramsOrId Either the ID of a single DSR comment to fetch, or any and
+ * all optional request settings when fetching multiple.
+ * @param params Any and all optional settings for the request. This is ignored
+ * if optional settings are given with `paramsOrId`.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceRequestComments(
+	this: Client,
+	paramsOrId?: number | DSRCParams,
+	params?: DSRCParams
+): Promise<APIResponse<Array<ResponseDeliveryServiceRequestComment> | ResponseDeliveryServiceRequestComment>> {
+	let single = false;
+	let p;
+	if (typeof(paramsOrId) === "number") {
+		single = true;
+		p = {...params, id: paramsOrId};
+	} else {
+		p = paramsOrId;
+	}
+	const resp = await this.apiGet<APIResponse<Array<ResponseDeliveryServiceRequestComment>>>("deliveryservice_request_comments", p);
+	if (single) {
+		return getSingleResponse(resp, "DSR comment", p?.id as number);
+	}
+	return resp.data;
+}
+
+/**
+ * Checks if an argument to {@link createDeliveryServiceRequestComment} is a
+ * comment creation request or a full DSR.
+ *
+ * @param x The object to check.
+ * @returns `true` if `x` is a {@link RequestDeliveryServiceRequestComment},
+ * `false` otherwise.
+ */
+function isComment(
+	x: number | ResponseDeliveryServiceRequest | RequestDeliveryServiceRequestComment
+): x is RequestDeliveryServiceRequestComment {
+	return typeof(x) === "object" && Object.prototype.hasOwnProperty.call(x, "value");
+}
+
+/**
+ * Adds a new comment to a Delivery Service Request (DSR).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param comment The full comment creation request.
+ * @returns The server's response.
+ */
+export async function createDeliveryServiceRequestComment(
+	this: Client,
+	comment: RequestDeliveryServiceRequestComment
+): Promise<APIResponse<ResponseDeliveryServiceRequestComment>>;
+/**
+ * Adds a new comment to a Delivery Service Request (DSR).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsr Either the DSR on which a new comment will be made, or just its
+ * ID.
+ * @param comment The content of the comment to be made.
+ * @returns The server's response.
+ */
+export async function createDeliveryServiceRequestComment(
+	this: Client,
+	dsr: number | ResponseDeliveryServiceRequest,
+	comment: string
+): Promise<APIResponse<ResponseDeliveryServiceRequestComment>>;
+/**
+ * Adds a new comment to a Delivery Service Request (DSR).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsrOrComment Either the full comment creation request, or just the DSR
+ * (or its ID) on which a new comment will be made.
+ * @param comment The content of the comment to be made. This is required if
+ * `dsrOrComment` is used to identify a DSR, and is ignored otherwise.
+ * @returns The server's response.
+ */
+export async function createDeliveryServiceRequestComment(
+	this: Client,
+	dsrOrComment: number | ResponseDeliveryServiceRequest | RequestDeliveryServiceRequestComment,
+	comment?: string
+): Promise<APIResponse<ResponseDeliveryServiceRequestComment>> {
+	let request;
+	if (isComment(dsrOrComment)) {
+		request = dsrOrComment;
+	} else if (comment === undefined) {
+		throw new ClientError("createDeliveryServiceRequestComment", "comment");
+	} else if (typeof(dsrOrComment) === "number") {
+		request = {
+			deliveryServiceRequestId: dsrOrComment,
+			value: comment
+		};
+	} else {
+		request = {
+			deliveryServiceRequestId: dsrOrComment.id,
+			value: comment
+		};
+	}
+
+	return (await this.apiPost<APIResponse<ResponseDeliveryServiceRequestComment>>("deliveryservice_request_comments", request)).data;
+}
+
+/**
+ * Replaces an existing comment on a Delivery Service Request (DSR) with the
+ * provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsrc The full new desired definition of the DSR comment.
+ * @returns The server's response.
+ */
+export async function editDeliveryServiceRequestComment(
+	this: Client,
+	dsrc: ResponseDeliveryServiceRequestComment
+): Promise<APIResponse<ResponseDeliveryServiceRequestComment>>;
+/**
+ * Replaces an existing comment on a Delivery Service Request (DSR) with the
+ * provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsrc The ID of the comment being edited.
+ * @param comment The new desired definition of the DSR comment.
+ * @returns The server's response.
+ */
+export async function editDeliveryServiceRequestComment(
+	this: Client,
+	dsrc: number,
+	comment: RequestDeliveryServiceRequestComment
+): Promise<APIResponse<ResponseDeliveryServiceRequestComment>>;
+/**
+ * Replaces an existing comment on a Delivery Service Request (DSR) with the
+ * provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsrc Either the full new desired definition of the DSR comment, or
+ * just the ID of the comment being edited.
+ * @param comment The new desired definition of the DSR comment. This is
+ * required if `dsrc` is used to identify a DSR comment, and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function editDeliveryServiceRequestComment(
+	this: Client,
+	dsrc: number | ResponseDeliveryServiceRequestComment,
+	comment?: RequestDeliveryServiceRequestComment
+): Promise<APIResponse<ResponseDeliveryServiceRequestComment>> {
+	let id, p;
+	if (typeof(dsrc) === "number") {
+		id = dsrc;
+		if (!comment) {
+			throw new ClientError("editDeliveryServiceRequestComment", "comment");
+		}
+		p = comment;
+	} else {
+		({id} = dsrc);
+		p = dsrc;
+	}
+	return (await this.apiPut<APIResponse<ResponseDeliveryServiceRequestComment>>("deliveryservice_request_comments", p, {id})).data;
+}
+
+/**
+ * Removes a comment from a Delivery Service Request (DSR).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsrc The DSR comment being removed, or just its ID.
+ * @returns The server's response.
+ */
+export async function deleteDeliveryServiceRequestComment(
+	this: Client,
+	dsrc: number | ResponseDeliveryServiceRequestComment
+): Promise<APIResponse<undefined>> {
+	const id = typeof(dsrc) === "number" ? dsrc : dsrc.id;
+	return (await this.apiDelete("deliveryservice_request_comments", {id})).data;
 }
 
 /**

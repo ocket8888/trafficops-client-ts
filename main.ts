@@ -449,6 +449,13 @@ async function main(): Promise<number> {
 
 	checkAlerts("POST", "deliveryservice_requests/{{ID}}/assign", await client.assignDSR(newDSR.response, newUser));
 
+	const newDSRC = await client.createDSRComment(newDSR.response, "test");
+	checkAlerts("POST", "deliveryservice_request_comments", newDSRC);
+	newDSRC.response.value = "testquest";
+	checkAlerts("PUT", "deliveryservice_request_comments?id={{ID}}", await client.editDSRComment(newDSRC.response));
+	checkAlerts("GET", "deliveryservice_request_comments?id={{ID}}", await client.getDSRComments(newDSRC.response.id));
+	checkAlerts("DELETE", "deliveryservice_request_comments?id={{ID}}", await client.deleteDSRComment(newDSRC.response));
+
 	const newDivision = await client.createDivision("test");
 	checkAlerts("POST", "divisions", newDivision);
 	checkAlerts("GET", "divisions", await client.getDivisions(newDivision.response.id));

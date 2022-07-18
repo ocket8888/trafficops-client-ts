@@ -46,7 +46,11 @@ import { createDeliveryService, deleteDeliveryService, getDeliveryServices, upda
 import {
 	assignDeliveryServiceRequest,
 	createDeliveryServiceRequest,
+	createDeliveryServiceRequestComment,
 	deleteDeliveryServiceRequest,
+	deleteDeliveryServiceRequestComment,
+	editDeliveryServiceRequestComment,
+	getDeliveryServiceRequestComments,
 	getDeliveryServiceRequests,
 	sendDeliveryServicesRequest,
 	updateDeliveryServiceRequest
@@ -732,6 +736,14 @@ export class Client extends axios.Axios {
 	public async unAssignDSR(dsr: number | ResponseDeliveryServiceRequest): Promise<APIResponse<ResponseDeliveryServiceRequest>> {
 		return this.unAssignDeliveryServiceRequest(dsr);
 	}
+	public getDeliveryServiceRequestComments = getDeliveryServiceRequestComments;
+	public getDSRComments = getDeliveryServiceRequestComments;
+	public createDeliveryServiceRequestComment = createDeliveryServiceRequestComment;
+	public createDSRComment = createDeliveryServiceRequestComment;
+	public editDeliveryServiceRequestComment = editDeliveryServiceRequestComment;
+	public editDSRComment = editDeliveryServiceRequestComment;
+	public deleteDeliveryServiceRequestComment = deleteDeliveryServiceRequestComment;
+	public deleteDSRComment = deleteDeliveryServiceRequestComment;
 	public sendDeliveryServicesRequest = sendDeliveryServicesRequest;
 
 	// DNSSEC
