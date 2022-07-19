@@ -230,6 +230,23 @@ export async function assignDeliveryServiceRequest(
 }
 
 /**
+ * Changes the status of a Delivery Service Request (DSR).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsr Either the DSR being updated, or just its ID.
+ * @param status The desired new status for the DSR.
+ * @returns The server's response.
+ */
+export async function changeDeliveryServiceRequestStatus(
+	this: Client,
+	dsr: number | ResponseDeliveryServiceRequest,
+	status: DSRStatus
+): Promise<APIResponse<ResponseDeliveryServiceRequest>> {
+	const id = typeof(dsr) === "number" ? dsr : dsr.id;
+	return (await this.apiPut<APIResponse<ResponseDeliveryServiceRequest>>(`deliveryservice_requests/${id}/status`, {status})).data;
+}
+
+/**
  * Optional settings that can affect the behavior of
  * {@link getDeliveryServiceRequestComments}.
  */

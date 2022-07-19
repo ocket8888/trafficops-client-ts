@@ -45,6 +45,7 @@ import { dbdump } from "./dbdump.js";
 import { createDeliveryService, deleteDeliveryService, getDeliveryServices, updateDeliveryService } from "./delivery_service.js";
 import {
 	assignDeliveryServiceRequest,
+	changeDeliveryServiceRequestStatus,
 	createDeliveryServiceRequest,
 	createDeliveryServiceRequestComment,
 	deleteDeliveryServiceRequest,
@@ -736,6 +737,8 @@ export class Client extends axios.Axios {
 	public async unAssignDSR(dsr: number | ResponseDeliveryServiceRequest): Promise<APIResponse<ResponseDeliveryServiceRequest>> {
 		return this.unAssignDeliveryServiceRequest(dsr);
 	}
+	public changeDeliveryServiceRequestStatus = changeDeliveryServiceRequestStatus;
+	public changeDSRStatus = changeDeliveryServiceRequestStatus;
 	public getDeliveryServiceRequestComments = getDeliveryServiceRequestComments;
 	public getDSRComments = getDeliveryServiceRequestComments;
 	public createDeliveryServiceRequestComment = createDeliveryServiceRequestComment;
