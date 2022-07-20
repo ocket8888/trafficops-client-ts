@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { inspect } from "util";
+
 import {
 	type Alert,
 	errors,
@@ -34,7 +36,7 @@ const erroredRequests = new Set<string>();
 function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<Alert>} | null | undefined): 1 | 0 {
 	endpoint = `/${endpoint.replace(/^\/+/, "")}`;
 	console.log(method, endpoint);
-	console.log(JSON.stringify(chkMe, undefined, "\t"));
+	console.log(inspect(chkMe, false, Infinity, true));
 	console.log();
 	const errored = chkMe && chkMe.alerts && chkMe.alerts.length > 0 && errors(chkMe.alerts).length > 0 ? 1 : 0;
 	if (errored) {
