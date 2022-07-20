@@ -21,9 +21,9 @@ import type { Client } from "./index";
  * given from the server **are not parsed** because this endpoint does not use
  * JSON encoding.
  */
-export async function dbdump(this: Client): Promise<string> {
+export async function dbdump(this: Client): Promise<ArrayBuffer> {
 	const url = this.makeURL("dbdump");
-	const response = await this.get<string>(url, {headers: this.headers});
+	const response = await this.get<ArrayBuffer>(url, {headers: this.headers, responseType: "arraybuffer"});
 	if (this.raiseErrorAlerts && (response.status < 200 || response.status >= 300)) {
 		throw new APIError(`dbdump returned error response: ${response.data}`, response.status, response.headers);
 	}
