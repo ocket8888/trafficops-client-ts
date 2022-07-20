@@ -330,5 +330,5 @@ export async function updateServer(
  */
 export async function deleteServer(this: Client, server: number | ResponseServer): Promise<APIResponse<ResponseServer>> {
 	const id = typeof(server) === "number" ? server : server.id;
-	return (await this.apiDelete<APIResponse<ResponseServer>>(`servers/${id}`, undefined, SERVER_DATE_KEYS)).data;
+	return (await this.apiDelete<APIResponse<ResponseServer>>(`servers/${id}`, undefined, {dateString: SERVER_DATE_KEYS})).data;
 }

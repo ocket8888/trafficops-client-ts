@@ -115,7 +115,7 @@ import {
 	updateUser,
 	getCurrentUser
 } from "./user.js";
-import { createParser, type DateKeySpec } from "./util.js";
+import { getParser, type Parser, type Reviver, type DateKeySpec } from "./util.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
 
@@ -351,10 +351,10 @@ export class Client extends axios.Axios {
 		method: string,
 		params?: QueryParams,
 		data?: object,
-		dateKeys?: DateKeySpec
+		dateKeys?: DateKeySpec | Parser | Reviver
 	): Promise<AxiosResponse<T>> {
 		const url = this.makeURL(path);
-		const transformResponse = [createParser(dateKeys ?? {dateString: DEFAULT_DATE_KEYS})];
+		const transformResponse = [getParser(dateKeys ?? {dateString: DEFAULT_DATE_KEYS})];
 		const response = await this.request<T>({data, headers: this.headers, method, params, transformResponse, url});
 		const cookie = (response.headers["set-cookie"] ?? []).find(c=>c.startsWith("mojolicious="));
 		if (cookie) {
@@ -379,9 +379,9 @@ export class Client extends axios.Axios {
 	public async apiGet<T = APIResponse<undefined>>(
 		path: string,
 		params?: QueryParams,
-		dateKeys?: DateKeySpec
+		dateKeys?: DateKeySpec | Parser | Reviver
 	): Promise<AxiosResponse<T>> {
-		return this.apiRequest<T>(path, "GET", params, undefined, dateKeys);
+		return this.apiRequest(path, "GET", params, undefined, dateKeys);
 	}
 
 	/**
@@ -401,7 +401,7 @@ export class Client extends axios.Axios {
 		path: string,
 		data: object,
 		params?: QueryParams,
-		dateKeys?: DateKeySpec
+		dateKeys?: DateKeySpec | Parser | Reviver
 	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "POST", params, data, dateKeys);
 	}
@@ -421,7 +421,7 @@ export class Client extends axios.Axios {
 	public async apiDelete<T = APIResponse<undefined>>(
 		path: string,
 		params?: QueryParams,
-		dateKeys: readonly string[] = DEFAULT_DATE_KEYS
+		dateKeys?: DateKeySpec | Parser | Reviver
 	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "DELETE", params, dateKeys);
 	}
@@ -443,7 +443,7 @@ export class Client extends axios.Axios {
 		path: string,
 		data?: object,
 		params?: QueryParams,
-		dateKeys?: DateKeySpec
+		dateKeys?: DateKeySpec | Parser | Reviver
 	): Promise<AxiosResponse<T>> {
 		return this.apiRequest(path, "PUT", params, data, dateKeys);
 	}

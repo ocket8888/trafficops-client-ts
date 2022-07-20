@@ -41,6 +41,18 @@ export type PaginationParams = ({
 	 sortOrder?: "asc" | "desc";
 };
 
+/**
+ * A Parser is used by Axios to convert a raw response into a response object.
+ */
+export type Parser = (raw: string) => object;
+
+/**
+ * A reviver is used to parse a single, arbitrary key of a JSON response. If
+ * there's nothing special to do for the given key/string pair, then the value
+ * should be returned unchanged.
+ */
+export type Reviver = (this: unknown, key: string, value: unknown) => unknown;
+
 /** A specification of the keys that should be parsed as dates. */
 export interface DateKeySpec {
 	/** Keys that should be parsed as RFC3339 or the custom Trafic Ops format */
@@ -99,7 +111,7 @@ function parseUnix<T>(value: T, multiplier: number | undefined): T | Date {
  * @returns A function suitable for use as an Axios `transformResponse`
  * function.
  */
-export function createParser(dateKeys?: DateKeySpec): (raw: string) => object {
+function createParser(dateKeys?: DateKeySpec): Parser {
 	if (!dateKeys || ((!dateKeys.dateString||dateKeys.dateString.length < 1)&&(!dateKeys.unix||dateKeys.unix.length < 1))) {
 		return JSON.parse;
 	}
@@ -134,6 +146,34 @@ export function createParser(dateKeys?: DateKeySpec): (raw: string) => object {
 			return value;
 		}
 	);
+}
+
+/**
+ * Checks if a function is a Parser or a Reviver.
+ *
+ * @param x The function to check.
+ * @returns `true` if `x` is a {@link Parser}, `false` if it's a
+ * {@link Reviver}.
+ */
+function isParser(x: Parser | Reviver): x is Parser {
+	return x.length === 1;
+}
+
+/**
+ * Uses a provided specification to create a parser which can be used to parse
+ * responses from Traffic Ops in a customized way.
+ *
+ * @param spec The date spec from which to generate a parser.
+ * @returns A parser that can be used by Axios to parse Traffic Ops responses.
+ */
+export function getParser(spec?: DateKeySpec | Parser | Reviver): Parser {
+	if (!spec || typeof(spec) !== "function") {
+		return createParser(spec);
+	}
+	if (isParser(spec)) {
+		return spec;
+	}
+	return raw => JSON.parse(raw, spec);
 }
 
 /**
