@@ -14,6 +14,7 @@ import {
 	DSRStatus,
 	type ResponseUser,
 	type ResponseCurrentUser,
+	DSStatsMetricType,
 } from "trafficops-types";
 
 import { Client } from "./index.js";
@@ -237,7 +238,7 @@ async function getTypes(client: Client): Promise<Types> {
  * @returns An exit code for the script.
  */
 async function main(): Promise<number> {
-	const client = new Client("https://localhost:6443", {logAlerts: true, logger: console, raiseErrorAlerts: false});
+	const client = new Client("https://localhost:6443", {logAlerts: false, logger: null, raiseErrorAlerts: false});
 	console.log("GET /ping");
 	console.log((await client.ping()).data);
 	console.log();
@@ -525,6 +526,15 @@ async function main(): Promise<number> {
 	checkAlerts("GET", "cdns/health", await client.getCDNsHealth());
 	checkAlerts("GET", "cdns/routing", await client.getCDNsRoutingInfo());
 	checkAlerts("GET", "current_stats", await client.getCurrentStats());
+	checkAlerts("GET", "deliveryservice_stats", await client.getDSStats(
+		newDS.response[0],
+		new Date("2022-07-18T00:00:00Z"),
+		new Date(),
+		DSStatsMetricType.KBPS,
+		{
+			limit: 50
+		}
+	));
 
 	checkAlerts("POST", "consistenthash", await client.testConsistentHashingRegexp(newCDN.response, /some regexp/, "/asset.m3u8"));
 

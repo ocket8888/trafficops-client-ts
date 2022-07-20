@@ -1,4 +1,15 @@
-import type { APIResponse, CacheStats, CacheStatsSeries, CacheStatsSummary, CurrentStats, Health, Routing } from "trafficops-types";
+import type {
+	APIResponse,
+	CacheStats,
+	CacheStatsSeries,
+	CacheStatsSummary,
+	CurrentStats,
+	DSStats,
+	DSStatsMetricType,
+	Health,
+	ResponseDeliveryService,
+	Routing
+} from "trafficops-types";
 
 import type { Client } from "./index";
 
@@ -190,4 +201,97 @@ export async function getCDNsRoutingInfo(this: Client): Promise<APIResponse<Rout
  */
 export async function getCurrentStats(this: Client): Promise<APIResponse<CurrentStats>> {
 	return (await this.apiGet<APIResponse<CurrentStats>>("current_stats")).data;
+}
+
+/**
+ * Optional settings that affect the behavior of
+ * {@link getDeliveryServiceStats}.
+ */
+type DSStatsParams = {
+	/**
+	 * If set to `"series"`, the `series` property of the returned data is
+	 * guaranteed to be omitted (note that it's also omitted if there is no data
+	 * in the specified time frame), and if set to `"summary"` the `summary`
+	 * property of the returned data will be omitted.
+	 *
+	 * @default undefined
+	 */
+	exclude?: "series" | "summary";
+	/**
+	 * Set the interval size of data points in minutes, hours, days, or weeks.
+	 *
+	 * @default "1m"
+	 */
+	interval?: `${number}${"m" | "h" | "d" | "w"}`;
+	/**
+	 * Limit the number of results returned.
+	 *
+	 * @default undefined
+	 */
+	limit?: number;
+	offset?: number;
+	/** @default "time" */
+	orderby?: "time";
+};
+
+/** Matches RFC3339 date strings. */
+const dsStatDatePattern = /^\d{4}-(?:0[1-9]|1[012])-(?:0[1-9]|[12]\d|3[01])T(?:[01]\d|2[0123]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/;
+
+/**
+ * A `JSON.parse` reviver function that parses Delivery Service Stats data such
+ * that the "time" data points are converted into proper `Date` instances.
+ *
+ * @param this The context is the object being parsed - which is unknowable
+ * during parsing.
+ * @param key The key of the value being parsed (numeric strings used for array
+ * indices).
+ * @param value The raw JSON value being parsed (can be number, string, object,
+ * array or null).
+ * @returns A date for data points that
+ */
+function dsStatsReviver(this: unknown, key: string, value: unknown): unknown {
+	if (key === "0" && typeof(value) === "string" && Array.isArray(this) && this.length === 2 && dsStatDatePattern.test(value)) {
+		return new Date(value);
+	}
+	return value;
+}
+
+/**
+ * Gets Delivery Service statistics from Traffic Stats (through the Traffic Ops
+ * API).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service for which statistics will be gathered, or its
+ * ID, or its XMLID.
+ * @param startDate The Date from which to start the collected data range, as a
+ * proper `Date` or a number of milliseconds since Unix epoch.
+ * @param endDate The Date at which to end the collected data range, as a proper
+ * `Date` or a number of milliseconds since Unix epoch.
+ * @param metricType The data series requested.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceStats(
+	this: Client,
+	ds: number | string | ResponseDeliveryService,
+	startDate: number | Date,
+	endDate: number | Date,
+	metricType: DSStatsMetricType,
+	params?: DSStatsParams
+): Promise<APIResponse<DSStats>> {
+	const p: Record<string, number | string> = params ?? {};
+	switch (typeof(ds)) {
+		case "number":
+			p.deliveryService = ds;
+			break;
+		case "string":
+			p.deliveryServiceName = ds;
+			break;
+		default:
+			p.deliveryServiceName = ds.xmlId;
+	}
+	p.startDate = typeof(startDate) === "number" ? startDate * 1000 : startDate.toISOString();
+	p.endDate = typeof(endDate) === "number" ? endDate * 1000 : endDate.toISOString();
+	p.metricType = metricType;
+	return (await this.apiGet<APIResponse<DSStats>>("deliveryservice_stats", p, dsStatsReviver)).data;
 }
