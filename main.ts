@@ -537,6 +537,7 @@ async function main(): Promise<number> {
 			limit: 50
 		}
 	));
+	checkAlerts("GET", "deliveryservices/{{ID}}/routing", await client.getDSRoutingInfo(newDS.response[0]));
 
 	checkAlerts("POST", "consistenthash", await client.testConsistentHashingRegexp(newCDN.response, /some regexp/, "/asset.m3u8"));
 

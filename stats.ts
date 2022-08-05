@@ -194,6 +194,19 @@ export async function getCDNsRoutingInfo(this: Client): Promise<APIResponse<Rout
 }
 
 /**
+ * Retrieves the routing result percentages for a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service for which Routing information will be fetched,
+ * or just its ID.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceRoutingInfo(this: Client, ds: ResponseDeliveryService | number): Promise<APIResponse<Routing>> {
+	const id = typeof(ds) === "number" ? ds : ds.id;
+	return (await this.apiGet<APIResponse<Routing>>(`deliveryservices/${id}/routing`)).data;
+}
+
+/**
  * Retrieves current statistics for each CDN and an aggregate across them all.
  *
  * @param this Tells TypeScript that this is a Client method.

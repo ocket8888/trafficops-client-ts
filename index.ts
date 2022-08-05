@@ -99,7 +99,14 @@ import {
 	updateStatus
 } from "./server.js";
 import { getCDNSSLKeys } from "./ssl.js";
-import { cacheStats, getCDNsHealth, getCDNsRoutingInfo, getCurrentStats, getDeliveryServiceStats } from "./stats.js";
+import {
+	cacheStats,
+	getCDNsHealth,
+	getCDNsRoutingInfo,
+	getCurrentStats,
+	getDeliveryServiceRoutingInfo,
+	getDeliveryServiceStats
+} from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import {
 	createUser,
@@ -818,6 +825,8 @@ export class Client extends axios.Axios {
 	public getCurrentStats = getCurrentStats;
 	public getDeliveryServiceStats = getDeliveryServiceStats;
 	public getDSStats = getDeliveryServiceStats;
+	public getDeliveryServiceRoutingInfo = getDeliveryServiceRoutingInfo;
+	public getDSRoutingInfo = getDeliveryServiceRoutingInfo;
 
 	// Users
 	public getUsers = getUsers;
