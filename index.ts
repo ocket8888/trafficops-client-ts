@@ -42,7 +42,13 @@ import {
 } from "./cdn.js";
 import { createCoordinate, deleteCoordinate, getCoordinates, updateCoordinate } from "./coordinate.js";
 import { dbdump } from "./dbdump.js";
-import { createDeliveryService, deleteDeliveryService, getDeliveryServices, updateDeliveryService } from "./delivery_service.js";
+import {
+	createDeliveryService,
+	deleteDeliveryService,
+	getDeliveryServices,
+	safeUpdateDeliveryService,
+	updateDeliveryService
+} from "./delivery_service.js";
 import {
 	assignDeliveryServiceRequest,
 	changeDeliveryServiceRequestStatus,
@@ -702,6 +708,7 @@ export class Client extends axios.Axios {
 	public createDeliveryService = createDeliveryService;
 	public updateDeliveryService = updateDeliveryService;
 	public deleteDeliveryService = deleteDeliveryService;
+	public safeUpdateDeliveryService = safeUpdateDeliveryService;
 
 	// Delivery Service assignments
 	public assignCacheGroupToDS = assignCacheGroupToDS;

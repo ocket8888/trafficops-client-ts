@@ -349,6 +349,8 @@ async function main(): Promise<number> {
 	checkAlerts("POST", "deliveryservices", newDS);
 	newDS.response[0].logsEnabled = !newDS.response[0].logsEnabled;
 	checkAlerts("PUT", "deliveryservices/{{ID}}", await client.updateDeliveryService(newDS.response[0]));
+	newDS.response[0].longDesc = "long description";
+	checkAlerts("PUT", "deliveryservices/{{ID}}/safe", await client.safeUpdateDeliveryService(newDS.response[0]));
 	checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
 
 	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});

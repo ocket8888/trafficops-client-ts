@@ -1,4 +1,4 @@
-import { APIResponse, RequestDeliveryService, ResponseDeliveryService } from "trafficops-types";
+import { APIResponse, DSSafeUpdateRequest, RequestDeliveryService, ResponseDeliveryService } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
 import type { PaginationParams } from "./util";
@@ -221,4 +221,63 @@ export async function getDeliveryServices(
 export async function deleteDeliveryService(this: Client, ds: ResponseDeliveryService | number): Promise<APIResponse<undefined>> {
 	const id = typeof(ds) === "number" ? ds : ds.id;
 	return (await this.apiDelete(`deliveryservices/${id}`)).data;
+}
+
+/**
+ * Updates the "safe" fields of a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsOrID The full Delivery Service definition as it will be after
+ * updating ("unsafe" changes are stripped).
+ * @returns The server's response.
+ */
+export async function safeUpdateDeliveryService(this: Client, ds: ResponseDeliveryService): Promise<APIResponse<[ResponseDeliveryService]>>;
+/**
+ * Updates the "safe" fields of a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param id The ID of the Delivery Service being updated.
+ * @param ds The "safe" details of the Delivery Service as they will be after
+ * updating.
+ * @returns The server's response.
+ */
+export async function safeUpdateDeliveryService(
+	this: Client,
+	id: number,
+	ds: DSSafeUpdateRequest
+): Promise<APIResponse<[ResponseDeliveryService]>>;
+/**
+ * Updates the "safe" fields of a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsOrID The full Delivery Service definition as it will be after
+ * updating ("unsafe" changes are stripped), or just its ID.
+ * @param ds The "safe" details of the Delivery Service as they will be after
+ * updating. This is required if `dsOrID` is an ID, and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function safeUpdateDeliveryService(
+	this: Client,
+	dsOrID: ResponseDeliveryService | number,
+	ds?: DSSafeUpdateRequest
+): Promise<APIResponse<[ResponseDeliveryService]>> {
+	let id: number;
+	let p: DSSafeUpdateRequest;
+	if (typeof(dsOrID) === "number") {
+		id = dsOrID;
+		if (!ds) {
+			throw new ClientError("safeUpdateDeliveryService", "ds");
+		}
+		p = ds;
+	} else {
+		id = dsOrID.id;
+		p = {
+			displayName: dsOrID.displayName,
+			infoUrl: dsOrID.infoUrl,
+			longDesc: dsOrID.longDesc,
+			longDesc1: dsOrID.longDesc1
+		};
+	}
+
+	return (await this.apiPut<APIResponse<[ResponseDeliveryService]>>(`deliveryservices/${id}/safe`, p)).data;
 }
