@@ -45,6 +45,7 @@ import { dbdump } from "./dbdump.js";
 import {
 	createDeliveryService,
 	deleteDeliveryService,
+	getDeliveryServiceEligibleServers,
 	getDeliveryServices,
 	getDeliveryServiceServers,
 	safeUpdateDeliveryService,
@@ -714,6 +715,7 @@ export class Client extends axios.Axios {
 	// Delivery Service assignments
 	public assignCacheGroupToDS = assignCacheGroupToDS;
 	public getDeliveryServiceServers = getDeliveryServiceServers;
+	public getDeliveryServiceEligibleServers = getDeliveryServiceEligibleServers;
 
 	// Delivery Service Requests
 	public getDeliveryServiceRequests = getDeliveryServiceRequests;

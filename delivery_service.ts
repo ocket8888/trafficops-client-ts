@@ -304,3 +304,27 @@ export async function getDeliveryServiceServers(
 	}
 	return (await this.apiGet<APIResponse<Array<ResponseServer>>>(`deliveryservices/${id}/servers`)).data;
 }
+
+/**
+ * Retrieves servers which are not currently but may be assigned to a given
+ * Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client.
+ * @param ds The Delivery Service for which eligible server assignments will be
+ * fetched, or its ID.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceEligibleServers(
+	this: Client,
+	ds: number | ResponseDeliveryService
+): Promise<APIResponse<Array<ResponseServer>>> {
+	let id;
+	switch (typeof(ds)) {
+		case "number":
+			id = ds;
+			break;
+		default:
+			id = ds.id;
+	}
+	return (await this.apiGet<APIResponse<Array<ResponseServer>>>(`deliveryservices/${id}/servers/eligible`)).data;
+}

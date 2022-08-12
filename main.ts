@@ -521,6 +521,7 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
 	checkAlerts("GET", "servers?id={{ID}}", await client.getServers(newServer.response.id));
 
+	checkAlerts("GET", "deliveryservices/{{ID}}/servers/eligible", await client.getDeliveryServiceEligibleServers(newDS.response[0]));
 	checkAlerts(
 		"POST",
 		"cachegroups/{{ID}}/deliveryservices",
