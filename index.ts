@@ -46,6 +46,7 @@ import {
 	createDeliveryService,
 	deleteDeliveryService,
 	getDeliveryServices,
+	getDeliveryServiceServers,
 	safeUpdateDeliveryService,
 	updateDeliveryService
 } from "./delivery_service.js";
@@ -712,6 +713,7 @@ export class Client extends axios.Axios {
 
 	// Delivery Service assignments
 	public assignCacheGroupToDS = assignCacheGroupToDS;
+	public getDeliveryServiceServers = getDeliveryServiceServers;
 
 	// Delivery Service Requests
 	public getDeliveryServiceRequests = getDeliveryServiceRequests;

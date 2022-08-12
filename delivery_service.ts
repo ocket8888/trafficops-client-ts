@@ -1,4 +1,4 @@
-import { APIResponse, DSSafeUpdateRequest, RequestDeliveryService, ResponseDeliveryService } from "trafficops-types";
+import { APIResponse, DSSafeUpdateRequest, RequestDeliveryService, ResponseDeliveryService, ResponseServer } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
 import type { PaginationParams } from "./util";
@@ -280,4 +280,28 @@ export async function safeUpdateDeliveryService(
 	}
 
 	return (await this.apiPut<APIResponse<[ResponseDeliveryService]>>(`deliveryservices/${id}/safe`, p)).data;
+}
+
+/**
+ * Retrieves servers assigned to a given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client.
+ * @param ds The Delivery Service for which server assignments will be fetched,
+ * or its ID or XMLID.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceServers(
+	this: Client,
+	ds: string | number | ResponseDeliveryService
+): Promise<APIResponse<Array<ResponseServer>>> {
+	let id;
+	switch (typeof(ds)) {
+		case "number":
+		case "string":
+			id = ds;
+			break;
+		default:
+			id = ds.id;
+	}
+	return (await this.apiGet<APIResponse<Array<ResponseServer>>>(`deliveryservices/${id}/servers`)).data;
 }

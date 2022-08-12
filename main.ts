@@ -526,6 +526,11 @@ async function main(): Promise<number> {
 		"cachegroups/{{ID}}/deliveryservices",
 		await client.assignCacheGroupToDS(newCG.response, [newDS.response[0].id])
 	);
+	checkAlerts(
+		"GET",
+		"deliveryservices/{{ID or XMLID}}/servers",
+		await client.getDeliveryServiceServers(newDS.response[0])
+	);
 
 	checkAlerts("GET", "cdns/health", await client.getCDNsHealth());
 	checkAlerts("GET", "cdns/routing", await client.getCDNsRoutingInfo());
