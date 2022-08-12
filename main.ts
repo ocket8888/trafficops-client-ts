@@ -528,7 +528,7 @@ async function main(): Promise<number> {
 	);
 	checkAlerts(
 		"GET",
-		"deliveryservices/{{ID or XMLID}}/servers",
+		"deliveryservices/{{ID}}/servers",
 		await client.getDeliveryServiceServers(newDS.response[0])
 	);
 

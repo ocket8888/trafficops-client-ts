@@ -287,17 +287,16 @@ export async function safeUpdateDeliveryService(
  *
  * @param this Tells TypeScript that this is a Client.
  * @param ds The Delivery Service for which server assignments will be fetched,
- * or its ID or XMLID.
+ * or its ID.
  * @returns The server's response.
  */
 export async function getDeliveryServiceServers(
 	this: Client,
-	ds: string | number | ResponseDeliveryService
+	ds: number | ResponseDeliveryService
 ): Promise<APIResponse<Array<ResponseServer>>> {
 	let id;
 	switch (typeof(ds)) {
 		case "number":
-		case "string":
 			id = ds;
 			break;
 		default:
