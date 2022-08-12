@@ -1,7 +1,15 @@
-import { APIResponse, DSSafeUpdateRequest, RequestDeliveryService, ResponseDeliveryService, ResponseServer } from "trafficops-types";
+import type {
+	APIResponse,
+	DSSafeUpdateRequest,
+	RequestDeliveryService,
+	RequestDeliveryServiceRegexp,
+	ResponseDeliveryService,
+	ResponseDeliveryServiceRegexp,
+	ResponseServer
+} from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
-import type { PaginationParams } from "./util";
+import { getSingleResponse, type PaginationParams } from "./util.js";
 
 import type { Client } from "./index";
 
@@ -327,4 +335,173 @@ export async function getDeliveryServiceEligibleServers(
 			id = ds.id;
 	}
 	return (await this.apiGet<APIResponse<Array<ResponseServer>>>(`deliveryservices/${id}/servers/eligible`)).data;
+}
+
+/**
+ * Retrieves the Routing Regular Expressions for a given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service for which Routing Expressions will be fetched,
+ * or its ID.
+ * @param params Any and all optional settings for the request
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceRoutingExpressions(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	params?: PaginationParams
+): Promise<APIResponse<Array<ResponseDeliveryServiceRegexp>>>;
+/**
+ * Retrieves a single Routing Regular Expressions for a given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service for which Routing Expressions will be fetched,
+ * or its ID.
+ * @param id The ID of a single Routing Expression to fetch.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceRoutingExpressions(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	id: number,
+	params?: PaginationParams
+): Promise<APIResponse<ResponseDeliveryServiceRegexp>>;
+/**
+ * Retrieves the Routing Regular Expressions for a given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service for which Routing Expressions will be fetched,
+ * or its ID.
+ * @param idOrParams Either the ID of a single Routing Expression to fetch, or
+ * any and all optional settings for the request when requesting multiple
+ * Routing Expressions.
+ * @param params Any and all optional settings for the request. This is ignored
+ * unless `idOrParams` is an ID.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceRoutingExpressions(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	idOrParams?: number | PaginationParams,
+	params?: PaginationParams
+): Promise<APIResponse<Array<ResponseDeliveryServiceRegexp> | ResponseDeliveryServiceRegexp>> {
+	let p;
+	let single = false;
+	if (typeof(idOrParams) === "number") {
+		p = {...params, id: idOrParams};
+		single = true;
+	} else {
+		p = idOrParams;
+	}
+
+	const id = typeof(ds) === "number" ? ds : ds.id;
+	const resp = await this.apiGet<APIResponse<Array<ResponseDeliveryServiceRegexp>>>(`deliveryservices/${id}/regexes`);
+
+	if (single) {
+		return getSingleResponse(resp, "DS routing expression", (p as {id: number}).id);
+	}
+	return resp.data;
+}
+
+/**
+ * Replaces one of a Delivery Service's Routing Regular Expressions with the new
+ * definition of a Routing Regular Expression provided.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service to which the Routing Expression being modified
+ * belongs, or just its ID.
+ * @param exp The full new Routing Expression definition.
+ * @returns The server's response.
+ */
+export async function updateDeliveryServiceRoutingExpression(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	exp: ResponseDeliveryServiceRegexp,
+): Promise<APIResponse<ResponseDeliveryServiceRegexp>>;
+/**
+ * Replaces one of a Delivery Service's Routing Regular Expressions with the new
+ * definition of a Routing Regular Expression provided.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service to which the Routing Expression being modified
+ * belongs, or just its ID.
+ * @param id The ID of the Routing Expression being replaced.
+ * @param exp The new Routing Expression definition.
+ * @returns The server's response.
+ */
+export async function updateDeliveryServiceRoutingExpression(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	id: number,
+	exp: RequestDeliveryServiceRegexp
+): Promise<APIResponse<ResponseDeliveryServiceRegexp>>;
+/**
+ * Replaces one of a Delivery Service's Routing Regular Expressions with the new
+ * definition of a Routing Regular Expression provided.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service to which the Routing Expression being modified
+ * belongs, or just its ID.
+ * @param idOrExp Either the full new definition of the Routing Expression, or
+ * just its ID.
+ * @param exp The new Routing Expression definition. This is required if
+ * `expOrID` is an ID, and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function updateDeliveryServiceRoutingExpression(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	idOrExp: number | ResponseDeliveryServiceRegexp,
+	exp?: RequestDeliveryServiceRegexp
+): Promise<APIResponse<ResponseDeliveryServiceRegexp>> {
+	const id = typeof(ds) === "number" ? ds : ds.id;
+	let rid, p;
+	if (typeof(idOrExp) === "number") {
+		if (!exp) {
+			throw new ClientError("updateDeliveryServiceRoutingExpression", "exp");
+		}
+		rid = idOrExp;
+		p = exp;
+	} else {
+		rid = idOrExp.id;
+		p = idOrExp;
+	}
+	return (await this.apiPut<APIResponse<ResponseDeliveryServiceRegexp>>(`deliveryservices/${id}/regexes/${rid}`, p)).data;
+}
+
+/**
+ * Removes a Routing Regular Expressions from a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service to which a Routing Expression will be added,
+ * or its ID.
+ * @param exp The Routing Expression being removed, or just its ID.
+ * @returns The server's response.
+ */
+export async function removeDeliveryServiceRoutingExpression(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	exp: number | ResponseDeliveryServiceRegexp
+): Promise<APIResponse<undefined>> {
+	const id = typeof(ds) === "number" ? ds : ds.id;
+	const rid = typeof(exp) === "number" ? exp : exp.id;
+	return (await this.apiDelete(`deliveryservices/${id}/regexes/${rid}`)).data;
+}
+
+/**
+ * Adds a new Routing Regular Expressions to the given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service to which a Routing Expression will be added.
+ * @param exp The new Routing Expression being added.
+ * @returns The server's response.
+ */
+export async function addDeliveryServiceRoutingExpression(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	exp: RequestDeliveryServiceRegexp
+): Promise<APIResponse<ResponseDeliveryServiceRegexp>> {
+	const id = typeof(ds) === "number" ? ds : ds.id;
+	return (await this.apiPost<APIResponse<ResponseDeliveryServiceRegexp>>(`deliveryservices/${id}/regexes`, exp)).data;
 }

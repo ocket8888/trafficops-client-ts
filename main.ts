@@ -171,6 +171,7 @@ interface Types {
 	edgeCacheServer: TypeFromResponse;
 	midCacheServer: TypeFromResponse;
 	originCacheServer: TypeFromResponse;
+	routingExpression: TypeFromResponse;
 }
 
 /**
@@ -195,39 +196,62 @@ function throwTypeError(useInTable: string): never {
  * @returns The Types of things.
  */
 async function getTypes(client: Client): Promise<Types> {
-	const cgResp = await client.getTypes({useInTable: "cachegroup"});
-	const cgType = cgResp.response[0];
+	const typesResp = await client.getTypes();
+	if (!typesResp.response) {
+		throw new Error("failed to fetch Types from Traffic Ops");
+ 	}
+	const len = typesResp.response.length;
+	if (len < 6) {
+		throw new Error(`Traffic Ops doesn't have enough types to represent all the different things - need at least 6, got: ${len}`);
+	}
+
+	const types = typesResp.response;
+
+	const cgType = types.find(t=>t.useInTable === "cachegroup");
 	if (!cgType) {
 		throwTypeError("cachegroup");
 	}
-	const dsResp = await client.getTypes({useInTable: "deliveryservice"});
-	let dsType = dsResp.response.find(t=>t.name==="HTTP");
+
+	const dsTypes = types.filter(t=>t.useInTable === "deliveryservice");
+	let dsType = dsTypes.find(t=>t.name==="HTTP");
 	if (!dsType) {
 		console.warn("'HTTP' type not found");
-		dsType = dsResp.response[0];
+		dsType = dsTypes[0];
 	}
 	if (!dsType) {
 		throwTypeError("deliveryservice");
 	}
-	let serverResp = await client.getTypes({useInTable: "server"});
-	const edgeType = serverResp.response.find(t=>t.name === "EDGE");
+
+	const edgeType = types.find(t=>t.name === "EDGE" && t.useInTable === "server");
 	if (!edgeType) {
 		throwTypeError("'EDGE' server");
 	}
-	const midType = serverResp.response.find(t=>t.name === "MID");
+	const midType = types.find(t=>t.name === "MID" && t.useInTable === "server");
 	if (!midType) {
 		throwTypeError("'MID' server");
 	}
-	const orgType = serverResp.response.find(t=>t.name === "ORG");
+	const orgType = types.find(t=>t.name === "ORG" && t.useInTable === "server");
 	if (!orgType) {
 		throwTypeError("'ORG' server");
 	}
+
+	const regexTypes = types.filter(t=>t.useInTable==="regex");
+	let regexType = regexTypes.find(t=>t.name === "PATH_REGEXP");
+	if (!regexType) {
+		console.warn("'PATH_REGEX' Type not found");
+		regexType = regexTypes[0];
+	}
+	if (!regexType) {
+		throwTypeError("regex");
+	}
+
 	return {
 		cacheGroup: cgType,
 		deliveryService: dsType,
 		edgeCacheServer: edgeType,
 		midCacheServer: midType,
-		originCacheServer: orgType
+		originCacheServer: orgType,
+		routingExpression: regexType
 	};
 }
 
@@ -352,6 +376,25 @@ async function main(): Promise<number> {
 	newDS.response[0].longDesc = "long description";
 	checkAlerts("PUT", "deliveryservices/{{ID}}/safe", await client.safeUpdateDeliveryService(newDS.response[0]));
 	checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
+
+	const newRegExp = await client.addDeliveryServiceRoutingExpression(newDS.response[0], {
+		pattern: ".+\\\\.jpg$",
+		setNumber: 1,
+		type: types.routingExpression.id,
+	});
+	checkAlerts("POST", "deliveryservices/{{ID}}/regexes", newRegExp);
+	newRegExp.response.pattern = ".+\\\\.(?:png|jpg)$";
+	checkAlerts(
+		"PUT",
+		"deliveryservices/{{ID}}/regexes/{{Expression ID}}",
+		await client.updateDeliveryServiceRoutingExpression(newDS.response[0], newRegExp.response)
+	);
+	checkAlerts("GET", "deliveryservices/{{ID}}/regexes", await client.getDeliveryServiceRoutingExpressions(newDS.response[0]));
+	checkAlerts(
+		"DELETE",
+		"deliveryservices/{{ID}}/regexes/{{Expression ID}}",
+		await client.removeDeliveryServiceRoutingExpression(newDS.response[0], newRegExp.response)
+	);
 
 	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});
 	checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
