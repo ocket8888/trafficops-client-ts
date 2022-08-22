@@ -319,3 +319,30 @@ export async function getDeliveryServiceStats(
 	p.metricType = metricType;
 	return (await this.apiGet<APIResponse<DSStats>>("deliveryservice_stats", p, dsStatsReviver)).data;
 }
+
+/**
+ * Extract health information from all Cache Groups that serve content for a
+ * given Delivery Service.
+ *
+ * @param this Tells TypeScript this is a Client method.
+ * @param ds The Delivery Service for which health will be determined, or just
+ * its ID.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceHealth(this: Client, ds: number | ResponseDeliveryService): Promise<APIResponse<Health>> {
+	const id = typeof(ds) === "number" ? ds : ds.id;
+	return (await this.apiGet<APIResponse<Health>>(`deliveryservices/${id}/health`)).data;
+}
+
+/**
+ * Extract caching capacity information for a given Delivery Service.
+ *
+ * @param this Tells TypeScript this is a Client method.
+ * @param ds The Delivery Service for which capacity will be determined, or just
+ * its ID.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceCapacity(this: Client, ds: number | ResponseDeliveryService): Promise<APIResponse<Capacity>> {
+	const id = typeof(ds) === "number" ? ds : ds.id;
+	return (await this.apiGet<APIResponse<Capacity>>(`deliveryservices/${id}/capacity`)).data;
+}

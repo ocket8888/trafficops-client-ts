@@ -117,6 +117,8 @@ import {
 	getCDNsHealth,
 	getCDNsRoutingInfo,
 	getCurrentStats,
+	getDeliveryServiceCapacity,
+	getDeliveryServiceHealth,
 	getDeliveryServiceRoutingInfo,
 	getDeliveryServiceStats
 } from "./stats.js";
@@ -848,6 +850,10 @@ export class Client extends axios.Axios {
 	public getDSStats = getDeliveryServiceStats;
 	public getDeliveryServiceRoutingInfo = getDeliveryServiceRoutingInfo;
 	public getDSRoutingInfo = getDeliveryServiceRoutingInfo;
+	public getDeliveryServiceCapacity = getDeliveryServiceCapacity;
+	public getDSCapacity = getDeliveryServiceCapacity;
+	public getDeliveryServiceHealth = getDeliveryServiceHealth;
+	public getDSHealth = getDeliveryServiceHealth;
 
 	// Users
 	public getUsers = getUsers;

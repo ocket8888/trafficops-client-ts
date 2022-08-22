@@ -505,3 +505,24 @@ export async function addDeliveryServiceRoutingExpression(
 	const id = typeof(ds) === "number" ? ds : ds.id;
 	return (await this.apiPost<APIResponse<ResponseDeliveryServiceRegexp>>(`deliveryservices/${id}/regexes`, exp)).data;
 }
+
+/**
+ * A convenient alias for the type of a response from
+ * `/deliveryservices/{{ID}}/urlkeys`.
+ */
+type DSURLSigningKeysResponse = APIResponse<Record<`key${number}`, string>>;
+
+/**
+ * Adds a new Routing Regular Expressions to the given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service to which a Routing Expression will be added.
+ * @returns The server's response.
+ */
+export async function getDeliveryServiceURLSigningKeys(
+	this: Client,
+	ds: number | ResponseDeliveryService
+): Promise<DSURLSigningKeysResponse> {
+	const id = typeof(ds) === "number" ? ds : ds.id;
+	return (await this.apiGet<DSURLSigningKeysResponse>(`deliveryservices/${id}/urlkeys`)).data;
+}
