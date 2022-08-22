@@ -576,6 +576,7 @@ async function main(): Promise<number> {
 		await client.getDeliveryServiceServers(newDS.response[0])
 	);
 
+	checkAlerts("GET", "cdns/capacity", await client.getCDNsCapacity());
 	checkAlerts("GET", "cdns/health", await client.getCDNsHealth());
 	checkAlerts("GET", "cdns/routing", await client.getCDNsRoutingInfo());
 	checkAlerts("GET", "current_stats", await client.getCurrentStats());

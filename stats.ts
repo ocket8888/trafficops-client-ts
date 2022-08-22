@@ -3,6 +3,7 @@ import type {
 	CacheStats,
 	CacheStatsSeries,
 	CacheStatsSummary,
+	Capacity,
 	CurrentStats,
 	DSStats,
 	DSStatsMetricType,
@@ -191,6 +192,16 @@ export async function getCDNsHealth(this: Client): Promise<APIResponse<Health>> 
  */
 export async function getCDNsRoutingInfo(this: Client): Promise<APIResponse<Routing>> {
 	return (await this.apiGet<APIResponse<Routing>>("cdns/routing")).data;
+}
+
+/**
+ * Extract caching capacity information for all existing CDNs.
+ *
+ * @param this Tells TypeScript this is a Client method.
+ * @returns The server's response.
+ */
+export async function getCDNsCapacity(this: Client): Promise<APIResponse<Capacity>> {
+	return (await this.apiGet<APIResponse<Capacity>>("cdns/capacity")).data;
 }
 
 /**

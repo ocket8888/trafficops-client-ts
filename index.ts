@@ -113,6 +113,7 @@ import {
 import { getCDNSSLKeys } from "./ssl.js";
 import {
 	cacheStats,
+	getCDNsCapacity,
 	getCDNsHealth,
 	getCDNsRoutingInfo,
 	getCurrentStats,
@@ -839,6 +840,7 @@ export class Client extends axios.Axios {
 
 	// Stats
 	public cacheStats = cacheStats;
+	public getCDNsCapacity = getCDNsCapacity;
 	public getCDNsHealth = getCDNsHealth;
 	public getCDNsRoutingInfo = getCDNsRoutingInfo;
 	public getCurrentStats = getCurrentStats;
