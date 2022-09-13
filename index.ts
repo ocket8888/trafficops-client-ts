@@ -102,9 +102,12 @@ import {
 import { testConsistentHashingRegexp } from "./router.js";
 import {
 	createServer,
+	createServerCapability,
 	createStatus,
 	deleteServer,
+	deleteServerCapability,
 	deleteStatus,
+	getServerCapabilities,
 	getServers,
 	getStatuses,
 	updateServer,
@@ -836,6 +839,9 @@ export class Client extends axios.Axios {
 	public createServer = createServer;
 	public updateServer = updateServer;
 	public deleteServer = deleteServer;
+	public createServerCapability = createServerCapability;
+	public deleteServerCapability = deleteServerCapability;
+	public getServerCapabilities = getServerCapabilities;
 
 	// SSL
 	public getCDNSSLKeys = getCDNSSLKeys;

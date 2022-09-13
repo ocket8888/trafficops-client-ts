@@ -255,6 +255,8 @@ async function getTypes(client: Client): Promise<Types> {
 	};
 }
 
+const TEST_CAPABILITY_NAME = "testing-capability";
+
 /**
  * The main function.
  *
@@ -395,6 +397,9 @@ async function main(): Promise<number> {
 		"deliveryservices/{{ID}}/regexes/{{Expression ID}}",
 		await client.removeDeliveryServiceRoutingExpression(newDS.response[0], newRegExp.response)
 	);
+
+	checkAlerts("POST", "server_capabilities", await client.createServerCapability(TEST_CAPABILITY_NAME));
+	checkAlerts("GET", "server_capabilities", await client.getServerCapabilities());
 
 	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});
 	checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
@@ -633,6 +638,7 @@ async function main(): Promise<number> {
 	checkAlerts("DELETE", "roles?id={{ID}}", await client.deleteRole(newRole.response));
 	checkAlerts("DELETE", "tenants?id={{ID}}", await client.deleteTenant(newTenant.response));
 	checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
+	checkAlerts("DELETE", "server_capabilities?name={{name}}", await client.deleteServerCapability(TEST_CAPABILITY_NAME));
 	checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 
 	if (erroredRequests.size > 0) {

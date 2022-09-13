@@ -1,9 +1,12 @@
 import type {
 	APIResponse,
 	RequestServer,
+	RequestServerCapability,
 	RequestStatus,
 	ResponseServer,
-	ResponseStatus
+	ResponseServerCapability,
+	ResponseStatus,
+	ServerCapability
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -331,4 +334,76 @@ export async function updateServer(
 export async function deleteServer(this: Client, server: number | ResponseServer): Promise<APIResponse<ResponseServer>> {
 	const id = typeof(server) === "number" ? server : server.id;
 	return (await this.apiDelete<APIResponse<ResponseServer>>(`servers/${id}`, undefined, {dateString: SERVER_DATE_KEYS})).data;
+}
+
+/**
+ * Retrieves Server Capabilities.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @returns The server's response.
+ */
+export async function getServerCapabilities(this: Client): Promise<APIResponse<Array<ResponseServerCapability>>>;
+/**
+ * Retrieves a Server Capability.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param name The name of a single Server Capability to retrieve.
+ * @returns The server's response.
+ */
+export async function getServerCapabilities(this: Client, name: string): Promise<APIResponse<ResponseServerCapability>>;
+/**
+ * Retrieves Server Capabilities.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param name The name of a single Server Capability to retrieve, which
+ * may be omitted to fetch *all* Server Capabilities.
+ * @returns The server's response.
+ */
+export async function getServerCapabilities(
+	this: Client,
+	name?: string,
+): Promise<APIResponse<Array<ResponseServerCapability> | ResponseServerCapability>> {
+	let p;
+	let single = false;
+	if (typeof(name) === "string") {
+		single = true;
+		p = {name};
+	}
+	const resp = await this.apiGet<APIResponse<Array<ResponseServerCapability>>>("server_capabilities", p);
+	if (single) {
+		const len = resp.data.response.length;
+		const server = resp.data.response[0];
+		if (!server || len !== 1) {
+			throw new APIError(`requesting the Server Capability with name ${name} yielded ${len} results`, resp.status, resp.headers);
+		}
+		return {...resp.data, response: server};
+	}
+	return resp.data;
+}
+
+/**
+ * Creates a Server Capability.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cap The Server Capability being created, or just its name.
+ * @returns The server's response.
+ */
+export async function createServerCapability(this: Client, cap: RequestServerCapability | string): Promise<APIResponse<ResponseServer>> {
+	const capability = typeof(cap) === "string" ? {name: cap} : cap;
+	return (await this.apiPost<APIResponse<ResponseServer>>("server_capabilities", capability)).data;
+}
+
+/**
+ * Deletes a Server Capability.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param cap The Server Capability being deleted, or just its name.
+ * @returns The server's response.
+ */
+export async function deleteServerCapability(
+	this: Client,
+	cap: string | ServerCapability
+): Promise<APIResponse<ResponseServerCapability>> {
+	const name = typeof(cap) === "string" ? cap : cap.name;
+	return (await this.apiDelete<APIResponse<ResponseServerCapability>>("server_capabilities", {name})).data;
 }
