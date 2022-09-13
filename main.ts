@@ -401,6 +401,17 @@ async function main(): Promise<number> {
 	checkAlerts("POST", "server_capabilities", await client.createServerCapability(TEST_CAPABILITY_NAME));
 	checkAlerts("GET", "server_capabilities", await client.getServerCapabilities());
 
+	checkAlerts(
+		"POST",
+		"deliveryservices_required_capabilities",
+		await client.addCapabilityRequirementToDeliveryService(newDS.response[0], TEST_CAPABILITY_NAME)
+	);
+	checkAlerts(
+		"GET",
+		"deliveryservices_required_capabilities",
+		await client.getDeliveryServicesRequiredCapabilities(newDS.response[0])
+	);
+
 	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});
 	checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
 	newCDNFed.response.description = "quest";
@@ -637,6 +648,11 @@ async function main(): Promise<number> {
 	);
 	checkAlerts("DELETE", "roles?id={{ID}}", await client.deleteRole(newRole.response));
 	checkAlerts("DELETE", "tenants?id={{ID}}", await client.deleteTenant(newTenant.response));
+	checkAlerts(
+		"DELETE",
+		"deliveryservices_required_capabilities",
+		await client.removeCapabilityRequirementFromDeliveryService(newDS.response[0], TEST_CAPABILITY_NAME)
+	);
 	checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
 	checkAlerts("DELETE", "server_capabilities?name={{name}}", await client.deleteServerCapability(TEST_CAPABILITY_NAME));
 	checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));

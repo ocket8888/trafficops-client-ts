@@ -43,6 +43,7 @@ import {
 import { createCoordinate, deleteCoordinate, getCoordinates, updateCoordinate } from "./coordinate.js";
 import { dbdump } from "./dbdump.js";
 import {
+	addCapabilityRequirementToDeliveryService,
 	addDeliveryServiceRoutingExpression,
 	createDeliveryService,
 	deleteDeliveryService,
@@ -50,6 +51,8 @@ import {
 	getDeliveryServiceRoutingExpressions,
 	getDeliveryServices,
 	getDeliveryServiceServers,
+	getDeliveryServicesRequiredCapabilities,
+	removeCapabilityRequirementFromDeliveryService,
 	removeDeliveryServiceRoutingExpression,
 	safeUpdateDeliveryService,
 	updateDeliveryService,
@@ -725,6 +728,9 @@ export class Client extends axios.Axios {
 	public addDeliveryServiceRoutingExpression = addDeliveryServiceRoutingExpression;
 	public updateDeliveryServiceRoutingExpression = updateDeliveryServiceRoutingExpression;
 	public removeDeliveryServiceRoutingExpression = removeDeliveryServiceRoutingExpression;
+	public getDeliveryServicesRequiredCapabilities = getDeliveryServicesRequiredCapabilities;
+	public addCapabilityRequirementToDeliveryService = addCapabilityRequirementToDeliveryService;
+	public removeCapabilityRequirementFromDeliveryService = removeCapabilityRequirementFromDeliveryService;
 
 	// Delivery Service assignments
 	public assignCacheGroupToDS = assignCacheGroupToDS;

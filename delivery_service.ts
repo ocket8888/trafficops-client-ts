@@ -3,9 +3,14 @@ import type {
 	DSSafeUpdateRequest,
 	RequestDeliveryService,
 	RequestDeliveryServiceRegexp,
+	RequestDeliveryServiceRequiredCapability,
+	RequestDeliveryServiceRequiredCapabilityResponse,
 	ResponseDeliveryService,
 	ResponseDeliveryServiceRegexp,
-	ResponseServer
+	ResponseDeliveryServiceRequiredCapability,
+	ResponseServer,
+	ResponseServerCapability,
+	ServerCapability
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -513,10 +518,10 @@ export async function addDeliveryServiceRoutingExpression(
 type DSURLSigningKeysResponse = APIResponse<Record<`key${number}`, string>>;
 
 /**
- * Adds a new Routing Regular Expressions to the given Delivery Service.
+ * Gets the URL Signing Keys used by a Delivery Service.
  *
  * @param this Tells TypeScript that this is a Client method.
- * @param ds The Delivery Service to which a Routing Expression will be added.
+ * @param ds The Delivery Service for which URL Signing Keys will be fetched.
  * @returns The server's response.
  */
 export async function getDeliveryServiceURLSigningKeys(
@@ -525,4 +530,238 @@ export async function getDeliveryServiceURLSigningKeys(
 ): Promise<DSURLSigningKeysResponse> {
 	const id = typeof(ds) === "number" ? ds : ds.id;
 	return (await this.apiGet<DSURLSigningKeysResponse>(`deliveryservices/${id}/urlkeys`)).data;
+}
+
+/**
+ * Optional settings that can be used to change the behavior and/or result set
+ * of {@link getDeliveryServicesRequiredCapabilities}.
+ */
+type DSRCParams = PaginationParams & {
+	deliveryServiceID?: number;
+	orderBy?: "deliveryServiceID" | "requiredCapability" | "xmlID";
+	requiredCapability?: string;
+	xmlID?: string;
+};
+
+/**
+ * Checks if an argument to `getDeliveryServiceRequiredCapabilities` is a
+ * ResponseDeliveryService or just request parameters, or if an argument to
+ * `addCapabilityRequirementToDeliveryService` is a full Delivery Service
+ * Required Capability Request or a `ResponseDeliveryService`.
+ *
+ * @param x The object being tested.
+ * @returns `true` if `x` is a `ResponseDeliveryService`, `false` otherwise.
+ */
+function isDS(x: DSRCParams | ResponseDeliveryService | RequestDeliveryServiceRequiredCapability): x is ResponseDeliveryService {
+	return Object.prototype.hasOwnProperty.call(x, "id");
+}
+
+/**
+ * Gets a list of the Capabilities required by a given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service (or ID of a Delivery Service) for which
+ * required Capabilities will be fetched.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getDeliveryServicesRequiredCapabilities(
+	this: Client,
+	ds: number | string | ResponseDeliveryService,
+	params?: DSRCParams
+): Promise<APIResponse<Array<ResponseDeliveryServiceRequiredCapability>>>;
+/**
+ * Gets a list of the Capabilities required by all existing Delivery Services.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getDeliveryServicesRequiredCapabilities(
+	this: Client,
+	params?: DSRCParams
+): Promise<APIResponse<Array<ResponseDeliveryServiceRequiredCapability>>>;
+/**
+ * Gets a list of the Capabilities required by Delivery Services.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsOrParams The single Delivery Service for which required Capabilities
+ * will be fetched - or its ID or XMLID.
+ * @param params Any and all optional settings for the request. This is ignored
+ * if `dsOrParams` is a list of parameters.
+ * @returns The server's response.
+ */
+export async function getDeliveryServicesRequiredCapabilities(
+	this: Client,
+	dsOrParams?: number | string | DSRCParams | ResponseDeliveryService,
+	params?: DSRCParams
+): Promise<APIResponse<Array<ResponseDeliveryServiceRequiredCapability>>> {
+	let p;
+	switch (typeof(dsOrParams)) {
+		case "string":
+			p = {...params, xmlID: dsOrParams};
+			break;
+		case "number":
+			p = {...params, deliveryServiceID: dsOrParams};
+			break;
+		case "undefined":
+			p = params;
+			break;
+		default:
+			if (isDS(dsOrParams)) {
+				p = {...params, deliveryServiceID: dsOrParams.id};
+			} else {
+				p = dsOrParams;
+			}
+	}
+
+	const resp = await this.apiGet<APIResponse<Array<ResponseDeliveryServiceRequiredCapability>>>(
+		"deliveryservices_required_capabilities",
+		p
+	);
+	return resp.data;
+}
+
+/**
+ * Adds a Capability as a requirement of a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsrc The full Capability-Requirement-to-Delivery-Service request
+ * definition.
+ * @returns The server's response.
+ */
+export async function addCapabilityRequirementToDeliveryService(
+	this: Client,
+	dsrc: RequestDeliveryServiceRequiredCapability
+): Promise<APIResponse<RequestDeliveryServiceRequiredCapabilityResponse>>;
+/**
+ * Adds a Capability as a requirement of a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The single Delivery Service to which a required Capability
+ * will be added - or its ID.
+ * @param cap The Capability being assigned as a requirement of a Delivery
+ * Service, or just its name.
+ * @returns The server's response.
+ */
+export async function addCapabilityRequirementToDeliveryService(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	cap: string | ResponseServerCapability
+): Promise<APIResponse<RequestDeliveryServiceRequiredCapabilityResponse>>;
+/**
+ * Adds a Capability as a requirement of a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsOrDSRC The single Delivery Service to which a required Capability
+ * will be added - or its ID - or the full
+ * Capability-Requirement-to-Delivery-Service request definition.
+ * @param cap The Capability being assigned as a requirement of a Delivery
+ * Service, or just its name. This is ignored if `dsOrDSRC` was a full request
+ * definition, and required otherwise.
+ * @returns The server's response.
+ */
+export async function addCapabilityRequirementToDeliveryService(
+	this: Client,
+	dsOrDSRC: number | ResponseDeliveryService | RequestDeliveryServiceRequiredCapability,
+	cap?: string | ServerCapability
+): Promise<APIResponse<RequestDeliveryServiceRequiredCapabilityResponse>> {
+	let dsID;
+	let capName;
+	if (typeof(dsOrDSRC) === "number") {
+		dsID = dsOrDSRC;
+		if (!cap) {
+			throw new ClientError("addCapabilityRequirementToDeliveryService", "cap");
+		}
+		capName = typeof(cap) === "string" ? cap : cap.name;
+	} else if (isDS(dsOrDSRC)) {
+		dsID = dsOrDSRC.id;
+		if (!cap) {
+			throw new ClientError("addCapabilityRequirementToDeliveryService", "cap");
+		}
+		capName = typeof(cap) === "string" ? cap : cap.name;
+	} else {
+		dsID = dsOrDSRC.deliveryServiceID;
+		capName = dsOrDSRC.requiredCapability;
+	}
+
+	const payload = {
+		deliveryServiceID: dsID,
+		requiredCapability: capName
+	};
+	const resp = await this.apiPost<APIResponse<RequestDeliveryServiceRequiredCapabilityResponse>>(
+		"deliveryservices_required_capabilities",
+		payload
+	);
+	return resp.data;
+}
+
+/**
+ * Removes the requirement of a Capability from a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsrc The full Capability-Requirement-to-Delivery-Service removal
+ * request definition.
+ * @returns The server's response.
+ */
+export async function removeCapabilityRequirementFromDeliveryService(
+	this: Client,
+	dsrc: RequestDeliveryServiceRequiredCapability
+): Promise<APIResponse<undefined>>;
+/**
+ * Removes the requirement of a Capability from a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The single Delivery Service from which a required Capability
+ * will be removed - or its ID.
+ * @param cap The Capability being removed as a requirement from a Delivery
+ * Service, or just its name.
+ * @returns The server's response.
+ */
+export async function removeCapabilityRequirementFromDeliveryService(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	cap: string | ResponseServerCapability
+): Promise<APIResponse<undefined>>;
+/**
+ * Removes the requirement of a Capability from a Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsOrDSRC The single Delivery Service from which a required Capability
+ * will be removed - or its ID - or the full
+ * Capability-Requirement-to-Delivery-Service removal request definition.
+ * @param cap The Capability being removed as a requirement from a Delivery
+ * Service, or just its name. This is ignored if `dsOrDSRC` was a full request
+ * definition, and required otherwise.
+ * @returns The server's response.
+ */
+export async function removeCapabilityRequirementFromDeliveryService(
+	this: Client,
+	dsOrDSRC: number | ResponseDeliveryService | RequestDeliveryServiceRequiredCapability,
+	cap?: string | ServerCapability
+): Promise<APIResponse<undefined>> {
+	let dsID;
+	let capName;
+	if (typeof(dsOrDSRC) === "number") {
+		dsID = dsOrDSRC;
+		if (!cap) {
+			throw new ClientError("addCapabilityRequirementToDeliveryService", "cap");
+		}
+		capName = typeof(cap) === "string" ? cap : cap.name;
+	} else if (isDS(dsOrDSRC)) {
+		dsID = dsOrDSRC.id;
+		if (!cap) {
+			throw new ClientError("addCapabilityRequirementToDeliveryService", "cap");
+		}
+		capName = typeof(cap) === "string" ? cap : cap.name;
+	} else {
+		dsID = dsOrDSRC.deliveryServiceID;
+		capName = dsOrDSRC.requiredCapability;
+	}
+
+	const payload = {
+		deliveryServiceID: dsID,
+		requiredCapability: capName
+	};
+	return (await this.apiDelete("deliveryservices_required_capabilities", payload)).data;
 }
