@@ -88,8 +88,6 @@ export async function getDeliveryServiceRequests(
 	} else {
 		p = paramsOrID;
 	}
-	console.log("making request with params:", p);
-	console.log("and single", single);
 	const resp = await this.apiGet<APIResponse<Array<ResponseDeliveryServiceRequest>>>(
 		"deliveryservice_requests",
 		p,

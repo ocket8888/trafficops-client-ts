@@ -653,6 +653,7 @@ async function main(): Promise<number> {
 function handleErr(e: unknown): void {
 	const msg = e instanceof Error ? e.message : String(e);
 	console.error("client crashed:", msg);
+	console.trace();
 	process.exit(255);
 }
 
