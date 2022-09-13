@@ -2,11 +2,15 @@ import type {
 	APIResponse,
 	RequestServer,
 	RequestServerCapability,
+	RequestServerServerCapability,
+	RequestServerServerCapabilityResponse,
 	RequestStatus,
 	ResponseServer,
 	ResponseServerCapability,
+	ResponseServerServerCapability,
 	ResponseStatus,
-	ServerCapability
+	ServerCapability,
+	ServerServerCapability
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -406,4 +410,155 @@ export async function deleteServerCapability(
 ): Promise<APIResponse<ResponseServerCapability>> {
 	const name = typeof(cap) === "string" ? cap : cap.name;
 	return (await this.apiDelete<APIResponse<ResponseServerCapability>>("server_capabilities", {name})).data;
+}
+
+/**
+ * Checks if an argument to {@link addCapabilityToServer} is a full request to
+ * associate a Server Capability with a server, or just a server or its ID.
+ *
+ * @param x The object to check.
+ * @returns `true` if `x` is a `ServerServerCapability`, `false` otherwise.
+ */
+function isSSC(x: ServerServerCapability | ResponseServer | number): x is ServerServerCapability {
+	return Object.prototype.hasOwnProperty.call(x, "serverId");
+}
+
+/**
+ * Adds a Server Capability to a server.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ssc The entire desired relationship between a server and a Server
+ * Capability it has.
+ * @returns The server's response.
+ */
+export async function addCapabilityToServer(
+	this: Client,
+	ssc: RequestServerServerCapability
+): Promise<APIResponse<RequestServerServerCapabilityResponse>>;
+/**
+ * Adds a Server Capability to a server.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param server The server to which the Server Capability will be added - or
+ * just its ID.
+ * @param capability The Server Capability being added to the server - or just
+ * its name.
+ * @returns The server's response.
+ */
+export async function addCapabilityToServer(
+	this: Client,
+	server: ResponseServer | number,
+	capability: ServerCapability | string
+): Promise<APIResponse<RequestServerServerCapabilityResponse>>;
+/**
+ * Adds a Server Capability to a server.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param serverOrSSC The entire desired relationship between a server and a
+ * Server Capability it has, or the server to which a Server Capability is being
+ * added (or just its ID).
+ * @param capability The Server Capability being added to a server. This is
+ * required if `serverOrSSC` is a server or its ID, and is ignored otherwise.
+ * @returns The server's response.
+ */
+export async function addCapabilityToServer(
+	this: Client,
+	serverOrSSC: ServerServerCapability | ResponseServer | number,
+	capability?: ServerCapability | string
+): Promise<APIResponse<RequestServerServerCapabilityResponse>> {
+	let ssc;
+	if (isSSC(serverOrSSC)) {
+		ssc = serverOrSSC;
+	} else if (!capability) {
+		throw new ClientError("addCapabilityToServer", "capability");
+	} else {
+		ssc = {
+			serverCapability: typeof(capability) === "string" ? capability : capability.name,
+			serverId: typeof(serverOrSSC) === "number" ? serverOrSSC : serverOrSSC.id
+		};
+	}
+	return (await this.apiPost<APIResponse<RequestServerServerCapabilityResponse>>("server_server_capabilities", ssc)).data;
+}
+
+/**
+ * Optional request settings that affect the output of
+ * {@link getServerCapabilityRelationships}.
+ */
+type GetSSCParams = PaginationParams & {
+	serverCapability?: string;
+	serverHostName?: string;
+	serverId?: number;
+	orderby?: "serverId" | "serverHostName" | "serverCapability";
+};
+
+/**
+ * Retrieves relationships between Server Capabilities and the servers that have
+ * them. By default this fetches *all* such relationships, but this can be
+ * customized with `params`.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional parameters for the request.
+ * @returns The server's response.
+ */
+export async function getServerCapabilityRelationships(
+	this: Client,
+	params?: GetSSCParams
+): Promise<APIResponse<Array<ResponseServerServerCapability>>> {
+	return (await this.apiGet<APIResponse<Array<ResponseServerServerCapability>>>("server_server_capabilities", params)).data;
+}
+
+/**
+ * Removes a Server Capability from a server.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ssc The relationship between a server and a Server Capability that it
+ * has which is being destroyed.
+ * @returns The server's response.
+ */
+export async function removeCapabilityFromServer(this: Client, ssc: ServerServerCapability): Promise<APIResponse<undefined>>;
+/**
+ * Removes a Server Capability from a server.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param server The server having a Server Capability removed from it, or just
+ * its ID.
+ * @param capability The Server Capability being removed from `server`, or just
+ * its name.
+ * @returns The server's response.
+ */
+export async function removeCapabilityFromServer(
+	this: Client,
+	server: ResponseServer | number,
+	capability: ServerCapability | string
+): Promise<APIResponse<undefined>>;
+/**
+ * Removes a Server Capability from a server.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param serverOrSSC The relationship between a server and a Server Capability
+ * that it has which is being destroyed, or just a server from which a Server
+ * Capability will be removed (or its ID).
+ * @param capability The Server Capability being removed from a server, or just
+ * its name. This is required when `serverOrSSC` identifies a server, and
+ * ignored otherwise.
+ * @returns The server's response.
+ */
+export async function removeCapabilityFromServer(
+	this: Client,
+	serverOrSSC: ServerServerCapability | ResponseServer | number,
+	capability?: ServerCapability | string
+): Promise<APIResponse<undefined>> {
+	let serverId;
+	let serverCapability;
+	if (isSSC(serverOrSSC)) {
+		serverId = serverOrSSC.serverId;
+		serverCapability = serverOrSSC.serverCapability;
+	} else if (!capability) {
+		throw new ClientError("removeCapabilityFromServer", "capability");
+	} else {
+		serverId = typeof(serverOrSSC) === "number" ? serverOrSSC : serverOrSSC.id;
+		serverCapability = typeof(capability) === "string" ? capability : capability.name;
+	}
+
+	return (await this.apiDelete("server_server_capabilities", {serverCapability, serverId})).data;
 }

@@ -580,6 +580,9 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
 	checkAlerts("GET", "servers?id={{ID}}", await client.getServers(newServer.response.id));
 
+	checkAlerts("POST", "server_server_capabilities", await client.addCapabilityToServer(newServer.response, TEST_CAPABILITY_NAME));
+	checkAlerts("GET", "server_server_capabilities", await client.getServerCapabilityRelationships());
+
 	checkAlerts("GET", "deliveryservices/{{ID}}/servers/eligible", await client.getDeliveryServiceEligibleServers(newDS.response[0]));
 	checkAlerts(
 		"POST",
@@ -627,6 +630,10 @@ async function main(): Promise<number> {
 	checkAlerts("POST", "deliveryservices/{{ID}}/assign (unassign)", await client.unAssignDSR(newDSR.response));
 	checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));
 	checkAlerts("DELETE", "coordinates", await client.deleteCoordinate(newCoordinate.response));
+
+	// uncomment when server assignments are implemented.
+	// eslint-disable-next-line max-len
+	// checkAlerts("DELETE", "server_server_capabilities", await client.removeCapabilityFromServer(newServer.response, TEST_CAPABILITY_NAME));
 	checkAlerts("DELETE", "servers/{{ID}}", await client.deleteServer(newServer.response));
 	checkAlerts("DELETE", "statuses/{{ID}}", await client.deleteStatus(newStatus.response));
 	checkAlerts("DELETE", "phys_locations/{{ID}}", await client.deletePhysicalLocation(newPhysLoc.response));
