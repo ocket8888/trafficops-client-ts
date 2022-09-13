@@ -377,7 +377,7 @@ export class Client extends axios.Axios {
 	 * should be converted from their string native format to a Date.
 	 * @returns  The server's response.
 	 */
-	private async apiRequest<T = APIResponse<undefined>>(
+	private async apiRequest<T extends object = APIResponse<undefined>>(
 		path: string,
 		method: string,
 		params?: QueryParams,
@@ -407,7 +407,7 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiGet<T = APIResponse<undefined>>(
+	public async apiGet<T extends object = APIResponse<undefined>>(
 		path: string,
 		params?: QueryParams,
 		dateKeys?: DateKeySpec | Parser | Reviver
@@ -428,7 +428,7 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiPost<T = APIResponse<undefined>>(
+	public async apiPost<T extends object = APIResponse<undefined>>(
 		path: string,
 		data: object,
 		params?: QueryParams,
@@ -449,7 +449,7 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiDelete<T = APIResponse<undefined>>(
+	public async apiDelete<T extends object = APIResponse<undefined>>(
 		path: string,
 		params?: QueryParams,
 		dateKeys?: DateKeySpec | Parser | Reviver
@@ -470,7 +470,7 @@ export class Client extends axios.Axios {
 	 * not thrown, but connection and transport layer errors (e.g. TCP dial
 	 * failure) are thrown.
 	 */
-	public async apiPut<T = APIResponse<undefined>>(
+	public async apiPut<T extends object = APIResponse<undefined>>(
 		path: string,
 		data?: object,
 		params?: QueryParams,
