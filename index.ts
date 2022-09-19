@@ -119,7 +119,13 @@ import {
 	updateServer,
 	updateStatus
 } from "./server.js";
-import { getCDNSSLKeys } from "./ssl.js";
+import {
+	addSSLKeysToDeliveryService,
+	generateSSLKeysForDeliveryService,
+	getCDNSSLKeys,
+	getDeliveryServiceSSLKey,
+	removeDeliveryServiceSSLKeys
+} from "./ssl.js";
 import {
 	cacheStats,
 	getCDNsCapacity,
@@ -430,7 +436,7 @@ export class Client extends axios.Axios {
 	 */
 	public async apiPost<T extends object = APIResponse<undefined>>(
 		path: string,
-		data: object,
+		data?: object,
 		params?: QueryParams,
 		dateKeys?: DateKeySpec | Parser | Reviver
 	): Promise<AxiosResponse<T>> {
@@ -857,6 +863,10 @@ export class Client extends axios.Axios {
 
 	// SSL
 	public getCDNSSLKeys = getCDNSSLKeys;
+	public getDeliveryServiceSSLKey = getDeliveryServiceSSLKey;
+	public addSSLKeysToDeliveryService = addSSLKeysToDeliveryService;
+	public generateSSLKeysForDeliveryService = generateSSLKeysForDeliveryService;
+	public removeDeliveryServiceSSLKeys = removeDeliveryServiceSSLKeys;
 
 	// Stats
 	public cacheStats = cacheStats;

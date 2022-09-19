@@ -398,6 +398,20 @@ async function main(): Promise<number> {
 		await client.removeDeliveryServiceRoutingExpression(newDS.response[0], newRegExp.response)
 	);
 
+	checkAlerts("POST", "deliveryservices/sslkeys/generate", await client.generateSSLKeysForDeliveryService({
+		businessUnit: "TEST",
+		cdn: newCDN.response.name,
+		city: "Testtown",
+		country: "Testia",
+		hostname: newDS.response[0].exampleURLs[0],
+		key: newDS.response[0].xmlId,
+		organization: "TS Client Tests",
+		state: "Denial",
+		version: "1",
+	}));
+	checkAlerts("GET", "deliveryservices/xmlId/{{XML ID}}/sslkeys", await client.getDeliveryServiceSSLKey(newDS.response[0]));
+	checkAlerts("DELETE", "deliveryservices/xmlId/{{XML ID}}", await client.removeDeliveryServiceSSLKeys(newDS.response[0]));
+
 	checkAlerts("POST", "server_capabilities", await client.createServerCapability(TEST_CAPABILITY_NAME));
 	checkAlerts("GET", "server_capabilities", await client.getServerCapabilities());
 
