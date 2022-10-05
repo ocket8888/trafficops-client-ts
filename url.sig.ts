@@ -1,4 +1,4 @@
-import type { APIResponse, DeliveryService, DSURISignatureKeys } from "trafficops-types";
+import type { APIResponse, DeliveryService, DSURISignatureKeys, DSURLKeys } from "trafficops-types";
 
 import type { Client } from "./index";
 
@@ -16,7 +16,7 @@ export async function setURISigningKeys(
 	keys: DSURISignatureKeys
 ): Promise<DSURISignatureKeys> {
 	const xmlID = typeof(ds) === "string" ? ds : ds.xmlId;
-	return (await this.apiPut<DSURISignatureKeys>(`deliveryservices/${xmlID}/urisignkeys`, keys)).data;
+	return (await this.apiPost<DSURISignatureKeys>(`deliveryservices/${xmlID}/urisignkeys`, keys)).data;
 }
 
 /**
@@ -35,10 +35,56 @@ export async function getURISigningKeys(this: Client, ds: string | DeliveryServi
  * Removes **all** URI Signing Keys from the given Delivery Service.
  *
  * @param this Tells TypeScript that this is a Client method.
- * @param ds The Delivery Service having its keys removed, or just its XMLID.
+ * @param ds The Delivery Service having its keys removed, or just its XML ID.
  * @returns The servers response.
  */
 export async function removeURISigningKeys(this: Client, ds: string | DeliveryService): Promise<APIResponse<undefined>> {
 	const xmlID = typeof(ds) === "string" ? ds : ds.xmlId;
 	return (await this.apiDelete(`deliveryservices/${xmlID}/urisignkeys`)).data;
+}
+
+/**
+ * Generates URL keys for the given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service for which URL keys will be generated, or just
+ * its XML ID.
+ * @returns The servers response.
+ */
+export async function generateURLKeys(this: Client, ds: string | DeliveryService): Promise<APIResponse<string>> {
+	const xmlID = typeof(ds) === "string" ? ds : ds.xmlId;
+	return (await this.apiPost<APIResponse<string>>(`deliveryservices/xmlId/${xmlID}/urlkeys/generate`)).data;
+}
+
+/**
+ * Gets the URL keys of the given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service for which URL keys will be retrieved, or just
+ * its XML ID.
+ * @returns The servers response.
+ */
+export async function getURLKeys(this: Client, ds: string | DeliveryService): Promise<APIResponse<DSURLKeys>> {
+	const xmlID = typeof(ds) === "string" ? ds : ds.xmlId;
+	return (await this.apiGet<APIResponse<DSURLKeys>>(`deliveryservices/xmlId/${xmlID}/urlkeys`)).data;
+}
+
+/**
+ * Copies the URL keys of one Delivery Service to another.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param from The Delivery Service from which URL keys will be copied, or just
+ * its XML ID.
+ * @param to The Delivery Service to which URL keys will be copied, or just its
+ * XML ID.
+ * @returns The servers response.
+ */
+export async function copyURLKeys(
+	this: Client,
+	from: string | DeliveryService,
+	to: string | DeliveryService
+): Promise<APIResponse<string>> {
+	const fromID = typeof(from) === "string" ? from : from.xmlId;
+	const toID = typeof(to) === "string" ? to : to.xmlId;
+	return (await this.apiPost<APIResponse<string>>(`deliveryservices/xmlId/${toID}/urlkeys/copyFromXmlId/${fromID}`)).data;
 }

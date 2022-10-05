@@ -379,17 +379,32 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "deliveryservices/{{ID}}/safe", await client.safeUpdateDeliveryService(newDS.response[0]));
 	checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
 
-	checkAlerts("PUT", "deliveryservices/{{XML ID}}/urisignkeys", await client.setURISigningKeys(newDS.response[0], {
+	checkAlerts("POST", "deliveryservices/{{XML ID}}/urisignkeys", await client.setURISigningKeys(newDS.response[0], {
 		test: {
-			keys: [],
+			keys: [
+				{
+					alg: "HS256",
+					k: "Kh_RkUMj-fzbD37qBnDf_3e_RvQ3RP9PaSmVEpE24AM",
+					kid: "kid",
+					kty: "oct"
+				}
+			],
 			// Unfortunately, this is just what the API uses and we gotta live
 			// with that.
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			renewal_kid: "unknown"
+			renewal_kid: "kid"
 		}
 	}));
 	checkAlerts("GET", "deliveryservices/{{XML ID}}/urisignkeys", await client.getURISigningKeys(newDS.response[0]));
 	checkAlerts("DELETE", "deliveryservices/{{XML ID}}/urisignkeys", await client.removeURISigningKeys(newDS.response[0]));
+
+	checkAlerts("POST", "deliveryservices/xmlId/{{XML ID}}/urlkeys/generate", await client.generateURLKeys(newDS.response[0]));
+	checkAlerts("GET", "deliveryservices/xmlId/{{XML ID}}/urlkeys", await client.getURLKeys(newDS.response[0]));
+	checkAlerts(
+		"POST",
+		"deliveryservices/xmlId/{{to XML ID}}/urlkeys/copyFromXmlId/{{from XML ID}}",
+		await client.copyURLKeys(newDS.response[0], newDS.response[0])
+	);
 
 	const newRegExp = await client.addDeliveryServiceRoutingExpression(newDS.response[0], {
 		pattern: ".+\\\\.jpg$",
