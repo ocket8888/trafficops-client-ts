@@ -379,6 +379,18 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "deliveryservices/{{ID}}/safe", await client.safeUpdateDeliveryService(newDS.response[0]));
 	checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
 
+	checkAlerts("PUT", "deliveryservices/{{XML ID}}/urisignkeys", await client.setURISigningKeys(newDS.response[0], {
+		test: {
+			keys: [],
+			// Unfortunately, this is just what the API uses and we gotta live
+			// with that.
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			renewal_kid: "unknown"
+		}
+	}));
+	checkAlerts("GET", "deliveryservices/{{XML ID}}/urisignkeys", await client.getURISigningKeys(newDS.response[0]));
+	checkAlerts("DELETE", "deliveryservices/{{XML ID}}/urisignkeys", await client.removeURISigningKeys(newDS.response[0]));
+
 	const newRegExp = await client.addDeliveryServiceRoutingExpression(newDS.response[0], {
 		pattern: ".+\\\\.jpg$",
 		setNumber: 1,

@@ -138,6 +138,7 @@ import {
 	getDeliveryServiceStats
 } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
+import { getURISigningKeys, removeURISigningKeys, setURISigningKeys } from "./url.sig.js";
 import {
 	createUser,
 	createRole,
@@ -896,4 +897,9 @@ export class Client extends axios.Axios {
 	public updateTenant = updateTenant;
 	public deleteTenant = deleteTenant;
 	public getCurrentUser = getCurrentUser;
+
+	// URI Signing / URL Signature
+	public getURISigningKeys = getURISigningKeys;
+	public setURISigningKeys = setURISigningKeys;
+	public removeURISigningKeys = removeURISigningKeys;
 }
