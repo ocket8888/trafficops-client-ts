@@ -1,4 +1,14 @@
-import type { APIResponse, CDN, PostResponseCDNFederation, RequestCDNFederation, ResponseCDNFederation } from "trafficops-types";
+import type {
+	APIResponse,
+	CDN,
+	FederationFederationResolver,
+	PostResponseCDNFederation,
+	RequestCDNFederation,
+	RequestFederationResolver,
+	RequestFederationResolverResponse,
+	ResponseCDNFederation,
+	ResponseFederationResolver
+} from "trafficops-types";
 
 import { ClientError } from "./api.error.js";
 import type { PaginationParams } from "./util";
@@ -158,4 +168,56 @@ export async function deleteCDNFederation(
 	const name = typeof(cdn) === "string" ? cdn : cdn.name;
 	const id = typeof(federation) === "number" ? federation : federation.id;
 	return (await this.apiDelete(`cdns/${name}/federations/${id}`)).data;
+}
+
+/**
+ * Optional settings that affect the behavior/output of
+ * {@link getFederationResolvers}.
+ */
+type FedResolverParams = PaginationParams & {
+	id?: number;
+	orderby?: "id" | "ipAddress" | "type";
+	type?: string;
+};
+
+/**
+ * Retrieves Federation Resolvers from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getFederationResolvers(
+	this: Client,
+	params?: FedResolverParams
+): Promise<APIResponse<Array<ResponseFederationResolver>>> {
+	return (await this.apiGet<APIResponse<Array<ResponseFederationResolver>>>("federation_resolvers", params)).data;
+}
+
+/**
+ * Creates a new Federation Resolver.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param fed The definition of the Federation Resolver to be created.
+ * @returns The server's response.
+ */
+export async function createFederationResolver(
+	this: Client,
+	fed: RequestFederationResolver
+): Promise<APIResponse<RequestFederationResolverResponse>> {
+	return (await this.apiPost<APIResponse<RequestFederationResolverResponse>>("federation_resolvers", fed)).data;
+}
+
+/**
+ * Deletes a Federation Resolver.
+ * @param this Tells TypeScript that this is a Client method.
+ * @param fed The Federation Resolver to delete, or just its ID.
+ * @returns The server's response.
+ */
+export async function deleteFederationResolver(
+	this: Client,
+	fed: number | ResponseFederationResolver | RequestFederationResolverResponse
+): Promise<APIResponse<FederationFederationResolver>> {
+	const id = typeof(fed) === "number" ? fed : fed.id;
+	return (await this.apiDelete<APIResponse<FederationFederationResolver>>("federation_resolvers", {id})).data;
 }

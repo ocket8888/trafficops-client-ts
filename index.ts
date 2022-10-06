@@ -75,7 +75,15 @@ import {
 	updateDeliveryServiceRequest
 } from "./delivery_service_request.js";
 import { deleteCDNDNSSECKeys, generateCDNDNSSECKeys, generateCDNKSK, refreshAllDNSSECKeys } from "./dnssec.js";
-import { createCDNFederation, deleteCDNFederation, getCDNFederations, updateCDNFederation } from "./federations.js";
+import {
+	createCDNFederation,
+	createFederationResolver,
+	deleteCDNFederation,
+	deleteFederationResolver,
+	getCDNFederations,
+	getFederationResolvers,
+	updateCDNFederation
+} from "./federations.js";
 import {
 	createDivision,
 	createPhysicalLocation,
@@ -819,6 +827,9 @@ export class Client extends axios.Axios {
 	public createCDNFederation = createCDNFederation;
 	public updateCDNFederation = updateCDNFederation;
 	public deleteCDNFederation = deleteCDNFederation;
+	public getFederationResolvers = getFederationResolvers;
+	public createFederationResolver = createFederationResolver;
+	public deleteFederationResolver = deleteFederationResolver;
 
 	// Physical Locations/Regions/Divisions
 	public getDivisions = getDivisions;

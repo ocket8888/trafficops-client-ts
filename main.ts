@@ -459,6 +459,11 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "cdns/{{name}}/federations/{{ID}}", await client.updateCDNFederation(newCDN.response, newCDNFed.response));
 	checkAlerts("GET", "cdns/{{name}}/federations", await client.getCDNFederations(newCDN.response, {limit: 1}));
 
+	const newFedRes = await client.createFederationResolver({ipAddress: "1.2.3.4", typeId: 1});
+	checkAlerts("POST", "federation_resolvers", newFedRes);
+	checkAlerts("GET", "federation_resolvers", await client.getFederationResolvers());
+	checkAlerts("DELETE", "federation_resolvers", await client.deleteFederationResolver(newFedRes.response));
+
 	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: types.cacheGroup.id});
 	checkAlerts("POST", "cachegroups", newCG);
 	checkAlerts("GET", `cachegroups?id=${newCG.response.id}`, await client.getCacheGroups(newCG.response.id));
