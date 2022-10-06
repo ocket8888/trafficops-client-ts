@@ -5,9 +5,11 @@ import type {
 	RequestDeliveryServiceRegexp,
 	RequestDeliveryServiceRequiredCapability,
 	RequestDeliveryServiceRequiredCapabilityResponse,
+	RequestDeliveryServiceServer,
 	ResponseDeliveryService,
 	ResponseDeliveryServiceRegexp,
 	ResponseDeliveryServiceRequiredCapability,
+	ResponseDeliveryServiceServer,
 	ResponseServer,
 	ResponseServerCapability,
 	ServerCapability
@@ -552,7 +554,9 @@ type DSRCParams = PaginationParams & {
  * @param x The object being tested.
  * @returns `true` if `x` is a `ResponseDeliveryService`, `false` otherwise.
  */
-function isDS(x: DSRCParams | ResponseDeliveryService | RequestDeliveryServiceRequiredCapability): x is ResponseDeliveryService {
+function isDS(
+	x: DSRCParams | ResponseDeliveryService | RequestDeliveryServiceRequiredCapability | RequestDeliveryServiceServer
+): x is ResponseDeliveryService {
 	return Object.prototype.hasOwnProperty.call(x, "id");
 }
 
@@ -764,4 +768,156 @@ export async function removeCapabilityRequirementFromDeliveryService(
 		requiredCapability: capName
 	};
 	return (await this.apiDelete("deliveryservices_required_capabilities", payload)).data;
+}
+
+/**
+ * Checks if a given homogenously typed array is an array of numbers.
+ *
+ * @param arr The array to check.
+ * @returns `true` if `arr` is an array of numbers, `false` otherwise.
+ */
+function isIDArray<T>(arr: Array<number> | Array<T>): arr is Array<number> {
+	return arr.length > 0 && arr.some(x=>typeof(x) === "number");
+}
+
+/**
+ * Assigns servers to a Delivery Service, optionally overriding all existing
+ * such assignments.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param req An entire `deliveryserviceserver` request.
+ * @returns The server's response.
+ */
+export async function assignServersToDeliveryService(
+	this: Client,
+	req: RequestDeliveryServiceServer
+): Promise<APIResponse<RequestDeliveryServiceServer>>;
+/**
+ * Assigns servers to a Delivery Service, optionally overriding all existing
+ * such assignments.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds Either a Delivery Service or identifier thereof to which the
+ * servers given in `servers` will be assigned.
+ * @param servers An array of servers or server IDs to assign to the Delivery
+ * Service given by `ds`. Note that when this is an empty array and `replace` is
+ * set to `true`, this method can also be used to remove all server assignments
+ * from the passed Delivery Service.
+ * @param replace If given and `true`, all existing assignments of servers to
+ * the given Delivery Service will be overwritten with those provided.
+ * @returns The server's response.
+ */
+export async function assignServersToDeliveryService(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	servers: Array<number> | Array<ResponseServer>,
+	replace?: boolean
+): Promise<APIResponse<RequestDeliveryServiceServer>>;
+/**
+ * Assigns servers to a Delivery Service, optionally overriding all existing
+ * such assignments.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsOrReq Either an entire `deliveryserviceserver` request, or a
+ * Delivery Service or identifier thereof to which the servers given in
+ * `servers` will be assigned.
+ * @param servers An array of servers or server IDs to assign to the Delivery
+ * Service given by `dsOrReq`. This is required if `dsOrReq` is a Delivery
+ * Service or an identifier thereof, and ignored otherwise. Note that when this
+ * is an empty array and `replace` is set to `true`, this method can also be
+ * used to remove all server assignments from the passed Delivery Service.
+ * @param replace If given and `true`, all existing assignments of servers to
+ * the given Delivery Service will be overwritten with those provided. This is
+ * ignored unless `dsOrReq` is a Delivery Service or an identifier thereof.
+ * @returns The server's response.
+ */
+export async function assignServersToDeliveryService(
+	this: Client,
+	dsOrReq: number | ResponseDeliveryService | RequestDeliveryServiceServer,
+	servers?: Array<number> | Array<ResponseServer>,
+	replace: boolean = false
+): Promise<APIResponse<RequestDeliveryServiceServer>> {
+	let req;
+	let dsId;
+
+	if (typeof(dsOrReq) === "number") {
+		dsId = dsOrReq;
+	} else if (isDS(dsOrReq)) {
+		dsId = dsOrReq.id;
+	} else {
+		req = dsOrReq;
+	}
+
+	if (dsId !== undefined) {
+		if (!servers) {
+			throw new ClientError("assignServersToDeliveryService", "servers");
+		}
+		if (isIDArray(servers)) {
+			req = {
+				dsId,
+				replace,
+				servers
+			};
+		} else {
+			req = {
+				dsId,
+				replace,
+				servers: servers.map(s => s.id)
+			};
+		}
+
+	}
+
+	return (await this.apiPost<APIResponse<RequestDeliveryServiceServer>>("deliveryserviceserver", req)).data;
+}
+
+/**
+ * A set of optional settings that effect the output/behavior of
+ * {@link getAllDeliveryServiceServerAssignments}.
+ */
+type DSServerParams = PaginationParams & {
+	cdn?: string;
+	orderby?: "lastUpdated" | "deliveryService" | "server";
+};
+
+/**
+ * The type of responses from the API to GET requests made to
+ * `deliveryserviceserver`, which are non-standard for unknown reasons.
+ */
+interface DSServerResponse extends APIResponse<ResponseDeliveryServiceServer> {
+	limit: number;
+	orderby: "lastUpdated" | "deliveryService" | "server";
+	size: number;
+}
+
+/**
+ * Retrieves information about server-to-Delivery Service relationships across
+ * **all** Delivery Services (optionally limited by CDN).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getAllDeliveryServiceServerAssignments(this: Client, params?: DSServerParams): Promise<DSServerResponse> {
+	return (await this.apiGet<DSServerResponse>("deliveryserviceserver", params)).data;
+}
+
+/**
+ * Removes an assigned server from a given Delivery Service.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service from which an assigned server will be removed,
+ * or just its ID.
+ * @param server The server being removed from a Delivery Service, or just its
+ * ID.
+ * @returns The server's response.
+ */
+export async function removeServerFromDeliveryService(
+	this: Client,
+	ds: number | ResponseDeliveryService,
+	server: number | ResponseServer
+): Promise<APIResponse<undefined>> {
+	const dsID = typeof(ds) === "number" ? ds : ds.id;
+	const serverID = typeof(server) === "number" ? server : server.id;
+	return (await this.apiDelete(`deliveryserviceserver/${dsID}/${serverID}`)).data;
 }

@@ -45,8 +45,10 @@ import { dbdump } from "./dbdump.js";
 import {
 	addCapabilityRequirementToDeliveryService,
 	addDeliveryServiceRoutingExpression,
+	assignServersToDeliveryService,
 	createDeliveryService,
 	deleteDeliveryService,
+	getAllDeliveryServiceServerAssignments,
 	getDeliveryServiceEligibleServers,
 	getDeliveryServiceRoutingExpressions,
 	getDeliveryServices,
@@ -54,6 +56,7 @@ import {
 	getDeliveryServicesRequiredCapabilities,
 	removeCapabilityRequirementFromDeliveryService,
 	removeDeliveryServiceRoutingExpression,
+	removeServerFromDeliveryService,
 	safeUpdateDeliveryService,
 	updateDeliveryService,
 	updateDeliveryServiceRoutingExpression
@@ -745,7 +748,15 @@ export class Client extends axios.Axios {
 	// Delivery Service assignments
 	public assignCacheGroupToDS = assignCacheGroupToDS;
 	public getDeliveryServiceServers = getDeliveryServiceServers;
+	public getDSServers = getDeliveryServiceServers;
 	public getDeliveryServiceEligibleServers = getDeliveryServiceEligibleServers;
+	public getDSEligibleServers = getDeliveryServiceEligibleServers;
+	public getAllDeliveryServiceServerAssignments = getAllDeliveryServiceServerAssignments;
+	public getAllDSServerAssignments = getAllDeliveryServiceServerAssignments;
+	public assignServersToDeliveryService = assignServersToDeliveryService;
+	public assignServersToDS = assignServersToDeliveryService;
+	public removeServerFromDeliveryService = removeServerFromDeliveryService;
+	public removeServerFromDS = removeServerFromDeliveryService;
 
 	// Delivery Service Requests
 	public getDeliveryServiceRequests = getDeliveryServiceRequests;
