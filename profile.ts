@@ -1,5 +1,10 @@
 import type {
 	APIResponse,
+	Profile,
+	ProfileCopyResponse,
+	ProfileExport,
+	ProfileImport,
+	ProfileImportResponse,
 	RequestParameter,
 	RequestProfile,
 	RequestProfileParameters,
@@ -1189,4 +1194,44 @@ export async function removeParameterFromProfile(
 	const profileID = typeof(profile) === "number" ? profile : profile.id;
 	const parameterID = typeof(parameter) === "number" ? parameter : parameter.id;
 	return (await this.apiDelete(`profileparameters/${profileID}/${parameterID}`)).data;
+}
+
+/**
+ * "Exports" a Profile in a format accepted by Traffic Portal (and
+ * {@link importProfile} which uses the same underlying API as TP) for importing
+ * Profiles.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param profile The Profile to export, or just its ID.
+ * @returns The server's response.
+ */
+export async function exportProfile(this: Client, profile: ResponseProfile | number): Promise<ProfileExport> {
+	const id = typeof(profile) === "number" ? profile : profile.id;
+	return (await this.apiGet<ProfileExport>(`profiles/${id}/export`)).data;
+}
+
+/**
+ * "Imports" a Profile and its associated Parameters from an input of the kind
+ * exported by Traffic Portal (and {@link exportProfile} which uses the same
+ * underlying API as TP).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param profile The Profile being imported.
+ * @returns The server's response.
+ */
+export async function importProfile(this: Client, profile: ProfileImport): Promise<APIResponse<ProfileImportResponse>> {
+	return (await this.apiPost<APIResponse<ProfileImportResponse>>("profiles/import", profile)).data;
+}
+
+/**
+ * Makes a copy of a Profile under a different name.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param profile The Profile being copied, or just its name.
+ * @param copyName The name of the new copy of `profile`.
+ * @returns The server's response.
+ */
+export async function copyProfile(this: Client, profile: Profile | string, copyName: string): Promise<APIResponse<ProfileCopyResponse>> {
+	const name = typeof(profile) === "string" ? profile : profile.name;
+	return (await this.apiPost<APIResponse<ProfileCopyResponse>>(`profiles/name/${copyName}/copy/${name}`)).data;
 }

@@ -123,12 +123,15 @@ import {
 	assignParametersToProfiles,
 	assignParameterToProfile,
 	assignProfilesToParameter,
+	copyProfile,
 	createParameter,
 	createProfile,
 	deleteParameter,
 	deleteProfile,
+	exportProfile,
 	getParameters,
 	getProfiles,
+	importProfile,
 	removeParameterFromProfile,
 	updateParameter,
 	updateProfile
@@ -924,6 +927,9 @@ export class Client extends axios.Axios {
 	public assignProfilesToParameter = assignProfilesToParameter;
 	public assignParameterToProfile = assignParameterToProfile;
 	public removeParameterFromProfile = removeParameterFromProfile;
+	public importProfile = importProfile;
+	public exportProfile = exportProfile;
+	public copyProfile = copyProfile;
 
 	// Types
 	public getTypes = getTypes;

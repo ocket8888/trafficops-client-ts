@@ -33,7 +33,7 @@ const erroredRequests = new Set<string>();
  * @param chkMe The object containing the Alerts to check.
  * @returns `1` if there were errors in the `chkMe` Alerts, `0` otherwise.
  */
-function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<Alert>} | null | undefined): 1 | 0 {
+function checkAlerts(method: string, endpoint: string, chkMe?: {alerts?: Array<Alert> | null | undefined } | null | undefined): 1 | 0 {
 	endpoint = `/${endpoint.replace(/^\/+/, "")}`;
 	console.log(method, endpoint);
 	console.log(inspect(chkMe, false, Infinity, true));
@@ -540,6 +540,16 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "profiles/{{ID}}", await client.updateProfile(newProfile.response));
 	checkAlerts("GET", "profiles?id={{ID}}", await client.getProfiles(newProfile.response.id));
 	checkAlerts("POST", "profileparameters", await client.assignParameterToProfile(newProfile.response, newParam.response));
+
+	const copiedProfile = await client.copyProfile(newProfile.response.name, "quest");
+	checkAlerts("POST", "profiles/name/{{new name}}/copy/{{existing name}}", copiedProfile);
+	checkAlerts("DELETE (copied)", "profiles/{{ID}}", await client.deleteProfile(copiedProfile.response.id));
+	const exportedProfile = await client.exportProfile(newProfile.response);
+	checkAlerts("GET", "profiles/{{ID}}/export", exportedProfile);
+	exportedProfile.profile.name = "quest";
+	const importedProfile = await client.importProfile(exportedProfile);
+	checkAlerts("POST", "profiles/import", importedProfile);
+	checkAlerts("DELETE (imported)", "profiles/{{ID}}", await client.deleteProfile(importedProfile.response.id));
 
 	checkAlerts("POST", "cachegroupparameters", await client.assignParameterToCacheGroup(newCG.response.id, newParam.response.id));
 	checkAlerts("GET", "cachegroupparameters", await client.getCacheGroupParameters());
