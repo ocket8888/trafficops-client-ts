@@ -76,12 +76,15 @@ import {
 } from "./delivery_service_request.js";
 import { deleteCDNDNSSECKeys, generateCDNDNSSECKeys, generateCDNKSK, refreshAllDNSSECKeys } from "./dnssec.js";
 import {
+	assignCDNFederationToUsers,
 	createCDNFederation,
 	createFederationResolver,
 	deleteCDNFederation,
 	deleteFederationResolver,
 	getCDNFederations,
 	getFederationResolvers,
+	getUsersAssignedToCDNFederation,
+	removeUserFromCDNFederation,
 	updateCDNFederation
 } from "./federations.js";
 import {
@@ -830,6 +833,9 @@ export class Client extends axios.Axios {
 	public getFederationResolvers = getFederationResolvers;
 	public createFederationResolver = createFederationResolver;
 	public deleteFederationResolver = deleteFederationResolver;
+	public assignUserToCDNFederation = assignCDNFederationToUsers;
+	public getUsersAssignedToCDNFederation = getUsersAssignedToCDNFederation;
+	public removeUserFromCDNFederation = removeUserFromCDNFederation;
 
 	// Physical Locations/Regions/Divisions
 	public getDivisions = getDivisions;

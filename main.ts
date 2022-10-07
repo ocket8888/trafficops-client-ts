@@ -106,25 +106,24 @@ async function getCurrentUser(client: Client): Promise<ResponseCurrentUser> {
  * run tests.
  *
  * @param client An API client for sending requests.
- * @returns `true` if testing can proceed, `false` otherwise.
+ * @returns The currently authenticated user.
  */
-async function checkRunningUser(client: Client): Promise<boolean> {
+async function checkRunningUser(client: Client): Promise<ResponseCurrentUser | null> {
 	const me = await getCurrentUser(client);
-	let canContinue = true;
 
 	const myTenant = (await client.getTenants(me.tenantId)).response;
 	if (myTenant.parentId !== null) {
 		console.error("running user has non-root Tenant", myTenant.name);
-		canContinue = false;
+		return null;
 	}
 
 	const myRole = (await client.getRoles(me.role)).response;
 	if (myRole.privLevel < 30) {
 		console.error("running user has insufficient Role", myRole.name, "with privilege level", myRole.privLevel, "(need at least 30)");
-		canContinue = false;
+		return null;
 	}
 
-	return canContinue;
+	return me;
 }
 
 const testingUsername = "TSClientTestingUser";
@@ -271,7 +270,8 @@ async function main(): Promise<number> {
 	console.log((await client.ping()).data);
 	console.log();
 	await client.login("admin", "twelve12");
-	if (!(await checkRunningUser(client))) {
+	const me = await checkRunningUser(client);
+	if (!me) {
 		console.error("testing cannot continue due to insufficient permissions");
 		return 1;
 	}
@@ -457,12 +457,14 @@ async function main(): Promise<number> {
 	checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
 	newCDNFed.response.description = "quest";
 	checkAlerts("PUT", "cdns/{{name}}/federations/{{ID}}", await client.updateCDNFederation(newCDN.response, newCDNFed.response));
+	checkAlerts("POST", "federations/{{ID}}/users", await client.assignUserToCDNFederation(me.id, newCDNFed.response));
+	checkAlerts("GET", "federations/{{ID}}/users", await client.getUsersAssignedToCDNFederation(newCDNFed.response));
 	checkAlerts("GET", "cdns/{{name}}/federations", await client.getCDNFederations(newCDN.response, {limit: 1}));
 
 	const newFedRes = await client.createFederationResolver({ipAddress: "1.2.3.4", typeId: 1});
 	checkAlerts("POST", "federation_resolvers", newFedRes);
-	checkAlerts("GET", "federation_resolvers", await client.getFederationResolvers());
-	checkAlerts("DELETE", "federation_resolvers", await client.deleteFederationResolver(newFedRes.response));
+	const getFedResolversResp = await client.getFederationResolvers();
+	checkAlerts("GET", "federation_resolvers", getFedResolversResp);
 
 	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: types.cacheGroup.id});
 	checkAlerts("POST", "cachegroups", newCG);
@@ -529,7 +531,6 @@ async function main(): Promise<number> {
 	newRole.response.description += "quest";
 	checkAlerts("PUT", "roles?id={{ID}}", await client.updateRole(newRole.response));
 
-	const me = await getCurrentUser(client);
 	const myTenant = (await client.getTenants(me.tenantId)).response;
 	const newTenant = await client.createTenant({
 		active: true,
@@ -681,6 +682,8 @@ async function main(): Promise<number> {
 		erroredRequests.add("GET /dbdump");
 	}
 
+	checkAlerts("DELETE", "federation_resolvers", await client.deleteFederationResolver(getFedResolversResp.response[0]));
+	checkAlerts("DELETE", "federations/{{ID}}/users", await client.removeUserFromCDNFederation(me.id, newCDNFed.response));
 	checkAlerts("POST", "deliveryservices/{{ID}}/assign (unassign)", await client.unAssignDSR(newDSR.response));
 	checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));
 	checkAlerts("DELETE", "coordinates", await client.deleteCoordinate(newCoordinate.response));

@@ -1,5 +1,7 @@
 import type {
 	APIResponse,
+	AssignCDNFederationToUsersRequest,
+	AssignCDNFederationToUsersRequestResponse,
 	CDN,
 	FederationFederationResolver,
 	PostResponseCDNFederation,
@@ -7,11 +9,13 @@ import type {
 	RequestFederationResolver,
 	RequestFederationResolverResponse,
 	ResponseCDNFederation,
-	ResponseFederationResolver
+	ResponseFederationResolver,
+	ResponseUser,
+	UserCDNFederationAssociation
 } from "trafficops-types";
 
 import { ClientError } from "./api.error.js";
-import type { PaginationParams } from "./util";
+import { isIDArray, type PaginationParams } from "./util.js";
 
 import type { Client } from "./index";
 
@@ -210,6 +214,7 @@ export async function createFederationResolver(
 
 /**
  * Deletes a Federation Resolver.
+ *
  * @param this Tells TypeScript that this is a Client method.
  * @param fed The Federation Resolver to delete, or just its ID.
  * @returns The server's response.
@@ -220,4 +225,145 @@ export async function deleteFederationResolver(
 ): Promise<APIResponse<FederationFederationResolver>> {
 	const id = typeof(fed) === "number" ? fed : fed.id;
 	return (await this.apiDelete<APIResponse<FederationFederationResolver>>("federation_resolvers", {id})).data;
+}
+
+/**
+ * Checks if an argument to {@link assignCDNFederationToUsers} is an
+ * {@link AssignCDNFederationToUsersRequest}.
+ *
+ * @param x The object to check.
+ * @returns `true` if `x` is an {@link AssignCDNFederationToUsersRequest},
+ * `false` otherwise.
+ */
+function isAssignmentRequest(x: ResponseUser | number | AssignCDNFederationToUsersRequest): x is AssignCDNFederationToUsersRequest {
+	return Object.prototype.hasOwnProperty.call(x, "userIds");
+}
+
+/**
+ * Assigns an existing CDN Federation to one or more users.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param req A full user-to-CDN Federation assignment request body.
+ * @param federation The CDN Federation to which the user(s) in the request body
+ * given by `req` will be assigned, or just its ID. This is required if `req`
+ * is one or more user(s) or user ID(s), and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function assignCDNFederationToUsers(
+	this: Client,
+	req: AssignCDNFederationToUsersRequest,
+	federation: PostResponseCDNFederation | number,
+): Promise<APIResponse<AssignCDNFederationToUsersRequestResponse>>;
+/**
+ * Assigns an existing CDN Federation to one or more users.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param user The user (or just its ID) or users (or just their IDs) to
+ * which the CDN Federation given by `federation` will be assigned.
+ * @param federation The CDN Federation to which the user(s) given by
+ * `user` will be assigned, or just its ID.
+ * @param replace If given and `true`, the assignments of users to the CDN
+ * Federation given by `federation` will be fully replaced by those defined by
+ * this request. Otherwise, new assignments will be added only.
+ * @returns The server's response.
+ */
+export async function assignCDNFederationToUsers(
+	this: Client,
+	userOrReq: ResponseUser | number | Array<ResponseUser> | Array<number> | AssignCDNFederationToUsersRequest,
+	federation: PostResponseCDNFederation | number,
+	replace?: boolean
+): Promise<APIResponse<AssignCDNFederationToUsersRequestResponse>>;
+/**
+ * Assigns an existing CDN Federation to one or more users.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param userOrReq The user (or just its ID) or users (or just their IDs) to
+ * which the CDN Federation given by `federation` will be assigned, or a full
+ * {@link AssignCDNFederationToUsersRequest} request body.
+ * @param federation The CDN Federation to which the user(s) given by
+ * `userOrReq` will be assigned, or just its ID.
+ * @param replace If given and `true`, the assignments of users to the CDN
+ * Federation given by `federation` will be fully replaced by those defined by
+ * this request. Otherwise, new assignments will be added only. This is ignored
+ * if `userOrReq` is a full user-to-CDN Federation request.
+ * @returns The server's response.
+ */
+export async function assignCDNFederationToUsers(
+	this: Client,
+	userOrReq: ResponseUser | number | Array<ResponseUser> | Array<number> | AssignCDNFederationToUsersRequest,
+	federation: PostResponseCDNFederation | number,
+	replace: boolean = false
+): Promise<APIResponse<AssignCDNFederationToUsersRequestResponse>> {
+	let req: AssignCDNFederationToUsersRequest;
+	if (Array.isArray(userOrReq)) {
+		req = {
+			replace,
+			userIds: isIDArray(userOrReq) ? userOrReq : userOrReq.map(u=>u.id)
+		};
+	} else if (isAssignmentRequest(userOrReq)) {
+		req = userOrReq;
+	} else if (typeof(userOrReq) === "number") {
+		req = {
+			replace,
+			userIds: [userOrReq]
+		};
+	} else {
+		req = {
+			replace,
+			userIds: [userOrReq.id]
+		};
+	}
+
+	const fedID = typeof(federation) === "number" ? federation : federation.id;
+	return (await this.apiPost<APIResponse<AssignCDNFederationToUsersRequestResponse>>(`federations/${fedID}/users`, req)).data;
+}
+
+/**
+ * Optional request settings that affect the behavior/output of
+ * {@link getUsersAssignedToCDNFederation}.
+ */
+type UserCDNFederationParams = PaginationParams & {
+	orderby?: "role";
+	role?: string;
+	userID?: number;
+};
+
+/**
+ * Retrieves the users assigned to a given CDN Federation and some limited
+ * information about them.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param federation The CDN Federation for which user assignments will be
+ * retrieved, or just its ID.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getUsersAssignedToCDNFederation(
+	this: Client,
+	federation: PostResponseCDNFederation | number,
+	params?: UserCDNFederationParams
+): Promise<APIResponse<Array<UserCDNFederationAssociation>>> {
+	const id = typeof(federation) === "number" ? federation : federation.id;
+	return (await this.apiGet<APIResponse<Array<UserCDNFederationAssociation>>>(`federations/${id}/users`, params)).data;
+}
+
+/**
+ * Removes a user from a CDN Federation's assigned users.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param user The user being removed from the CDN Federation given by
+ * `federation`, or just its ID.
+ * @param federation The CDN Federation from which the user given by `user` will
+ * be removed, or just its ID.
+ * @returns The server's response.
+ */
+export async function removeUserFromCDNFederation(
+	this: Client,
+	user: ResponseUser | number,
+	federation: PostResponseCDNFederation | number
+): Promise<APIResponse<undefined>> {
+	const userID = typeof(user) === "number" ? user : user.id;
+	const fedID = typeof(federation) === "number" ? federation : federation.id;
+	return (await this.apiDelete(`federations/${fedID}/users/${userID}`)).data;
+}
 }
