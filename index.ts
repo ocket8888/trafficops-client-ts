@@ -102,6 +102,7 @@ import {
 	getContentInvalidationJobs,
 	updateContentInvalidationJob
 } from "./job.js";
+import { getLogs, getNewLogsCount } from "./log.js";
 import {
 	createDivision,
 	createPhysicalLocation,
@@ -883,6 +884,10 @@ export class Client extends axios.Axios {
 	// ISO Generation
 	public getOSVersions = getOSVersions;
 	public generateISO = generateISO;
+
+	// Logs
+	public getLogs = getLogs;
+	public getNewLogsCount = getNewLogsCount;
 
 	// Physical Locations/Regions/Divisions
 	public getDivisions = getDivisions;

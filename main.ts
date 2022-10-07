@@ -793,6 +793,9 @@ async function main(): Promise<number> {
 	checkAlerts("DELETE", "server_capabilities?name={{name}}", await client.deleteServerCapability(TEST_CAPABILITY_NAME));
 	checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 
+	checkAlerts("GET", "logs/newcount", await client.getNewLogsCount());
+	checkAlerts("GET", "logs?limit=2", await client.getLogs({limit: 2}));
+
 	if (erroredRequests.size > 0) {
 		console.error();
 		console.error("the following requests failed:");
