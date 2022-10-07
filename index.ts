@@ -103,6 +103,7 @@ import {
 	updateContentInvalidationJob
 } from "./job.js";
 import { getLogs, getNewLogsCount } from "./log.js";
+import { createOrigin, deleteOrigin, getOrigins, updateOrigin } from "./origin.js";
 import {
 	createDivision,
 	createPhysicalLocation,
@@ -888,6 +889,12 @@ export class Client extends axios.Axios {
 	// Logs
 	public getLogs = getLogs;
 	public getNewLogsCount = getNewLogsCount;
+
+	// Origins
+	public getOrigins = getOrigins;
+	public createOrigin = createOrigin;
+	public updateOrigin = updateOrigin;
+	public deleteOrigin = deleteOrigin;
 
 	// Physical Locations/Regions/Divisions
 	public getDivisions = getDivisions;

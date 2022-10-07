@@ -441,6 +441,21 @@ async function main(): Promise<number> {
 	checkAlerts("POST", "letsencrypt/autorenew", await client.autoRenewLetsEncryptCertificates());
 	checkAlerts("GET", "letsencrypt/dnsrecords", await client.getLetsEncryptDNSRecords());
 
+	const newOrigin = await client.createOrigin({
+		deliveryServiceId: newDS.response[0].id,
+		fqdn: "test.quest",
+		name: "testing-origin",
+		protocol: "http",
+		tenantID: me.tenantId
+	});
+	checkAlerts("POST", "origins", newOrigin);
+	newOrigin.response.port = 60443;
+	checkAlerts("PUT", "origins", await client.updateOrigin(newOrigin.response));
+	checkAlerts("GET", "origins", await client.getOrigins());
+	if (newOrigin.response && newOrigin.response.id) {
+		checkAlerts("DELETE", "origins", await client.deleteOrigin(newOrigin.response));
+	}
+
 	checkAlerts("POST", "server_capabilities", await client.createServerCapability(TEST_CAPABILITY_NAME));
 	checkAlerts("GET", "server_capabilities", await client.getServerCapabilities());
 
