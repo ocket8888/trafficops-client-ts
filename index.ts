@@ -80,14 +80,18 @@ import {
 	assignDeliveryServicesToCDNFederation,
 	createCDNFederation,
 	createFederationResolver,
+	createUserDeliveryServiceFederationResolverMappings,
+	deleteAllUserDeliveryServiceFederationResolverMappings,
 	deleteCDNFederation,
 	deleteFederationResolver,
 	getCDNFederations,
 	getDeliveryServicesAssignedToCDNFederation,
 	getFederationResolvers,
+	getUserDeliveryServiceFederationResolverMappings,
 	getUsersAssignedToCDNFederation,
 	removeDeliveryServiceFromCDNFederation,
 	removeUserFromCDNFederation,
+	replaceAllUserDeliveryServiceFederationResolverMappings,
 	updateCDNFederation
 } from "./federations.js";
 import {
@@ -836,6 +840,14 @@ export class Client extends axios.Axios {
 	public getFederationResolvers = getFederationResolvers;
 	public createFederationResolver = createFederationResolver;
 	public deleteFederationResolver = deleteFederationResolver;
+	public getUserDeliveryServiceFederationResolverMappings = getUserDeliveryServiceFederationResolverMappings;
+	public getUserDSFederationResolverMappings = getUserDeliveryServiceFederationResolverMappings;
+	public createUserDeliveryServiceFederationResolverMappings = createUserDeliveryServiceFederationResolverMappings;
+	public createUserDSFederationResolverMappings = createUserDeliveryServiceFederationResolverMappings;
+	public deleteAllUserDeliveryServiceFederationResolverMappings = deleteAllUserDeliveryServiceFederationResolverMappings;
+	public deleteAllUserDSFederationResolverMappings = deleteAllUserDeliveryServiceFederationResolverMappings;
+	public replaceAllUserDeliveryServiceFederationResolverMappings = replaceAllUserDeliveryServiceFederationResolverMappings;
+	public replaceAllUserDSFederationResolverMappings = replaceAllUserDeliveryServiceFederationResolverMappings;
 	public assignUserToCDNFederation = assignCDNFederationToUsers;
 	public getUsersAssignedToCDNFederation = getUsersAssignedToCDNFederation;
 	public removeUserFromCDNFederation = removeUserFromCDNFederation;

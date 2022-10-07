@@ -465,8 +465,24 @@ async function main(): Promise<number> {
 
 	const newFedRes = await client.createFederationResolver({ipAddress: "1.2.3.4", typeId: 1});
 	checkAlerts("POST", "federation_resolvers", newFedRes);
+
+	checkAlerts("POST", "federations", await client.createUserDSFederationResolverMappings({
+		deliveryService: newDS.response[0].xmlId,
+		mappings: {
+			resolve4: ["1.2.3.4"],
+			resolve6: null
+		}
+	}));
+	checkAlerts("PUT", "federations", await client.replaceAllUserDSFederationResolverMappings({
+		deliveryService: newDS.response[0].xmlId,
+		mappings: {
+			resolve4: ["4.3.2.1"],
+			resolve6: ["::1111"]
+		}
+	}));
 	const getFedResolversResp = await client.getFederationResolvers();
 	checkAlerts("GET", "federation_resolvers", getFedResolversResp);
+	checkAlerts("GET", "federations", await client.getUserDSFederationResolverMappings());
 
 	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: types.cacheGroup.id});
 	checkAlerts("POST", "cachegroups", newCG);
@@ -695,6 +711,7 @@ async function main(): Promise<number> {
 	// 		newCDNFed.response
 	// 	)
 	// );
+	checkAlerts("DELETE", "federations", await client.deleteAllUserDSFederationResolverMappings());
 	checkAlerts("DELETE", "federations/{{ID}}/users", await client.removeUserFromCDNFederation(me.id, newCDNFed.response));
 	checkAlerts("POST", "deliveryservices/{{ID}}/assign (unassign)", await client.unAssignDSR(newDSR.response));
 	checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));

@@ -2,15 +2,21 @@ import type {
 	APIResponse,
 	AssignCDNFederationToUsersRequest,
 	AssignCDNFederationToUsersRequestResponse,
+	AssignDeliveryServicesToCDNFederationRequest,
+	AssignDeliveryServicesToCDNFederationRequestResponse,
 	CDN,
+	DeliveryServiceCDNFederationAssociation,
 	FederationFederationResolver,
 	PostResponseCDNFederation,
 	RequestCDNFederation,
 	RequestFederationResolver,
 	RequestFederationResolverResponse,
+	RequestUserDeliveryServiceFederationResolverMapping,
 	ResponseCDNFederation,
+	ResponseDeliveryService,
 	ResponseFederationResolver,
 	ResponseUser,
+	ResponseUserDeliveryServiceFederationResolverMapping,
 	UserCDNFederationAssociation
 } from "trafficops-types";
 
@@ -228,8 +234,65 @@ export async function deleteFederationResolver(
 }
 
 /**
- * Checks if an argument to {@link assignCDNFederationToUsers} is an
- * {@link AssignCDNFederationToUsersRequest}.
+ * Gets all Delivery Service-associated Federation Resolver Mappings for the
+ * currently authenticated user.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @returns The server's response.
+ */
+export async function getUserDeliveryServiceFederationResolverMappings(
+	this: Client
+): Promise<APIResponse<Array<ResponseUserDeliveryServiceFederationResolverMapping>>> {
+	return (await this.apiGet<APIResponse<Array<ResponseUserDeliveryServiceFederationResolverMapping>>>("federations")).data;
+}
+
+/**
+ * Adds new Federation Resolver Mappings to the given Delivery Services
+ * (provided said Delivery Services are in a CDN that has a Federation) for the
+ * currently authenticated user (assuming the user has an assigned Federation
+ * within the CDN of all Delivery Services in the request).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param fed The Federation Resolver mappings and associated Delivery Services
+ * that will be created for the user.
+ * @returns The server's response.
+ */
+export async function createUserDeliveryServiceFederationResolverMappings(
+	this: Client,
+	fed: RequestUserDeliveryServiceFederationResolverMapping | Array<RequestUserDeliveryServiceFederationResolverMapping>
+): Promise<APIResponse<string>> {
+	const body = Array.isArray(fed) ? fed : [fed];
+	return (await this.apiPost<APIResponse<string>>("federations", body)).data;
+}
+
+/**
+ * Deletes **all** Delivery Service-to-Federation Resolver Mappings for the
+ * currently authenticated user.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @returns The server's response.
+ */
+export async function deleteAllUserDeliveryServiceFederationResolverMappings(this: Client): Promise<APIResponse<string>> {
+	return (await this.apiDelete<APIResponse<string>>("federations")).data;
+}
+
+/**
+ * Replaces **all** Federation Resolver Mappings to Delivery Services for the
+ * currently authenticated user with those provided.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param fed The Federation Resolver mappings and associated Delivery Service
+ * that will be created for the user.
+ * @returns The server's response.
+ */
+export async function replaceAllUserDeliveryServiceFederationResolverMappings(
+	this: Client,
+	fed: RequestUserDeliveryServiceFederationResolverMapping | Array<RequestUserDeliveryServiceFederationResolverMapping>
+): Promise<APIResponse<string>> {
+	const body = Array.isArray(fed) ? fed : [fed];
+	return (await this.apiPut<APIResponse<string>>("federations", body)).data;
+}
+
 /**
  * Checks if an argument to {@link assignCDNFederationToUsers} or
  * {@link assignDeliveryServicesToCDNFederation} is an
