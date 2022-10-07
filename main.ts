@@ -438,6 +438,8 @@ async function main(): Promise<number> {
 	}));
 	checkAlerts("GET", "deliveryservices/xmlId/{{XML ID}}/sslkeys", await client.getDeliveryServiceSSLKey(newDS.response[0]));
 	checkAlerts("DELETE", "deliveryservices/xmlId/{{XML ID}}", await client.removeDeliveryServiceSSLKeys(newDS.response[0]));
+	checkAlerts("POST", "letsencrypt/autorenew", await client.autoRenewLetsEncryptCertificates());
+	checkAlerts("GET", "letsencrypt/dnsrecords", await client.getLetsEncryptDNSRecords());
 
 	checkAlerts("POST", "server_capabilities", await client.createServerCapability(TEST_CAPABILITY_NAME));
 	checkAlerts("GET", "server_capabilities", await client.getServerCapabilities());

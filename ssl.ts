@@ -1,4 +1,5 @@
 import type {
+	ACMEDNSRecord,
 	APIResponse,
 	CDN,
 	CDNDeliveryServiceSSLKeys,
@@ -148,4 +149,34 @@ export async function removeDeliveryServiceSSLKeys(
 export async function refreshDeliveryServiceSSLKeys(this: Client, ds: DeliveryService | string): Promise<APIResponse<undefined>> {
 	const xmlID = typeof(ds) === "string" ? ds : ds.xmlId;
 	return (await this.apiPost(`deliveryservices/xmlId/${xmlID}/sslkeys/refresh`)).data;
+}
+
+/**
+ * Automatically re-generates LetsEncrypt-based SSL key/certificate pairs for
+ * all applicable Delivery Services.
+ *
+ * @deprecated LetsEncrypt-specific endpoints have been removed in the latest
+ * version of the Traffic Ops API, in favor of a more generic ACME interface.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @returns The server's response.
+ */
+export async function autoRenewLetsEncryptCertificates(this: Client): Promise<APIResponse<undefined>> {
+	return (await this.apiPost("letsencrypt/autorenew")).data;
+}
+
+/**
+ * Gets DNS records used for LetsEncrypt-based certificate generation.
+ *
+ * @deprecated LetsEncrypt-specific endpoints have been removed in the latest
+ * version of the Traffic Ops API, in favor of a more generic ACME interface.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param fqdn If given, only DNS records for zones matching this FQDN will be
+ * returned.
+ * @returns The server's response.
+ */
+export async function getLetsEncryptDNSRecords(this: Client, fqdn?: string): Promise<APIResponse<Array<ACMEDNSRecord>>> {
+	const p = fqdn ? {fqdn} : undefined;
+	return (await this.apiGet<APIResponse<Array<ACMEDNSRecord>>>("letsencrypt/dnsrecords", p)).data;
 }

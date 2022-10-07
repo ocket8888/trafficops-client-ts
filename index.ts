@@ -150,9 +150,11 @@ import {
 } from "./server.js";
 import {
 	addSSLKeysToDeliveryService,
+	autoRenewLetsEncryptCertificates,
 	generateSSLKeysForDeliveryService,
 	getCDNSSLKeys,
 	getDeliveryServiceSSLKey,
+	getLetsEncryptDNSRecords,
 	removeDeliveryServiceSSLKeys
 } from "./ssl.js";
 import {
@@ -941,6 +943,8 @@ export class Client extends axios.Axios {
 	public addSSLKeysToDeliveryService = addSSLKeysToDeliveryService;
 	public generateSSLKeysForDeliveryService = generateSSLKeysForDeliveryService;
 	public removeDeliveryServiceSSLKeys = removeDeliveryServiceSSLKeys;
+	public autoRenewLetsEncryptCertificates = autoRenewLetsEncryptCertificates;
+	public getLetsEncryptDNSRecords = getLetsEncryptDNSRecords;
 
 	// Stats
 	public cacheStats = cacheStats;
