@@ -229,3 +229,13 @@ export function getSingleResponse<T>(
 	}
 	throw new APIError(`${requestingYieldedStr(objectType, identifier)} malformed response`, response.status, response.headers);
 }
+
+/**
+ * Checks if a given homogenously typed array is an array of numbers.
+ *
+ * @param arr The array to check.
+ * @returns `true` if `arr` is an array of numbers, `false` otherwise.
+ */
+export function isIDArray<T>(arr: Array<number> | Array<T>): arr is Array<number> {
+	return arr.length > 0 && arr.some(x=>typeof(x) === "number");
+}

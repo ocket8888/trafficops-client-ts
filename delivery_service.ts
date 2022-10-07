@@ -16,7 +16,7 @@ import type {
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
-import { getSingleResponse, type PaginationParams } from "./util.js";
+import { getSingleResponse, isIDArray, type PaginationParams } from "./util.js";
 
 import type { Client } from "./index";
 
@@ -768,16 +768,6 @@ export async function removeCapabilityRequirementFromDeliveryService(
 		requiredCapability: capName
 	};
 	return (await this.apiDelete("deliveryservices_required_capabilities", payload)).data;
-}
-
-/**
- * Checks if a given homogenously typed array is an array of numbers.
- *
- * @param arr The array to check.
- * @returns `true` if `arr` is an array of numbers, `false` otherwise.
- */
-function isIDArray<T>(arr: Array<number> | Array<T>): arr is Array<number> {
-	return arr.length > 0 && arr.some(x=>typeof(x) === "number");
 }
 
 /**
