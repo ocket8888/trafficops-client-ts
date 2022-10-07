@@ -701,6 +701,36 @@ async function main(): Promise<number> {
 		erroredRequests.add("GET /dbdump");
 	}
 
+	const osversionsResp = await client.getOSVersions();
+	checkAlerts("GET", "osversions", osversionsResp);
+	const osversions = Object.entries(osversionsResp.response).map(v => v[1]);
+	if (osversions.length > 0) {
+		try {
+			const isoResp = await client.generateISO({
+				dhcp: "yes",
+				disk: "sda",
+				domainName: "test",
+				hostName: "quest",
+				interfaceMtu: 9000,
+				osVersionDir: osversions[0],
+				rootPass: "insecure password"
+			});
+			console.log("POST /isos");
+			if (String(isoResp).includes('"alerts":')) {
+				erroredRequests.add("POST /isos");
+				console.log(inspect(JSON.parse(String(isoResp)), false, Infinity, true));
+			} else {
+				console.log(`<${isoResp.byteLength}B binary data blob>`);
+			}
+			console.log();
+		} catch (e) {
+			console.error("ISO generation failed:", e);
+			erroredRequests.add("POST /isos");
+		}
+	} else {
+		console.warn("no osversions found - cannot test ISO generation method");
+	}
+
 	checkAlerts("DELETE", "federation_resolvers", await client.deleteFederationResolver(getFedResolversResp.response[0]));
 	// Cannot be done because "A Federation must have at least one Delivery
 	// Service" - which makes no sense because they have zero on creation?

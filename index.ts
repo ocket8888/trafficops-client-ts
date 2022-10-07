@@ -95,6 +95,7 @@ import {
 	replaceAllUserDeliveryServiceFederationResolverMappings,
 	updateCDNFederation
 } from "./federations.js";
+import { generateISO, getOSVersions } from "./iso.js";
 import {
 	createDivision,
 	createPhysicalLocation,
@@ -860,6 +861,10 @@ export class Client extends axios.Axios {
 	public removeDSFromCDNFederation = removeDeliveryServiceFromCDNFederation;
 	public getAllDeliveryServiceFederationResolverMappings = getAllDeliveryServiceFederationResolverMappings;
 	public getAllDSFederationResolverMappings = getAllDeliveryServiceFederationResolverMappings;
+
+	// ISO Generation
+	public getOSVersions = getOSVersions;
+	public generateISO = generateISO;
 
 	// Physical Locations/Regions/Divisions
 	public getDivisions = getDivisions;
