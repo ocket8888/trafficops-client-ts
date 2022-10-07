@@ -168,16 +168,16 @@ export async function deleteParameter(this: Client, parameter: ResponseParameter
  * {@link getProfiles}.
  */
 type Params = PaginationParams & {
-	/** Filter results by ConfigFile. */
-	configFile?: string;
+	/** Filter results by CDN ID. */
+	cdn?: number;
 	/** Filter results by ID. */
 	id?: number;
 	/** Filter results by Name. */
 	name?: string;
 	/** Order the result set by the specified property's value. */
-	orderby?: Exclude<keyof ResponseProfile, "lastUpdated">;
-	/** Filter results by Value. */
-	value?: string;
+	orderby?: "cdn" | "id" | "name";
+	/** Filter results by assigned Parameter ID. */
+	param?: number;
 };
 
 /**
