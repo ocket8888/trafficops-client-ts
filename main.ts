@@ -457,6 +457,8 @@ async function main(): Promise<number> {
 	checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
 	newCDNFed.response.description = "quest";
 	checkAlerts("PUT", "cdns/{{name}}/federations/{{ID}}", await client.updateCDNFederation(newCDN.response, newCDNFed.response));
+	checkAlerts("POST", "federations/{{ID}}/deliveryservices", await client.assignDSToCDNFederation(newDS.response[0], newCDNFed.response));
+	checkAlerts("GET", "federations/{{ID}}/deliveryservices", await client.getDSesAssignedToCDNFederation(newCDNFed.response));
 	checkAlerts("POST", "federations/{{ID}}/users", await client.assignUserToCDNFederation(me.id, newCDNFed.response));
 	checkAlerts("GET", "federations/{{ID}}/users", await client.getUsersAssignedToCDNFederation(newCDNFed.response));
 	checkAlerts("GET", "cdns/{{name}}/federations", await client.getCDNFederations(newCDN.response, {limit: 1}));
@@ -683,6 +685,16 @@ async function main(): Promise<number> {
 	}
 
 	checkAlerts("DELETE", "federation_resolvers", await client.deleteFederationResolver(getFedResolversResp.response[0]));
+	// Cannot be done because "A Federation must have at least one Delivery
+	// Service" - which makes no sense because they have zero on creation?
+	// checkAlerts(
+	// 	"DELETE",
+	// 	"federations/{{ID}}/deliveryservices",
+	// 	await client.removeDSFromCDNFederation(
+	// 		newDS.response[0],
+	// 		newCDNFed.response
+	// 	)
+	// );
 	checkAlerts("DELETE", "federations/{{ID}}/users", await client.removeUserFromCDNFederation(me.id, newCDNFed.response));
 	checkAlerts("POST", "deliveryservices/{{ID}}/assign (unassign)", await client.unAssignDSR(newDSR.response));
 	checkAlerts("DELETE", "deliveryservice_requests", await client.deleteDSR(newDSR.response));

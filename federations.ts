@@ -230,13 +230,19 @@ export async function deleteFederationResolver(
 /**
  * Checks if an argument to {@link assignCDNFederationToUsers} is an
  * {@link AssignCDNFederationToUsersRequest}.
+/**
+ * Checks if an argument to {@link assignCDNFederationToUsers} or
+ * {@link assignDeliveryServicesToCDNFederation} is an
+ * {@link AssignCDNFederationToUsersRequest} or
+ * {@link AssignDeliveryServicesToCDNFederationRequest}.
  *
  * @param x The object to check.
- * @returns `true` if `x` is an {@link AssignCDNFederationToUsersRequest},
- * `false` otherwise.
+ * @returns `true` if `x` is an {@link AssignCDNFederationToUsersRequest} or
+ * {@link AssignDeliveryServicesToCDNFederationRequest}, `false` otherwise.
  */
-function isAssignmentRequest(x: ResponseUser | number | AssignCDNFederationToUsersRequest): x is AssignCDNFederationToUsersRequest {
-	return Object.prototype.hasOwnProperty.call(x, "userIds");
+function isAssignmentRequest<T extends AssignDeliveryServicesToCDNFederationRequest | AssignCDNFederationToUsersRequest>(
+	x: ResponseUser | ResponseDeliveryService | number | T): x is T {
+	return Object.prototype.hasOwnProperty.call(x, "userIds") || Object.prototype.hasOwnProperty.call(x, "dsIds");
 }
 
 /**
@@ -366,4 +372,145 @@ export async function removeUserFromCDNFederation(
 	const fedID = typeof(federation) === "number" ? federation : federation.id;
 	return (await this.apiDelete(`federations/${fedID}/users/${userID}`)).data;
 }
+
+/**
+ * Assigns one or more Delivery Services to a CDN Federation. Those Delivery
+ * Services **must** be in the same CDN as the CDN Federation to which they will
+ * be assigned.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service (or just its ID) or group of Delivery Services
+ * (or just their IDs) to be assigned to the CDN Federation given by
+ * `federation`.
+ * @param federation The CDN Federation to which the Delivery Service(s) given
+ * by `ds` will be assigned.
+ * @param replace If given and `true`, any existing assignments of Delivery
+ * Services to the CDN Federation given by `federation` will be completely
+ * replaced by those in the request.
+ * @returns The server's response.
+ */
+export async function assignDeliveryServicesToCDNFederation(
+	this: Client,
+	ds: number | ResponseDeliveryService | Array<number> | Array<ResponseDeliveryService>,
+	federation: PostResponseCDNFederation | number,
+	replace?: boolean
+): Promise<APIResponse<AssignDeliveryServicesToCDNFederationRequestResponse>>;
+/**
+ * Assigns one or more Delivery Services to a CDN Federation. Those Delivery
+ * Services **must** be in the same CDN as the CDN Federation to which they will
+ * be assigned.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param req A full Delivery Service-to-CDN Federation assignment request body.
+ * @param federation The CDN Federation to which the Delivery Service(s) given
+ * in `req` will be assigned.
+ * @param replace If given and `true`, any existing assignments of Delivery
+ * Services to the CDN Federation given by `federation` will be completely
+ * replaced by those in the request. This is ignored if `dsOrReq` is a full
+ * request body.
+ * @returns The server's response.
+ */
+export async function assignDeliveryServicesToCDNFederation(
+	this: Client,
+	dsOrReq: AssignDeliveryServicesToCDNFederationRequest,
+	federation: PostResponseCDNFederation | number,
+): Promise<APIResponse<AssignDeliveryServicesToCDNFederationRequestResponse>>;
+/**
+ * Assigns one or more Delivery Services to a CDN Federation. Those Delivery
+ * Services **must** be in the same CDN as the CDN Federation to which they will
+ * be assigned.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dsOrReq The Delivery Service (or just its ID) or group of Delivery
+ * Services (or just their IDs) to be assigned to the CDN Federation given by
+ * `federation`, or a full {@link AssignDeliveryServicesToCDNFederationRequest}
+ * request body.
+ * @param federation The CDN Federation to which the Delivery Service(s) given
+ * by `dsOrReq` will be assigned.
+ * @param replace If given and `true`, any existing assignments of Delivery
+ * Services to the CDN Federation given by `federation` will be completely
+ * replaced by those in the request. This is ignored if `dsOrReq` is a full
+ * request body.
+ * @returns The server's response.
+ */
+export async function assignDeliveryServicesToCDNFederation(
+	this: Client,
+	dsOrReq: number |
+	ResponseDeliveryService |
+	Array<number> |
+	Array<ResponseDeliveryService> |
+	AssignDeliveryServicesToCDNFederationRequest,
+	federation: PostResponseCDNFederation | number,
+	replace: boolean = false
+): Promise<APIResponse<AssignDeliveryServicesToCDNFederationRequestResponse>> {
+	let req: AssignDeliveryServicesToCDNFederationRequest;
+	if (Array.isArray(dsOrReq)) {
+		req = {
+			dsIds: isIDArray(dsOrReq) ? dsOrReq : dsOrReq.map(d=>d.id),
+			replace
+		};
+	} else if (isAssignmentRequest(dsOrReq)) {
+		req = dsOrReq;
+	} else if (typeof(dsOrReq) === "number") {
+		req = {
+			dsIds: [dsOrReq],
+			replace
+		};
+	} else {
+		req = {
+			dsIds: [dsOrReq.id],
+			replace,
+		};
+	}
+
+	const id = typeof(federation) === "number" ? federation : federation.id;
+	const path = `federations/${id}/deliveryservices`;
+	return (await this.apiPost<APIResponse<AssignDeliveryServicesToCDNFederationRequestResponse>>(path, req)).data;
+}
+
+/**
+ * Optional settings that affect the behavior/output of
+ * {@link getDeliveryServicesAssignedToCDNFederation},
+ */
+type DSFedAssignmentParams = PaginationParams & {
+	dsID?: number;
+};
+
+/**
+ * Gets all Delivery Services assigned to a given CDN Federation.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param federation The CDN Federation for which assigned Delivery Services
+ * will be fetched, or just its ID.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getDeliveryServicesAssignedToCDNFederation(
+	this: Client,
+	federation: PostResponseCDNFederation | number,
+	params?: DSFedAssignmentParams
+): Promise<APIResponse<Array<DeliveryServiceCDNFederationAssociation>>> {
+	const id = typeof(federation) === "number" ? federation : federation.id;
+	return (await this.apiGet<APIResponse<Array<DeliveryServiceCDNFederationAssociation>>>(`federations/${id}/deliveryservices`, params)).data;
+}
+
+/**
+ * Removes a Delivery Service from the given CDN Federation's assigned Delivery
+ * Services.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param ds The Delivery Service being removed from the CDN Federation given by
+ * `federation`, or just its ID.
+ * @param federation The CDN Federation from which the Delivery Service
+ * identified by `ds` will be removed, or just its ID.
+ * @returns The server's response.
+ */
+export async function removeDeliveryServiceFromCDNFederation(
+	this: Client,
+	ds: ResponseDeliveryService | number,
+	federation: PostResponseCDNFederation | number
+): Promise<APIResponse<undefined>> {
+	const dsID = typeof(ds) === "number" ? ds : ds.id;
+	const fedID = typeof(federation) === "number" ? federation : federation.id;
+	return (await this.apiDelete(`federations/${fedID}/deliveryservices/${dsID}`)).data;
 }
