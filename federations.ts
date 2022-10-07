@@ -1,4 +1,5 @@
 import type {
+	AllFederation,
 	APIResponse,
 	AssignCDNFederationToUsersRequest,
 	AssignCDNFederationToUsersRequestResponse,
@@ -576,4 +577,15 @@ export async function removeDeliveryServiceFromCDNFederation(
 	const dsID = typeof(ds) === "number" ? ds : ds.id;
 	const fedID = typeof(federation) === "number" ? federation : federation.id;
 	return (await this.apiDelete(`federations/${fedID}/deliveryservices/${dsID}`)).data;
+}
+
+/**
+ * Retrieves **all** Delivery Service Federation Resolver mappings in all CDNs
+ * regardless of any user assignment to said CDN's Federations or lack thereof.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @returns The server's response.
+ */
+export async function getAllDeliveryServiceFederationResolverMappings(this: Client): Promise<APIResponse<Array<AllFederation>>> {
+	return (await this.apiGet<APIResponse<Array<AllFederation>>>("federations/all")).data;
 }

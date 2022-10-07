@@ -84,6 +84,7 @@ import {
 	deleteAllUserDeliveryServiceFederationResolverMappings,
 	deleteCDNFederation,
 	deleteFederationResolver,
+	getAllDeliveryServiceFederationResolverMappings,
 	getCDNFederations,
 	getDeliveryServicesAssignedToCDNFederation,
 	getFederationResolvers,
@@ -857,6 +858,8 @@ export class Client extends axios.Axios {
 	public getDSesAssignedToCDNFederation = getDeliveryServicesAssignedToCDNFederation;
 	public removeDeliveryServiceFromCDNFederation = removeDeliveryServiceFromCDNFederation;
 	public removeDSFromCDNFederation = removeDeliveryServiceFromCDNFederation;
+	public getAllDeliveryServiceFederationResolverMappings = getAllDeliveryServiceFederationResolverMappings;
+	public getAllDSFederationResolverMappings = getAllDeliveryServiceFederationResolverMappings;
 
 	// Physical Locations/Regions/Divisions
 	public getDivisions = getDivisions;

@@ -483,6 +483,7 @@ async function main(): Promise<number> {
 	const getFedResolversResp = await client.getFederationResolvers();
 	checkAlerts("GET", "federation_resolvers", getFedResolversResp);
 	checkAlerts("GET", "federations", await client.getUserDSFederationResolverMappings());
+	checkAlerts("GET", "federations/all", await client.getAllDSFederationResolverMappings());
 
 	const newCG = await client.createCacheGroup({name: "test", shortName: "quest", typeId: types.cacheGroup.id});
 	checkAlerts("POST", "cachegroups", newCG);
