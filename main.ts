@@ -731,6 +731,18 @@ async function main(): Promise<number> {
 		console.warn("no osversions found - cannot test ISO generation method");
 	}
 
+	const newJob = await client.createJob({
+		deliveryService: newDS.response[0].id,
+		regex: "/.*",
+		startTime: new Date("2199-01-01T00:00:00Z"),
+		ttl: 50
+	});
+	checkAlerts("POST", "jobs", newJob);
+	checkAlerts("GET", "jobs", await client.getJobs());
+	newJob.response.startTime = new Date((new Date()).setDate((new Date()).getDate()+1));
+	checkAlerts("PUT", "jobs", await client.updateJob(newJob.response));
+	checkAlerts("DELETE", "jobs", await client.deleteJob(newJob.response));
+
 	checkAlerts("DELETE", "federation_resolvers", await client.deleteFederationResolver(getFedResolversResp.response[0]));
 	// Cannot be done because "A Federation must have at least one Delivery
 	// Service" - which makes no sense because they have zero on creation?

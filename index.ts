@@ -97,6 +97,12 @@ import {
 } from "./federations.js";
 import { generateISO, getOSVersions } from "./iso.js";
 import {
+	createContentInvalidationJob,
+	deleteContentInvalidationJob,
+	getContentInvalidationJobs,
+	updateContentInvalidationJob
+} from "./job.js";
+import {
 	createDivision,
 	createPhysicalLocation,
 	createRegion,
@@ -741,6 +747,16 @@ export class Client extends axios.Axios {
 	public getMonitoringConfiguration = getMonitoringConfiguration;
 	public takeSnapshot = takeSnapshot;
 	public getCDNDomains = getCDNDomains;
+
+	// Content Invalidation Jobs
+	public getContentInvalidationJobs = getContentInvalidationJobs;
+	public getJobs = getContentInvalidationJobs;
+	public createContentInvalidationJob = createContentInvalidationJob;
+	public createJob = createContentInvalidationJob;
+	public updateContentInvalidationJob = updateContentInvalidationJob;
+	public updateJob = updateContentInvalidationJob;
+	public deleteContentInvalidationJob = deleteContentInvalidationJob;
+	public deleteJob = deleteContentInvalidationJob;
 
 	// Coordinates
 	public getCoordinates = getCoordinates;
