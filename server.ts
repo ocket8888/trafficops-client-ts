@@ -10,6 +10,8 @@ import type {
 	ResponseServerServerCapability,
 	ResponseStatus,
 	ServerCapability,
+	Servercheck,
+	ServercheckUploadRequest,
 	ServerServerCapability
 } from "trafficops-types";
 
@@ -561,4 +563,40 @@ export async function removeCapabilityFromServer(
 	}
 
 	return (await this.apiDelete("server_server_capabilities", {serverCapability, serverId})).data;
+}
+
+/**
+ * Optional settings that affect the output/behavior of {@link getServerchecks}.
+ */
+type ServercheckParams = {
+	hostName?: string;
+	id?: number;
+};
+
+/**
+ * Fetches identifying and meta information as well as “check” values regarding
+ * all servers that have a Type with a name beginning with “EDGE” or “MID”
+ * (ostensibly this is equivalent to all cache servers).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getServerchecks(this: Client, params?: ServercheckParams): Promise<APIResponse<Array<Servercheck>>> {
+	return (await this.apiGet<APIResponse<Array<Servercheck>>>("servercheck", params)).data;
+}
+
+/**
+ * Adds a server "check" result to the checks table.
+ *
+ * **Caution**: for unknown reasons only users with the username "extension" are
+ * actually allowed to use this method, regardless of any role privilege level
+ * or Permissions. In future API versions, this will be fixed.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param check The "check" result to be added.
+ * @returns The server's response.
+ */
+export async function uploadServercheckResult(this: Client, check: ServercheckUploadRequest): Promise<APIResponse<undefined>> {
+	return (await this.apiPost("servercheck", check)).data;
 }

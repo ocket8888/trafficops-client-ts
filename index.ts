@@ -147,11 +147,13 @@ import {
 	deleteStatus,
 	getServerCapabilities,
 	getServerCapabilityRelationships,
+	getServerchecks,
 	getServers,
 	getStatuses,
 	removeCapabilityFromServer,
 	updateServer,
-	updateStatus
+	updateStatus,
+	uploadServercheckResult
 } from "./server.js";
 import {
 	addSSLKeysToDeliveryService,
@@ -954,6 +956,8 @@ export class Client extends axios.Axios {
 	public getServerCapabilityRelationships = getServerCapabilityRelationships;
 	public addCapabilityToServer = addCapabilityToServer;
 	public removeCapabilityFromServer = removeCapabilityFromServer;
+	public getServerchecks = getServerchecks;
+	public uploadServercheckResult = uploadServercheckResult;
 
 	// SSL
 	public getCDNSSLKeys = getCDNSSLKeys;

@@ -669,9 +669,22 @@ async function main(): Promise<number> {
 		statusId: newStatus.response.id,
 		typeId: types.edgeCacheServer.id
 	});
+	checkAlerts("POST", "servers", newServer);
 	newServer.response.domainName = "quest";
 	checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
 	checkAlerts("GET", "servers?id={{ID}}", await client.getServers(newServer.response.id));
+
+	// Only the "extension" user can do this. In later API versions, this...
+	// oversight will be fixed.
+	// checkAlerts("POST", "servercheck", await client.uploadServercheckResult({
+	// 	// eslint-disable-next-line @typescript-eslint/naming-convention
+	// 	host_name: newServer.response.hostName,
+	// 	id: newServer.response.id,
+	// 	// eslint-disable-next-line @typescript-eslint/naming-convention
+	// 	servercheck_short_name: "MTU",
+	// 	value: 1
+	// }));
+	checkAlerts("GET", "servercheck", await client.getServerchecks());
 
 	checkAlerts("POST", "server_server_capabilities", await client.addCapabilityToServer(newServer.response, TEST_CAPABILITY_NAME));
 	checkAlerts("GET", "server_server_capabilities", await client.getServerCapabilityRelationships());
