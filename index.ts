@@ -147,10 +147,13 @@ import {
 	deleteStatus,
 	getServerCapabilities,
 	getServerCapabilityRelationships,
+	getServercheckExtensions,
 	getServerchecks,
 	getServers,
 	getStatuses,
+	registerServercheckExtension,
 	removeCapabilityFromServer,
+	unRegisterServercheckExtension,
 	updateServer,
 	updateStatus,
 	uploadServercheckResult
@@ -958,6 +961,9 @@ export class Client extends axios.Axios {
 	public removeCapabilityFromServer = removeCapabilityFromServer;
 	public getServerchecks = getServerchecks;
 	public uploadServercheckResult = uploadServercheckResult;
+	public getServercheckExtensions = getServercheckExtensions;
+	public registerServercheckExtension = registerServercheckExtension;
+	public unRegisterServercheckExtension = unRegisterServercheckExtension;
 
 	// SSL
 	public getCDNSSLKeys = getCDNSSLKeys;

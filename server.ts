@@ -2,11 +2,14 @@ import type {
 	APIResponse,
 	RequestServer,
 	RequestServerCapability,
+	RequestServercheckExtension,
+	RequestServercheckExtensionResponse,
 	RequestServerServerCapability,
 	RequestServerServerCapabilityResponse,
 	RequestStatus,
 	ResponseServer,
 	ResponseServerCapability,
+	ResponseServercheckExtension,
 	ResponseServerServerCapability,
 	ResponseStatus,
 	ServerCapability,
@@ -599,4 +602,63 @@ export async function getServerchecks(this: Client, params?: ServercheckParams):
  */
 export async function uploadServercheckResult(this: Client, check: ServercheckUploadRequest): Promise<APIResponse<undefined>> {
 	return (await this.apiPost("servercheck", check)).data;
+}
+
+/**
+ * Optional settings that affect the output/behavior of
+ * {@link getServercheckExtensions}.
+ */
+type ServercheckExtParams = PaginationParams & {
+	id?: number;
+	isactive?: 1 | 0;
+	name?: string;
+	orderby?: "id" | "type" | "script_file" | "name" | "isactive";
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	script_file?: string;
+	type?: string;
+};
+
+/**
+ * Retrieves server "check" extensions that have been registered with Traffic
+ * Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getServercheckExtensions(
+	this: Client,
+	params?: ServercheckExtParams
+): Promise<APIResponse<Array<ResponseServercheckExtension>>> {
+	return (await this.apiGet<APIResponse<Array<ResponseServercheckExtension>>>("servercheck/extensions", params)).data;
+}
+
+/**
+ * Registers a new server "check" extension with Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param extension The details of the extension being registered.
+ * @returns The server's response.
+ */
+export async function registerServercheckExtension(
+	this: Client,
+	extension: RequestServercheckExtension
+): Promise<RequestServercheckExtensionResponse> {
+	return (await this.apiPost<RequestServercheckExtensionResponse>("servercheck/extensions", extension)).data;
+}
+
+/**
+ * Un-registers a server "check" extension from Traffic Ops (does **not** delete
+ * the actual extension script).
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param extension The extension being un-registered, or just its ID.
+ * @returns The server's response.
+ */
+export async function unRegisterServercheckExtension(
+	this: Client,
+	extension: ResponseServercheckExtension | number
+): Promise<APIResponse<undefined>> {
+	const id = typeof(extension) === "number" ? extension : extension.id;
+	return (await this.apiDelete(`servercheck/extensions/${id}`)).data;
 }

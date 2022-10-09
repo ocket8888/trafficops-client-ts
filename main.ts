@@ -674,7 +674,7 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
 	checkAlerts("GET", "servers?id={{ID}}", await client.getServers(newServer.response.id));
 
-	// Only the "extension" user can do this. In later API versions, this...
+	// Only the "extension" user can do these. In later API versions, this...
 	// oversight will be fixed.
 	// checkAlerts("POST", "servercheck", await client.uploadServercheckResult({
 	// 	// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -684,6 +684,26 @@ async function main(): Promise<number> {
 	// 	servercheck_short_name: "MTU",
 	// 	value: 1
 	// }));
+	// const newExt = await client.registerServercheckExtension({
+	// 	// eslint-disable-next-line @typescript-eslint/naming-convention
+	// 	info_url: "https://info.test",
+	// 	isactive: 0,
+	// 	name: "testquest",
+	// 	// eslint-disable-next-line @typescript-eslint/naming-convention
+	// 	script_file: "/test.quest",
+	// 	// eslint-disable-next-line @typescript-eslint/naming-convention
+	// 	servercheck_short_name: "testquest",
+	// 	type: "CHECK_EXTENSION_BOOL",
+	// 	version: "1.2.3-beta27"
+	// });
+	// checkAlerts("POST", "servercheck/extensions", newExt);
+	checkAlerts("GET", "servercheck/extensions", await client.getServercheckExtensions());
+	// checkAlerts(
+	// 	"DELETE",
+	// 	"servercheck/extensions/{{ID}}",
+	// 	await client.unRegisterServercheckExtension(newExt.supplemental.id)
+	// );
+
 	checkAlerts("GET", "servercheck", await client.getServerchecks());
 
 	checkAlerts("POST", "server_server_capabilities", await client.addCapabilityToServer(newServer.response, TEST_CAPABILITY_NAME));
