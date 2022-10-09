@@ -15,6 +15,7 @@ import type {
 	ServerCapability,
 	Servercheck,
 	ServercheckUploadRequest,
+	ServerDetails,
 	ServerServerCapability
 } from "trafficops-types";
 
@@ -566,6 +567,27 @@ export async function removeCapabilityFromServer(
 	}
 
 	return (await this.apiDelete("server_server_capabilities", {serverCapability, serverId})).data;
+}
+
+/**
+ * Gets server "details".
+ *
+ * @deprecated This endpoint has been removed from the latest version of the
+ * API, and clients should use {@link getServers} instead.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param identifier Either a host name such that returned results will be those
+ * servers with said host name, or the ID of a Physical Location such that the
+ * returned results will be those servers in said Physical Location.
+ */
+export async function getServersDetails(this: Client, identifier: string | number): Promise<APIResponse<Array<ServerDetails>>> {
+	let p;
+	if (typeof(identifier) === "number") {
+		p = {physLocationID: identifier};
+	} else {
+		p = {hostName: identifier};
+	}
+	return (await this.apiGet<APIResponse<Array<ServerDetails>>>("servers/details", p)).data;
 }
 
 /**

@@ -149,6 +149,7 @@ import {
 	getServerCapabilityRelationships,
 	getServercheckExtensions,
 	getServerchecks,
+	getServersDetails,
 	getServers,
 	getStatuses,
 	registerServercheckExtension,
@@ -959,6 +960,7 @@ export class Client extends axios.Axios {
 	public getServerCapabilityRelationships = getServerCapabilityRelationships;
 	public addCapabilityToServer = addCapabilityToServer;
 	public removeCapabilityFromServer = removeCapabilityFromServer;
+	public getServersDetails = getServersDetails;
 	public getServerchecks = getServerchecks;
 	public uploadServercheckResult = uploadServercheckResult;
 	public getServercheckExtensions = getServercheckExtensions;
