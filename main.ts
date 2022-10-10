@@ -731,6 +731,7 @@ async function main(): Promise<number> {
 		"deliveryservices/{{ID}}/servers",
 		await client.getDeliveryServiceServers(newDS.response[0])
 	);
+	checkAlerts("GET", "servers/{{ID}}/deliveryservices", await client.getServerDeliveryServices(newServer.response));
 
 	checkAlerts("GET", "cdns/capacity", await client.getCDNsCapacity());
 	checkAlerts("GET", "cdns/health", await client.getCDNsHealth());

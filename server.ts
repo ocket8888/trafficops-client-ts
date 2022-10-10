@@ -7,6 +7,7 @@ import type {
 	RequestServerServerCapability,
 	RequestServerServerCapabilityResponse,
 	RequestStatus,
+	ResponseDeliveryService,
 	ResponseServer,
 	ResponseServerCapability,
 	ResponseServercheckExtension,
@@ -739,4 +740,22 @@ export async function queueServerUpdates(
 export async function getServerUpdateStatus(this: Client, server: string | ResponseServer): Promise<Array<ServerUpdateStatus>> {
 	const hostName = typeof(server) === "string" ? server : server.hostName;
 	return (await this.apiGet<Array<ServerUpdateStatus>>(`servers/${hostName}/update_status`)).data;
+}
+
+/**
+ * Gets the Delivery Services to which a particular server is assigned.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param server The server for which Delivery Services will be retrieved, or
+ * just its ID.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getServerDeliveryServices(
+	this: Client,
+	server: number | ResponseServer,
+	params?: Exclude<PaginationParams, {sortOrder?: string}>
+): Promise<APIResponse<Array<ResponseDeliveryService>>> {
+	const id = typeof(server) === "number" ? server : server.id;
+	return (await this.apiGet<APIResponse<Array<ResponseDeliveryService>>>(`servers/${id}/deliveryservices`, params)).data;
 }
