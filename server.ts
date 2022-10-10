@@ -18,7 +18,8 @@ import type {
 	ServercheckUploadRequest,
 	ServerDetails,
 	ServerServerCapability,
-	ServerUpdateStatus
+	ServerUpdateStatus,
+	StatusChangeRequest
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -758,4 +759,61 @@ export async function getServerDeliveryServices(
 ): Promise<APIResponse<Array<ResponseDeliveryService>>> {
 	const id = typeof(server) === "number" ? server : server.id;
 	return (await this.apiGet<APIResponse<Array<ResponseDeliveryService>>>(`servers/${id}/deliveryservices`, params)).data;
+}
+
+/**
+ * Sets a server's status to the one provided, optionally with an explanation as
+ * to why its status was changed as such.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param server Either the server having its status changed, or just its ID.
+ * @param status Either the name or ID of a Status to which to set the server
+ * given by `server`.
+ * @param offlineReason A reason as to why the server's status is being set this
+ * way.
+ * @returns The server's response.
+ */
+export async function setServerStatus(
+	this: Client,
+	server: number | ResponseServer,
+	status: string | number,
+	offlineReason?: string
+): Promise<APIResponse<undefined>>;
+/**
+ * Sets a server's status to the one provided, optionally with an explanation as
+ * to why its status was changed as such.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param server Either the server having its status changed, or just its ID.
+ * @param req A full status change request body.
+ * @returns The server's response.
+ */
+export async function setServerStatus(
+	this: Client,
+	server: number | ResponseServer,
+	req: StatusChangeRequest,
+): Promise<APIResponse<undefined>>;
+/**
+ * Sets a server's status to the one provided, optionally with an explanation as
+ * to why its status was changed as such.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param server Either the server having its status changed, or just its ID.
+ * @param statusOrReq Either a full status change request body, or just the name
+ * or ID of a Status to which to set the server given by `server`.
+ * @param offlineReason A reason as to why the server's status is being set this
+ * way. This is ignored if it is provided instead in `statusOrReq`.
+ * @returns The server's response.
+ */
+export async function setServerStatus(
+	this: Client,
+	server: number | ResponseServer,
+	statusOrReq: StatusChangeRequest | string | number,
+	offlineReason?: string
+): Promise<APIResponse<undefined>> {
+	const id = typeof(server) === "number" ? server : server.id;
+	if (typeof(statusOrReq) === "object") {
+		return (await this.apiPut(`servers/${id}/status`, statusOrReq)).data;
+	}
+	return (await this.apiPut(`servers/${id}/status`, {offlineReason, status: statusOrReq})).data;
 }

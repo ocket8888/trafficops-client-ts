@@ -161,6 +161,7 @@ import {
 	queueServerUpdates,
 	getServerUpdateStatus,
 	getServerDeliveryServices,
+	setServerStatus
 } from "./server.js";
 import {
 	addSSLKeysToDeliveryService,
@@ -972,6 +973,7 @@ export class Client extends axios.Axios {
 	public queueServerUpdates = queueServerUpdates;
 	public getServerUpdateStatus = getServerUpdateStatus;
 	public getServerDeliveryServices = getServerDeliveryServices;
+	public setServerStatus = setServerStatus;
 
 	// SSL
 	public getCDNSSLKeys = getCDNSSLKeys;
