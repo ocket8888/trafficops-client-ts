@@ -674,6 +674,8 @@ async function main(): Promise<number> {
 	checkAlerts("PUT", "servers/{{ID}}", await client.updateServer(newServer.response));
 	checkAlerts("GET", "servers?id={{ID}}", await client.getServers(newServer.response.id));
 	checkAlerts("GET", "servers/details?hostName={{Host Name}}", await client.getServersDetails(newServer.response.hostName));
+	checkAlerts("POST", "servers/{{ID}}/queue_updates", await client.queueServerUpdates(newServer.response, {updated: false}));
+	checkAlerts("GET", "servers/{{Host Name}}/update_status", await client.getServerUpdateStatus(newServer.response) as {alerts?: Alert[]});
 
 	// Only the "extension" user can do these. In later API versions, this...
 	// oversight will be fixed.

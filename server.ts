@@ -16,7 +16,8 @@ import type {
 	Servercheck,
 	ServercheckUploadRequest,
 	ServerDetails,
-	ServerServerCapability
+	ServerServerCapability,
+	ServerUpdateStatus
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -683,4 +684,59 @@ export async function unRegisterServercheckExtension(
 ): Promise<APIResponse<undefined>> {
 	const id = typeof(extension) === "number" ? extension : extension.id;
 	return (await this.apiDelete(`servercheck/extensions/${id}`)).data;
+}
+
+/**
+ * Optional settings that affect the behavior of {@link queueServerUpdates}.
+ */
+type QueueParams = {
+	/** @deprecated */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	reval_updated?: boolean;
+	/** @deprecated */
+	updated: boolean;
+} | {
+	/** @deprecated */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	reval_updated: boolean;
+	/** @deprecated */
+	updated?: boolean;
+};
+
+/**
+ * Queues updates on one or more servers.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param identifier A server on which to queue updates, or just its ID or host
+ * name. Note that if a host name is provided, updates will be queued on **all**
+ * servers with that host name.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function queueServerUpdates(
+	this: Client,
+	identifier: number | string | ResponseServer,
+	params: QueueParams
+): Promise<APIResponse<undefined>> {
+	if (typeof(identifier) === "object") {
+		identifier = identifier.id;
+	}
+
+	return (await this.apiPost(`servers/${identifier}/update`, undefined, params)).data;
+}
+
+/**
+ * Retrieves information regarding pending updates and Content Invalidation Jobs
+ * for a given server.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param server The server for which update status information will be fetched,
+ * or just its hostname. Note that the returned result set will contain all
+ * servers with the given host name - or the same host name as the given server,
+ * if called that way.
+ * @returns The server's response.
+ */
+export async function getServerUpdateStatus(this: Client, server: string | ResponseServer): Promise<Array<ServerUpdateStatus>> {
+	const hostName = typeof(server) === "string" ? server : server.hostName;
+	return (await this.apiGet<Array<ServerUpdateStatus>>(`servers/${hostName}/update_status`)).data;
 }
