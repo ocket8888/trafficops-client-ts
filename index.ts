@@ -188,7 +188,10 @@ import {
 	getDeliveryServiceCapacity,
 	getDeliveryServiceHealth,
 	getDeliveryServiceRoutingInfo,
-	getDeliveryServiceStats
+	getDeliveryServiceStats,
+	getStatsSummary,
+	getStatsSummaryLastUpdatedTime,
+	uploadStatsSummary
 } from "./stats.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import { copyURLKeys, generateURLKeys, getURISigningKeys, getURLKeys, removeURISigningKeys, setURISigningKeys } from "./url.sig.js";
@@ -1012,6 +1015,9 @@ export class Client extends axios.Axios {
 	public getDSCapacity = getDeliveryServiceCapacity;
 	public getDeliveryServiceHealth = getDeliveryServiceHealth;
 	public getDSHealth = getDeliveryServiceHealth;
+	public getStatsSummary = getStatsSummary;
+	public getStatsSummaryLastUpdatedTime = getStatsSummaryLastUpdatedTime;
+	public uploadStatsSummary = uploadStatsSummary;
 
 	// Users
 	public getUsers = getUsers;

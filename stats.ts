@@ -8,9 +8,13 @@ import type {
 	DSStats,
 	DSStatsMetricType,
 	Health,
+	RequestStatsSummary,
 	ResponseDeliveryService,
-	Routing
+	ResponseStatsSummary,
+	Routing,
 } from "trafficops-types";
+
+import type { PaginationParams } from "./util";
 
 import type { Client } from "./index";
 
@@ -345,4 +349,68 @@ export async function getDeliveryServiceHealth(this: Client, ds: number | Respon
 export async function getDeliveryServiceCapacity(this: Client, ds: number | ResponseDeliveryService): Promise<APIResponse<Capacity>> {
 	const id = typeof(ds) === "number" ? ds : ds.id;
 	return (await this.apiGet<APIResponse<Capacity>>(`deliveryservices/${id}/capacity`)).data;
+}
+
+/**
+ * Optional settings that affect the behavior/output of {@link getStatsSummary}.
+ */
+type StatsSummaryParams = PaginationParams & {
+	cdnName?: string;
+	/** XMLID */
+	deliveryServiceName?: string;
+	orderby?: "deliveryServiceName" | "cdnName" | "statName";
+	statName?: string;
+};
+
+/**
+ * The type of the response returned by {@link getStatsSummaryLastUpdatedTime}.
+ */
+interface SummaryTimeResponse {
+	summaryTime: Date;
+}
+
+/**
+ * Retrieves a summary of some stat or stats from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getStatsSummary(this: Client, params?: StatsSummaryParams): Promise<APIResponse<Array<ResponseStatsSummary>>> {
+	return (await this.apiGet<APIResponse<Array<ResponseStatsSummary>>>("stats_summary", params, {dateString: ["summaryTime"]})).data;
+}
+
+/**
+ * Gets the time at which a stats summary was last added.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param statName Optionally, the name of a stat for which to fetch the last
+ * updated time. Otherwise, the response will be the time at which any stat
+ * summary was last updated.
+ * @returns The server's response.
+ */
+export async function getStatsSummaryLastUpdatedTime(this: Client, statName?: string): Promise<APIResponse<SummaryTimeResponse>> {
+	let p;
+	if (statName) {
+		p = {
+			lastSummaryDate: true,
+			statName,
+		};
+	} else {
+		p = {
+			lastSummaryDate: true
+		};
+	}
+	return (await this.apiGet<APIResponse<SummaryTimeResponse>>("stats_summary", p, {dateString: ["summaryTime"]})).data;
+}
+
+/**
+ * Uploads a summary of some statistic to Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param summary The summary to be uploaded.
+ * @returns The server's response.
+ */
+export async function uploadStatsSummary(this: Client, summary: RequestStatsSummary): Promise<APIResponse<undefined>> {
+	return (await this.apiPost("stats_summary", summary)).data;
 }

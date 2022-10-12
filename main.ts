@@ -833,6 +833,14 @@ async function main(): Promise<number> {
 	checkAlerts("GET", "staticdnsentries?id={{ID}}", await client.getStaticDNSEntries(newStaticDNSEntry.response.id));
 	checkAlerts("DELETE", "staticdnsentries?id={{ID}}", await client.deleteStaticDNSEntry(newStaticDNSEntry.response));
 
+	checkAlerts("POST", "stats_summary", await client.uploadStatsSummary({
+		statName: "test",
+		statValue: 9001,
+		summaryTime: new Date()
+	}));
+	checkAlerts("GET", "stats_summary", await client.getStatsSummary());
+	checkAlerts("GET", "stats_summary?lastSummaryDate=true", await client.getStatsSummaryLastUpdatedTime());
+
 	// Service Category creation is currently broken pending #7130.
 	// const newCategory = await client.createServiceCategory("test");
 	// checkAlerts("POST", "service_categories", newCategory);
