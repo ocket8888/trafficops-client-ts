@@ -172,6 +172,8 @@ interface Types {
 	originCacheServer: TypeFromResponse;
 	routingExpression: TypeFromResponse;
 	staticDNSEntry: TypeFromResponse;
+	steeringDS: TypeFromResponse;
+	steeringTarget: TypeFromResponse;
 }
 
 /**
@@ -221,6 +223,10 @@ async function getTypes(client: Client): Promise<Types> {
 	if (!dsType) {
 		throwTypeError("deliveryservice");
 	}
+	const steeringDS = dsTypes.find(t=>t.name.includes("STEERING"));
+	if (!steeringDS) {
+		throwTypeError("deliveryservice ('STEERING'-like type)");
+	}
 
 	const edgeType = types.find(t=>t.name === "EDGE" && t.useInTable === "server");
 	if (!edgeType) {
@@ -255,6 +261,11 @@ async function getTypes(client: Client): Promise<Types> {
 		throwTypeError("staticdnsentry");
 	}
 
+	const steering = types.filter(t=>t.useInTable === "steering_target")[0];
+	if (!steering) {
+		throwTypeError("steering_target");
+	}
+
 	return {
 		cacheGroup: cgType,
 		deliveryService: dsType,
@@ -262,7 +273,9 @@ async function getTypes(client: Client): Promise<Types> {
 		midCacheServer: midType,
 		originCacheServer: orgType,
 		routingExpression: regexType,
-		staticDNSEntry: staticDNSType
+		staticDNSEntry: staticDNSType,
+		steeringDS,
+		steeringTarget: steering,
 	};
 }
 
@@ -390,6 +403,43 @@ async function main(): Promise<number> {
 	newDS.response[0].longDesc = "long description";
 	checkAlerts("PUT", "deliveryservices/{{ID}}/safe", await client.safeUpdateDeliveryService(newDS.response[0]));
 	checkAlerts("GET", "deliveryservices", await client.getDeliveryServices(newDS.response[0].xmlId));
+
+	const steeringDS = (await client.createDeliveryService({
+		active: false,
+		cacheurl: null,
+		cdnId: newCDN.response.id,
+		displayName: "test steering ds",
+		dscp: 1,
+		geoLimit: GeoLimit.NONE,
+		geoProvider: GeoProvider.MAX_MIND,
+		httpBypassFqdn: "ciab.dev",
+		infoUrl: null,
+		initialDispersion: 2,
+		ipv6RoutingEnabled: false,
+		logsEnabled: false,
+		missLat: 0,
+		missLong: 0,
+		multiSiteOrigin: false,
+		orgServerFqdn: "https://ciab-dev-steering.test",
+		protocol: Protocol.HTTP,
+		qstringIgnore: QStringHandling.DROP,
+		rangeRequestHandling: RangeRequestHandling.NONE,
+		regionalGeoBlocking: false,
+		remapText: null,
+		tenantId: 1,
+		typeId: types.steeringDS.id,
+		xmlId: "steering-test"
+	})).response[0];
+	checkAlerts("POST", "steering/{{ID}}/targets", await client.addTarget(steeringDS, newDS.response[0], types.steeringTarget, 1));
+	checkAlerts("GET", "steering", await client.getAllSteeringMappings());
+	checkAlerts(
+		"PUT",
+		"steering/{{ID}}/targets/{{Target ID}}",
+		await client.updateTarget(steeringDS, newDS.response[0], types.steeringTarget, 2)
+	);
+	checkAlerts("GET", "steering/{{ID}}/targets", await client.getTargets(steeringDS));
+	checkAlerts("DELETE", "steering/{{ID}}/targets/{{Target ID}}", await client.removeTarget(steeringDS, newDS.response[0]));
+	checkAlerts("DELETE", "deliveryservices (temp. steering DS)", await client.deleteDeliveryService(steeringDS));
 
 	checkAlerts("POST", "deliveryservices/{{XML ID}}/urisignkeys", await client.setURISigningKeys(newDS.response[0], {
 		test: {

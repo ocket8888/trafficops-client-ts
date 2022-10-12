@@ -193,6 +193,7 @@ import {
 	getStatsSummaryLastUpdatedTime,
 	uploadStatsSummary
 } from "./stats.js";
+import { addTarget, getAllSteeringMappings, getTargets, removeTarget, updateTarget } from "./steering.js";
 import { createType, deleteType, getTypes } from "./types.js";
 import { copyURLKeys, generateURLKeys, getURISigningKeys, getURLKeys, removeURISigningKeys, setURISigningKeys } from "./url.sig.js";
 import {
@@ -824,6 +825,14 @@ export class Client extends axios.Axios {
 	public assignServersToDS = assignServersToDeliveryService;
 	public removeServerFromDeliveryService = removeServerFromDeliveryService;
 	public removeServerFromDS = removeServerFromDeliveryService;
+	public createServiceCategory = createServiceCategory;
+	public getServiceCategories = getServiceCategories;
+	public deleteServiceCategory = deleteServiceCategory;
+	public getAllSteeringMappings = getAllSteeringMappings;
+	public addTarget = addTarget;
+	public getTargets = getTargets;
+	public updateTarget = updateTarget;
+	public removeTarget = removeTarget;
 
 	// Delivery Service Requests
 	public getDeliveryServiceRequests = getDeliveryServiceRequests;
@@ -908,9 +917,6 @@ export class Client extends axios.Axios {
 	public removeDSFromCDNFederation = removeDeliveryServiceFromCDNFederation;
 	public getAllDeliveryServiceFederationResolverMappings = getAllDeliveryServiceFederationResolverMappings;
 	public getAllDSFederationResolverMappings = getAllDeliveryServiceFederationResolverMappings;
-	public createServiceCategory = createServiceCategory;
-	public getServiceCategories = getServiceCategories;
-	public deleteServiceCategory = deleteServiceCategory;
 
 	// ISO Generation
 	public getOSVersions = getOSVersions;
