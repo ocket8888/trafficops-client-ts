@@ -171,6 +171,7 @@ interface Types {
 	midCacheServer: TypeFromResponse;
 	originCacheServer: TypeFromResponse;
 	routingExpression: TypeFromResponse;
+	staticDNSEntry: TypeFromResponse;
 }
 
 /**
@@ -244,13 +245,24 @@ async function getTypes(client: Client): Promise<Types> {
 		throwTypeError("regex");
 	}
 
+	const staticDNSTypes = types.filter(t=>t.useInTable === "staticdnsentry");
+	let staticDNSType = staticDNSTypes.find(t=>t.name==="CNAME_RECORD");
+	if (!staticDNSType) {
+		console.warn("'CNAME' Type not found");
+		staticDNSType = staticDNSTypes[0];
+	}
+	if (!staticDNSType) {
+		throwTypeError("staticdnsentry");
+	}
+
 	return {
 		cacheGroup: cgType,
 		deliveryService: dsType,
 		edgeCacheServer: edgeType,
 		midCacheServer: midType,
 		originCacheServer: orgType,
-		routingExpression: regexType
+		routingExpression: regexType,
+		staticDNSEntry: staticDNSType
 	};
 }
 
@@ -807,6 +819,19 @@ async function main(): Promise<number> {
 	newJob.response.startTime = new Date((new Date()).setDate((new Date()).getDate()+1));
 	checkAlerts("PUT", "jobs", await client.updateJob(newJob.response));
 	checkAlerts("DELETE", "jobs", await client.deleteJob(newJob.response));
+
+	const newStaticDNSEntry = await client.createStaticDNSEntry({
+		address: "test.",
+		deliveryserviceId: newDS.response[0].id,
+		host: "test",
+		ttl: 5,
+		typeId: types.staticDNSEntry.id
+	});
+	checkAlerts("POST", "staticdnsentries", newStaticDNSEntry);
+	newStaticDNSEntry.response.address = "quest.";
+	checkAlerts("PUT", "staticdnsentries", await client.updateStaticDNSEntry(newStaticDNSEntry.response));
+	checkAlerts("GET", "staticdnsentries?id={{ID}}", await client.getStaticDNSEntries(newStaticDNSEntry.response.id));
+	checkAlerts("DELETE", "staticdnsentries?id={{ID}}", await client.deleteStaticDNSEntry(newStaticDNSEntry.response));
 
 	// Service Category creation is currently broken pending #7130.
 	// const newCategory = await client.createServiceCategory("test");

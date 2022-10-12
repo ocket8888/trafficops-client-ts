@@ -48,8 +48,10 @@ import {
 	assignServersToDeliveryService,
 	createDeliveryService,
 	createServiceCategory,
+	createStaticDNSEntry,
 	deleteDeliveryService,
 	deleteServiceCategory,
+	deleteStaticDNSEntry,
 	getAllDeliveryServiceServerAssignments,
 	getDeliveryServiceEligibleServers,
 	getDeliveryServiceRoutingExpressions,
@@ -57,12 +59,14 @@ import {
 	getDeliveryServiceServers,
 	getDeliveryServicesRequiredCapabilities,
 	getServiceCategories,
+	getStaticDNSEntries,
 	removeCapabilityRequirementFromDeliveryService,
 	removeDeliveryServiceRoutingExpression,
 	removeServerFromDeliveryService,
 	safeUpdateDeliveryService,
 	updateDeliveryService,
-	updateDeliveryServiceRoutingExpression
+	updateDeliveryServiceRoutingExpression,
+	updateStaticDNSEntry
 } from "./delivery_service.js";
 import {
 	assignDeliveryServiceRequest,
@@ -800,6 +804,10 @@ export class Client extends axios.Axios {
 	public getDeliveryServicesRequiredCapabilities = getDeliveryServicesRequiredCapabilities;
 	public addCapabilityRequirementToDeliveryService = addCapabilityRequirementToDeliveryService;
 	public removeCapabilityRequirementFromDeliveryService = removeCapabilityRequirementFromDeliveryService;
+	public createStaticDNSEntry = createStaticDNSEntry;
+	public updateStaticDNSEntry = updateStaticDNSEntry;
+	public getStaticDNSEntries = getStaticDNSEntries;
+	public deleteStaticDNSEntry = deleteStaticDNSEntry;
 
 	// Delivery Service assignments
 	public assignCacheGroupToDS = assignCacheGroupToDS;

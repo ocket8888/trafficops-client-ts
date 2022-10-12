@@ -7,6 +7,8 @@ import type {
 	RequestDeliveryServiceRequiredCapabilityResponse,
 	RequestDeliveryServiceServer,
 	RequestServiceCategory,
+	RequestStaticDNSEntry,
+	RequestStaticDNSEntryResponse,
 	ResponseDeliveryService,
 	ResponseDeliveryServiceRegexp,
 	ResponseDeliveryServiceRequiredCapability,
@@ -14,6 +16,7 @@ import type {
 	ResponseServer,
 	ResponseServerCapability,
 	ResponseServiceCategory,
+	ResponseStaticDNSEntry,
 	ServerCapability,
 	ServiceCategory
 } from "trafficops-types";
@@ -963,4 +966,156 @@ export async function getServiceCategories(this: Client, params?: CategoryParams
 export async function deleteServiceCategory(this: Client, category: ServiceCategory | string): Promise<APIResponse<undefined>> {
 	const name = typeof(category) === "string" ? category : category.name;
 	return (await this.apiDelete(`service_categories/${name}`)).data;
+}
+
+/**
+ * Creates a new Static DNS Entry.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dnsEntry The Static DNS Entry to create.
+ * @returns The server's response.
+ */
+export async function createStaticDNSEntry(
+	this: Client,
+	dnsEntry: RequestStaticDNSEntry
+): Promise<APIResponse<RequestStaticDNSEntryResponse>> {
+	return (await this.apiPost<APIResponse<RequestStaticDNSEntryResponse>>("staticdnsentries", dnsEntry)).data;
+}
+
+/**
+ * Replaces an existing Static DNS Entry with the new definition provided.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param id The ID of the Static DNS Entry to be updated.
+ * @param dnsEntry The new, desired definition of the Static DNS Entry
+ * identified by `id`.
+ * @returns The server's response.
+ */
+export async function updateStaticDNSEntry(
+	this: Client,
+	id: number,
+	dnsEntry: RequestStaticDNSEntry
+): Promise<APIResponse<RequestStaticDNSEntryResponse>>;
+/**
+ * Replaces an existing Static DNS Entry with the new definition provided.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dnsEntry The full, new, desired definition of the Static DNS Entry.
+ * @returns The server's response.
+ */
+export async function updateStaticDNSEntry(
+	this: Client,
+	dnsEntry: ResponseStaticDNSEntry | RequestStaticDNSEntryResponse
+): Promise<APIResponse<RequestStaticDNSEntryResponse>>;
+/**
+ * Replaces an existing Static DNS Entry with the new definition provided.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dnsEntryOrID Either the full, new, desired definition of the Static
+ * DNS Entry, or just its ID.
+ * @param dnsEntry The new, desired definition of the Static DNS Entry
+ * identified by `dnsEntryOrID`. This is required if `dnsEntryOrID` is an ID,
+ * and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function updateStaticDNSEntry(
+	this: Client,
+	dnsEntryOrID: number | ResponseStaticDNSEntry | RequestStaticDNSEntryResponse,
+	dnsEntry?: RequestStaticDNSEntry
+): Promise<APIResponse<RequestStaticDNSEntryResponse>> {
+	let body;
+	let id;
+	if (typeof(dnsEntryOrID) === "number") {
+		if (!dnsEntry) {
+			throw new ClientError("updateStaticDNSEntry", "dnsEntry");
+		}
+		id = dnsEntryOrID;
+		body = dnsEntry;
+	} else {
+		body = dnsEntryOrID;
+		({id} = dnsEntryOrID);
+	}
+	return (await this.apiPut<APIResponse<RequestStaticDNSEntryResponse>>("staticdnsentries", body, {id})).data;
+}
+
+/**
+ * Optional settings that affect the behavior/output of
+ * {@link getStaticDNSEntries}.
+ */
+type StaticDNSParams = PaginationParams & {
+	address?: string;
+	cachegroup?: string;
+	cachegroupId?: number;
+	/** XMLID */
+	deliveryservice?: string;
+	deliveryserviceId?: number;
+	host?: string;
+	id?: number;
+	orderby?: Exclude<keyof(ResponseStaticDNSEntry), "lastUpdated">;
+	type?: string;
+	typeId?: number;
+};
+
+/**
+ * Retrieves a single Static DNS Entry from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param id The ID of a single Static DNS Entry to be retrieved.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ * @throws {APIError} when Traffic Ops responds with any number of Static DNS
+ * Entries other than exactly one.
+ */
+export async function getStaticDNSEntries(
+	this: Client,
+	id: number,
+	params?: StaticDNSParams
+): Promise<APIResponse<ResponseStaticDNSEntry>>;
+/**
+ * Retrieves Static DNS Entries from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getStaticDNSEntries(
+	this: Client,
+	params?: StaticDNSParams
+): Promise<APIResponse<Array<ResponseStaticDNSEntry>>>;
+/**
+ * Retrieves one or more Static DNS Entries from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param paramsOrID Either the ID of a single Static DNS Entry to be retrieved,
+ * or any and all optional settings for the request when fetching multiple.
+ * @param params Any and all optional settings for the request. This is ignored
+ * unless `paramsOrID` is an ID.
+ * @returns The server's response.
+ */
+export async function getStaticDNSEntries(
+	this: Client,
+	paramsOrID?: number | StaticDNSParams,
+	params?: StaticDNSParams
+): Promise<APIResponse<ResponseStaticDNSEntry | Array<ResponseStaticDNSEntry>>> {
+	if (typeof(paramsOrID) === "number") {
+		const p = {...params, id: paramsOrID};
+		const resp = await this.apiGet<APIResponse<[ResponseStaticDNSEntry]>>("staticdnsentries", p);
+		return getSingleResponse(resp, "Static DNS Entry", paramsOrID);
+	}
+	return (await this.apiGet<APIResponse<Array<ResponseStaticDNSEntry>>>("staticdnsentries", params)).data;
+}
+
+/**
+ * Deletes a given Static DNS Entry.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param dnsEntry The Static DNS Entry to be deleted, or just its ID.
+ * @returns The server's response.
+ */
+export async function deleteStaticDNSEntry(
+	this: Client,
+	dnsEntry: number | ResponseStaticDNSEntry | RequestStaticDNSEntryResponse
+): Promise<APIResponse<undefined>> {
+	const id = typeof(dnsEntry) === "number" ? dnsEntry : dnsEntry.id;
+	return (await this.apiDelete("staticdnsentries", {id})).data;
 }
