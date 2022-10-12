@@ -6,13 +6,16 @@ import type {
 	RequestDeliveryServiceRequiredCapability,
 	RequestDeliveryServiceRequiredCapabilityResponse,
 	RequestDeliveryServiceServer,
+	RequestServiceCategory,
 	ResponseDeliveryService,
 	ResponseDeliveryServiceRegexp,
 	ResponseDeliveryServiceRequiredCapability,
 	ResponseDeliveryServiceServer,
 	ResponseServer,
 	ResponseServerCapability,
-	ServerCapability
+	ResponseServiceCategory,
+	ServerCapability,
+	ServiceCategory
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
@@ -910,4 +913,54 @@ export async function removeServerFromDeliveryService(
 	const dsID = typeof(ds) === "number" ? ds : ds.id;
 	const serverID = typeof(server) === "number" ? server : server.id;
 	return (await this.apiDelete(`deliveryserviceserver/${dsID}/${serverID}`)).data;
+}
+
+/**
+ * Creates a new Delivery Service Category.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param category The Category to create, or just its name since that's all
+ * that comprises a Service Category.
+ * @returns The server's response.
+ */
+export async function createServiceCategory(
+	this: Client,
+	category: RequestServiceCategory | string
+): Promise<APIResponse<ResponseServiceCategory>> {
+	if (typeof(category) === "string") {
+		category = {name: category};
+	}
+	return (await this.apiPost<APIResponse<ResponseServiceCategory>>("service_categories", category)).data;
+}
+
+/**
+ * Optional settings that affect the behavior/output of
+ * {@link getServiceCategories}.
+ */
+type CategoryParams = PaginationParams & {
+	name?: string;
+	orderby?: "name" | "lastUpdated";
+};
+
+/**
+ * Retrieves Delivery Service Categories from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getServiceCategories(this: Client, params?: CategoryParams): Promise<APIResponse<Array<ResponseServiceCategory>>> {
+	return (await this.apiGet<APIResponse<Array<ResponseServiceCategory>>>("service_categories", params)).data;
+}
+
+/**
+ * Deletes a given Delivery Service Category.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param category The Category to delete, or just its name.
+ * @returns The server's response.
+ */
+export async function deleteServiceCategory(this: Client, category: ServiceCategory | string): Promise<APIResponse<undefined>> {
+	const name = typeof(category) === "string" ? category : category.name;
+	return (await this.apiDelete(`service_categories/${name}`)).data;
 }

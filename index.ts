@@ -47,13 +47,16 @@ import {
 	addDeliveryServiceRoutingExpression,
 	assignServersToDeliveryService,
 	createDeliveryService,
+	createServiceCategory,
 	deleteDeliveryService,
+	deleteServiceCategory,
 	getAllDeliveryServiceServerAssignments,
 	getDeliveryServiceEligibleServers,
 	getDeliveryServiceRoutingExpressions,
 	getDeliveryServices,
 	getDeliveryServiceServers,
 	getDeliveryServicesRequiredCapabilities,
+	getServiceCategories,
 	removeCapabilityRequirementFromDeliveryService,
 	removeDeliveryServiceRoutingExpression,
 	removeServerFromDeliveryService,
@@ -894,6 +897,9 @@ export class Client extends axios.Axios {
 	public removeDSFromCDNFederation = removeDeliveryServiceFromCDNFederation;
 	public getAllDeliveryServiceFederationResolverMappings = getAllDeliveryServiceFederationResolverMappings;
 	public getAllDSFederationResolverMappings = getAllDeliveryServiceFederationResolverMappings;
+	public createServiceCategory = createServiceCategory;
+	public getServiceCategories = getServiceCategories;
+	public deleteServiceCategory = deleteServiceCategory;
 
 	// ISO Generation
 	public getOSVersions = getOSVersions;

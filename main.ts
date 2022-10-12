@@ -768,7 +768,7 @@ async function main(): Promise<number> {
 
 	const osversionsResp = await client.getOSVersions();
 	checkAlerts("GET", "osversions", osversionsResp);
-	const osversions = Object.entries(osversionsResp.response).map(v => v[1]);
+	const osversions = Object.entries(osversionsResp.response ?? {}).map(v => v[1]);
 	if (osversions.length > 0) {
 		try {
 			const isoResp = await client.generateISO({
@@ -807,6 +807,14 @@ async function main(): Promise<number> {
 	newJob.response.startTime = new Date((new Date()).setDate((new Date()).getDate()+1));
 	checkAlerts("PUT", "jobs", await client.updateJob(newJob.response));
 	checkAlerts("DELETE", "jobs", await client.deleteJob(newJob.response));
+
+	// Service Category creation is currently broken pending #7130.
+	// const newCategory = await client.createServiceCategory("test");
+	// checkAlerts("POST", "service_categories", newCategory);
+	// eslint-disable-next-line max-len
+	// checkAlerts("GET", "service_categories", await client.getServiceCategories());
+	// eslint-disable-next-line max-len
+	// checkAlerts("DELETE", "service_categories/{{Name}}", await client.deleteServiceCategory(newCategory.response));
 
 	checkAlerts("DELETE", "federation_resolvers", await client.deleteFederationResolver(getFedResolversResp.response[0]));
 	// Cannot be done because "A Federation must have at least one Delivery
