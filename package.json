@@ -1,6 +1,6 @@
 {
 	"name": "trafficops-client",
-	"version": "3.1.0",
+	"version": "3.1.1",
 	"description": "A Javascript client for use in Node or a browser, that can be used to interact with Traffic Ops.",
 	"bin": {
 		"toget": "bin/toget.js",
@@ -28,6 +28,12 @@
 	],
 	"author": "ocket8888",
 	"license": "Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ocket8888/trafficops-client-ts.git"
+	},
+	"homepage": "https://github.com/ocket8888/trafficops-client-ts#readme",
+	"bugs": "https://github.com/ocket8888/trafficops-client-ts/issues",
 	"devDependencies": {
 		"@types/argparse": "^2.0.10",
 		"@types/node": "^17.0.32",
