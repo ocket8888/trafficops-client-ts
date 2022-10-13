@@ -14,13 +14,15 @@ import type {
 	ResponseCDN,
 	ResponseParameter,
 	ResponseTopology,
-	Topology
+	Topology,
+	TopologyQueueRequest,
+	TopologyQueueResponse
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
 import { getSingleResponse, type PaginationParams } from "./util.js";
 
-import type { Client } from "./index";
+import { Client } from "./index";
 
 /**
  * Options that affect the result set returned by
@@ -720,4 +722,66 @@ export async function updateTopology(
 export async function deleteTopology(this: Client, topology: string | Topology): Promise<APIResponse<undefined>> {
 	const name = typeof(topology) === "string" ? topology : topology.name;
 	return (await this.apiDelete("topologies", {name})).data;
+}
+
+/**
+ * Queues server updates on all of the servers within a given Topology,
+ * constrained to a CDN.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topology The Topology on which to act, or just its Name.
+ * @param request The full queue request body.
+ * @returns The server's response.
+ */
+export async function queueTopologyUpdates(
+	this: Client,
+	topology: string | Topology,
+	request: TopologyQueueRequest,
+): Promise<APIResponse<TopologyQueueResponse>>;
+/**
+ * Queues server updates on all of the servers within a given Topology,
+ * constrained to a CDN.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topology The Topology on which to act, or just its Name.
+ * @param action The queue action to be performed.
+ * @param cdn The CDN to which the queue action will be restricted, or just its
+ * ID.
+ * @returns The server's response.
+ */
+export async function queueTopologyUpdates(
+	this: Client,
+	topology: string | Topology,
+	action: "queue" | "dequeue",
+	cdn: number | ResponseCDN
+): Promise<APIResponse<TopologyQueueResponse>>;
+/**
+ * Queues server updates on all of the servers within a given Topology,
+ * constrained to a CDN.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topology The Topology on which to act, or just its Name.
+ * @param requestOrAction Either the full queue request, or just the queue
+ * action to be performed.
+ * @param cdn The CDN to which the queue action will be restricted, or just its
+ * ID. This is required if `requestOrAction` is a queue action, and ignored
+ * otherwise.
+ * @returns The server's response.
+ */
+export async function queueTopologyUpdates(
+	this: Client,
+	topology: string | Topology,
+	requestOrAction: "queue" | "dequeue" | TopologyQueueRequest,
+	cdn?: number | ResponseCDN
+): Promise<APIResponse<TopologyQueueResponse>> {
+	const name = typeof(topology) === "string" ? topology : topology.name;
+	const path = `topologies/${name}/queue_update`;
+	if (typeof(requestOrAction) === "object") {
+		return (await this.apiPost<APIResponse<TopologyQueueResponse>>(path, requestOrAction)).data;
+	}
+	if (!cdn) {
+		throw new ClientError("queueTopologyUpdates", "cdn");
+	}
+	const cdnId = typeof(cdn) === "number" ? cdn : cdn.id;
+	return (await this.apiPost<APIResponse<TopologyQueueResponse>>(path, { action: requestOrAction, cdnId})).data;
 }

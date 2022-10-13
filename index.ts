@@ -27,6 +27,7 @@ import {
 	getCacheGroups,
 	getTopologies,
 	queueCacheGroupUpdates,
+	queueTopologyUpdates,
 	removeParameterFromCacheGroup,
 	updateCacheGroup,
 	updateTopology
@@ -1034,6 +1035,7 @@ export class Client extends axios.Axios {
 	public createTopology = createTopology;
 	public updateTopology = updateTopology;
 	public deleteTopology = deleteTopology;
+	public queueTopologyUpdates = queueTopologyUpdates;
 
 	// Users
 	public getUsers = getUsers;

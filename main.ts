@@ -362,14 +362,14 @@ async function main(): Promise<number> {
 			zskExpirationDays: 1
 		}
 	));
-	checkAlerts("POST", "cdns/{{name}}/dnsseckeys/ksk/generate", await client.generateCDNKSK(newCDN.response,
+	checkAlerts("POST", "cdns/{{Name}}/dnsseckeys/ksk/generate", await client.generateCDNKSK(newCDN.response,
 		{
 			expirationDays: 1
 		}
 	));
 	checkAlerts("GET", "cdns/dnsseckeys/refresh", await client.refreshAllDNSSECKeys());
 	checkAlerts("GET", "cdns/domains", await client.getCDNDomains());
-	checkAlerts("GET", "cdns/name/{{name}}/sslkeys", await client.getCDNSSLKeys(newCDN.response));
+	checkAlerts("GET", "cdns/name/{{Name}}/sslkeys", await client.getCDNSSLKeys(newCDN.response));
 
 	const newDS = await client.createDeliveryService({
 		active: false,
@@ -533,14 +533,14 @@ async function main(): Promise<number> {
 	);
 
 	const newCDNFed = await client.createCDNFederation(newCDN.response, {cname: "test.", ttl: 100});
-	checkAlerts("POST", "cdns/{{name}}/federations", newCDNFed);
+	checkAlerts("POST", "cdns/{{Name}}/federations", newCDNFed);
 	newCDNFed.response.description = "quest";
-	checkAlerts("PUT", "cdns/{{name}}/federations/{{ID}}", await client.updateCDNFederation(newCDN.response, newCDNFed.response));
+	checkAlerts("PUT", "cdns/{{Name}}/federations/{{ID}}", await client.updateCDNFederation(newCDN.response, newCDNFed.response));
 	checkAlerts("POST", "federations/{{ID}}/deliveryservices", await client.assignDSToCDNFederation(newDS.response[0], newCDNFed.response));
 	checkAlerts("GET", "federations/{{ID}}/deliveryservices", await client.getDSesAssignedToCDNFederation(newCDNFed.response));
 	checkAlerts("POST", "federations/{{ID}}/users", await client.assignUserToCDNFederation(me.id, newCDNFed.response));
 	checkAlerts("GET", "federations/{{ID}}/users", await client.getUsersAssignedToCDNFederation(newCDNFed.response));
-	checkAlerts("GET", "cdns/{{name}}/federations", await client.getCDNFederations(newCDN.response, {limit: 1}));
+	checkAlerts("GET", "cdns/{{Name}}/federations", await client.getCDNFederations(newCDN.response, {limit: 1}));
 
 	const newFedRes = await client.createFederationResolver({ipAddress: "1.2.3.4", typeId: 1});
 	checkAlerts("POST", "federation_resolvers", newFedRes);
@@ -623,10 +623,10 @@ async function main(): Promise<number> {
 
 	checkAlerts("GET", "cache_stats", await client.cacheStats("ALL", "bandwidth", new Date((new Date()).setDate(-1)), new Date()));
 
-	checkAlerts("GET", "cdns/{{name}}/snapshot/new", await client.getSnapshotState(newCDN.response));
+	checkAlerts("GET", "cdns/{{Name}}/snapshot/new", await client.getSnapshotState(newCDN.response));
 	checkAlerts("PUT", "snapshot", await client.takeSnapshot(newCDN.response));
-	checkAlerts("GET", "cdns/{{name}}/snapshot", await client.getSnapshot(newCDN.response));
-	checkAlerts("GET", "cdns/{{name}}/configs/monitoring", await client.getMonitoringConfiguration(newCDN.response));
+	checkAlerts("GET", "cdns/{{Name}}/snapshot", await client.getSnapshot(newCDN.response));
+	checkAlerts("GET", "cdns/{{Name}}/configs/monitoring", await client.getMonitoringConfiguration(newCDN.response));
 
 	const newRole = await client.createRole({
 		capabilities: [],
@@ -743,9 +743,14 @@ async function main(): Promise<number> {
 	const newTopology = await client.createTopology("test", "quest", {cachegroup: newCG.response.name});
 	checkAlerts("POST", "topologies", newTopology);
 	newTopology.response.description = "testquest";
-	checkAlerts("PUT", "topologies?name={{name}}", await client.updateTopology(newTopology.response.name, newTopology.response));
-	checkAlerts("GET", "topologies?name={{name}}", await client.getToplogies(newTopology.response.name));
-	checkAlerts("DELETE", "topologies?name={{name}}", await client.deleteTopology(newTopology.response));
+	checkAlerts("PUT", "topologies?name={{Name}}", await client.updateTopology(newTopology.response.name, newTopology.response));
+	checkAlerts("GET", "topologies?name={{Name}}", await client.getToplogies(newTopology.response.name));
+	checkAlerts(
+		"POST",
+		"topologies/{{Name}}/queue_update",
+		await client.queueTopologyUpdates(newTopology.response, "dequeue", newCDN.response)
+	);
+	checkAlerts("DELETE", "topologies?name={{Name}}", await client.deleteTopology(newTopology.response));
 
 	// Only the "extension" user can do these. In later API versions, this...
 	// oversight will be fixed.
@@ -937,10 +942,10 @@ async function main(): Promise<number> {
 	);
 	checkAlerts("DELETE", `parameters/${newParam.response.id}`, await client.deleteParameter(newParam.response));
 	checkAlerts("DELETE", "profiles/{{ID}}", await client.deleteProfile(newProfile.response));
-	checkAlerts("DELETE", "cdns/{{name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
+	checkAlerts("DELETE", "cdns/{{Name}}/dnsseckeys", await client.deleteCDNDNSSECKeys(newCDN.response));
 	checkAlerts(
 		"DELETE",
-		"cdns/{{name}}/federations/{{ID}}",
+		"cdns/{{Name}}/federations/{{ID}}",
 		await client.deleteCDNFederation(newCDN.response, newCDNFed.response)
 	);
 	checkAlerts("DELETE", "roles?id={{ID}}", await client.deleteRole(newRole.response));
@@ -951,7 +956,7 @@ async function main(): Promise<number> {
 		await client.removeCapabilityRequirementFromDeliveryService(newDS.response[0], TEST_CAPABILITY_NAME)
 	);
 	checkAlerts("DELETE", "deliveryservices/{{ID}}", await client.deleteDeliveryService(newDS.response[0]));
-	checkAlerts("DELETE", "server_capabilities?name={{name}}", await client.deleteServerCapability(TEST_CAPABILITY_NAME));
+	checkAlerts("DELETE", "server_capabilities?name={{Name}}", await client.deleteServerCapability(TEST_CAPABILITY_NAME));
 	checkAlerts("DELETE", "cdns/{{ID}}", await client.deleteCDN(newCDN.response));
 
 	checkAlerts("GET", "logs/newcount", await client.getNewLogsCount());
