@@ -71,3 +71,39 @@ message, you've read them all.
 
 For information on which Traffic Ops API endpoints are available, consult
 [the 'Traffic Ops API' section of the Apache Traffic Control documentation](https://traffic-control-cdn.readthedocs.io/en/latest/api/index.html).
+
+## Testing
+Currently, the only tests are "integration" tests that just call as many of the
+methods of the Client as possible (some have bugs in the TO API at the time of
+this writing that prevent proper usage, some have obscure or confusing
+requirements that cannot be guaranteed to be met during testing etc.) and just
+recording how many fail.
+
+In order to run these tests, the following requirements must be met:
+
+* You must be running a Linux or Linux-like operating system with NodeJS
+installed.
+* An accessible Traffic Ops instance running at `localhost` on port `6443`
+(allowing specifying this is on my to-do list; for now its CDN-in-a-Box
+standard).
+* The Types registered with your Traffic Ops instance must be sufficient to
+create all of the different objects to which a Type might refer (generally this
+shouldn't be a problem for users that started at ATCv3 or later).
+* The running user must have the username `admin` and the password `twelve12`
+(allowing specifying this is on my to-do list; for now its CDN-in-a-Box
+standard).
+* The running user must be in the "root" Tenant, and must have a Role with
+"admin-level" Permissions (`privLevel` >= 30 in legacy API versions, or
+literally the special Role `admin` in newer versions - which are unimplemented
+at the time of this writing).
+
+To run the tests, use `npm test`. It will output the request method,
+API-version-path-relative path (e.g. `/users` for `/api/4.1/users`), and the
+parsed response JSON (for JSON responses) for each of the requests it runs, and
+at the end will print the requests that failed on consecutive lines. This
+outputs a lot, so you may wish to pipe it to a file for later viewing. The exit
+code of the test script will be the number of failed requests. Note that at the
+time of this writing, deficiencies in the CDN-in-a-Box environment will cause
+`POST /consistenthash`, `PUT /user/current` (this can be fixed by modifying the
+`admin` user to be valid), and `POST /isos` to always fail when the tests are
+run against that environment.
