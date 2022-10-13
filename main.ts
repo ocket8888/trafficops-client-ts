@@ -17,6 +17,7 @@ import {
 	type ResponseUser,
 	type ResponseCurrentUser,
 	DSStatsMetricType,
+	APIResponse,
 } from "trafficops-types";
 
 import { Client } from "./index.js";
@@ -277,6 +278,38 @@ async function getTypes(client: Client): Promise<Types> {
 		steeringDS,
 		steeringTarget: steering,
 	};
+}
+
+const TEST_USER_EMAIL = "test@que.st";
+
+/**
+ * Checks for an existing user with the {@link TEST_USER_EMAIL} email address
+ * and, if not existing, sends a request to register a user with that email
+ * address.
+ *
+ * @param client An API Client to make requests with.
+ * @param role The Role to give the user being registered.
+ * @param tenant The Tenant to give the user being registered.
+ * @returns A faked API response containing any and all alerts that occurred for
+ * all sent requests.
+ */
+async function checkUserRegistration(client: Client, role: number, tenant: number): Promise<APIResponse<undefined>> {
+	let alerts = new Array<Alert>();
+	const addAlerts = (x: APIResponse<unknown>): void => {
+		if (x.alerts) {
+			alerts = alerts.concat(x.alerts);
+		}
+	};
+	const usersResp = await client.getUsers();
+	addAlerts(usersResp);
+	const existingUser = usersResp.response.find(u=>u.email === TEST_USER_EMAIL);
+	if (!existingUser) {
+		const registrationResp = await client.registerUser(TEST_USER_EMAIL, role, tenant);
+		addAlerts(registrationResp);
+	} else {
+		console.warn(`registration cannot be tested; email is already in use by user '${existingUser.username}' (#${existingUser.id})`);
+	}
+	return {alerts, response: undefined};
 }
 
 const TEST_CAPABILITY_NAME = "testing-capability";
@@ -653,6 +686,8 @@ async function main(): Promise<number> {
 		parentId: myTenant.id
 	});
 	checkAlerts("GET", "tenants?id={{ID}}", await client.getTenants(newTenant.response.id));
+
+	checkAlerts("GET | POST", "users | users/register", await checkUserRegistration(client, newRole.response.id, newTenant.response.id));
 
 	const newUser = await getOrCreateTSClientTestingUser(client);
 	const [originalRole, originalTenant] = [newUser.role, newUser.tenantId];

@@ -214,7 +214,8 @@ import {
 	updateTenant,
 	updateUser,
 	getCurrentUser,
-	updateCurrentUser
+	updateCurrentUser,
+	registerUser
 } from "./user.js";
 import { getParser, type Parser, type Reviver, type DateKeySpec } from "./util.js";
 
@@ -1052,6 +1053,7 @@ export class Client extends axios.Axios {
 	public deleteTenant = deleteTenant;
 	public getCurrentUser = getCurrentUser;
 	public updateCurrentUser = updateCurrentUser;
+	public registerUser = registerUser;
 
 	// URI Signing / URL Signature
 	public getURISigningKeys = getURISigningKeys;

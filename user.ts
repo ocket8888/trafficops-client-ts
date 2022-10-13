@@ -4,6 +4,7 @@ import type {
 	PostRequestUser,
 	PutOrPostResponseUser,
 	PutRequestUser,
+	RegistrationRequest,
 	RequestCurrentUser,
 	RequestRole,
 	RequestTenant,
@@ -159,6 +160,78 @@ export async function getCurrentUser(this: Client): Promise<APIResponse<Response
  */
 export async function updateCurrentUser(this: Client, request: RequestCurrentUser): Promise<APIResponse<ResponseCurrentUser>> {
 	return (await this.apiPut<APIResponse<ResponseCurrentUser>>("user/current", {user: request}, undefined, USER_DATE_KEYS)).data;
+}
+
+/**
+ * Registers a new user via email.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param request The full user registration request
+ * @returns The server's response.
+ */
+export async function registerUser(
+	this: Client,
+	request: RegistrationRequest,
+): Promise<APIResponse<undefined>>;
+/**
+ * Registers a new user via email.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param email The new user's email address.
+ * @param role The Role which will be given to the newly registered user, or
+ * just the ID of that Role.
+ * @param tenant The Tenant within which the newly registered user will be, or
+ * just the ID of that Tenant.
+ * @returns The server's response.
+ */
+export async function registerUser(
+	this: Client,
+	email: `${string}@${string}.${string}`,
+	role: number | ResponseRole,
+	tenant: number | ResponseTenant
+): Promise<APIResponse<undefined>>;
+/**
+ * Registers a new user via email.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param requestOrEmail Either the full registration request, or just the new
+ * user's email address.
+ * @param role The Role which will be given to the newly registered user, or
+ * just the ID of that Role. This is required if `requestOrEmail` is passed as
+ * an email address, and ignored otherwise.
+ * @param tenant The Tenant within which the newly registered user will be, or
+ * just the ID of that Tenant. This is required if `requestOrEmail` is passed as
+ * an email address, and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function registerUser(
+	this: Client,
+	requestOrEmail: `${string}@${string}.${string}` | RegistrationRequest,
+	role?: number | ResponseRole,
+	tenant?: number | ResponseTenant
+): Promise<APIResponse<undefined>> {
+	let req: RegistrationRequest;
+	if (typeof(requestOrEmail) === "string") {
+		if (!role) {
+			if (!tenant) {
+				throw new ClientError("registerUser", "role", "tenant");
+			}
+			throw new ClientError("registerUser", "role");
+		}
+		if (!tenant) {
+			throw new ClientError("registerUser", "tenant");
+		}
+		const tenantId = typeof(tenant) === "number" ? tenant : tenant.id;
+		const roleID = typeof(role) === "number" ? role : role.id;
+		req = {
+			email: requestOrEmail,
+			role: roleID,
+			tenantId
+		};
+	} else {
+		req = requestOrEmail;
+	}
+	return (await this.apiPost("users/register", req)).data;
 }
 
 /**
