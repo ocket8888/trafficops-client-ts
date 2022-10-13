@@ -14,7 +14,8 @@
 	"scripts": {
 		"build": "tsc && chmod a+x bin/to*.js test.js",
 		"lint": "eslint --ext .ts .",
-		"test": "npm run build && ./test.js"
+		"test": "npm run build && ./test.js",
+		"clean": "rm ./*.js bin/*.js"
 	},
 	"keywords": [
 		"trafficcontrol",
