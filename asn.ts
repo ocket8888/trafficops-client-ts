@@ -71,6 +71,7 @@ export async function deleteASN(this: Client, id: number): Promise<APIResponse<u
 }
 
 /**
+ * Updates an ASN.
  *
  * @param this Tells TypeScript that this is a Client method.
  * @param id The ID of the ASN that will be modified.
