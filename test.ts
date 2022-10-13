@@ -710,7 +710,7 @@ async function main(): Promise<number> {
 	});
 	checkAlerts("GET", "tenants?id={{ID}}", await client.getTenants(newTenant.response.id));
 
-	checkAlerts("GET | POST", "users | users/register", await checkUserRegistration(client, newRole.response.id, newTenant.response.id));
+	checkAlerts("GET | POST", "users | users/register", await checkUserRegistration(client, me.role, me.tenantId));
 
 	const newUser = await getOrCreateTSClientTestingUser(client);
 	const [originalRole, originalTenant] = [newUser.role, newUser.tenantId];
