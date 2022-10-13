@@ -953,6 +953,16 @@ async function main(): Promise<number> {
 	// eslint-disable-next-line max-len
 	// checkAlerts("DELETE", "service_categories/{{Name}}", await client.deleteServiceCategory(newCategory.response));
 
+	checkAlerts("GET", "vault/ping", await client.pingVault());
+
+	// I am uncertain what happeens when using this deprecated request against
+	// Traffic Vault with a deprecated Riak backend when the bucket and/or key
+	// request do(es) not exist - but the CiaB environment against which I'm
+	// testing reports an internal server error due to using a PostgreSQL
+	// backend which does not support this request at all.
+	// eslint-disable-next-line max-len
+	// checkAlerts("GET", "vault/bucket/{{bucket}}/key/{{key}}/values", await client.getVaultKeyBucketValue("test", "quest"));
+
 	checkAlerts("DELETE", "federation_resolvers", await client.deleteFederationResolver(getFedResolversResp.response[0]));
 	// Cannot be done because "A Federation must have at least one Delivery
 	// Service" - which makes no sense because they have zero on creation?

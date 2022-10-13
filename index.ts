@@ -218,6 +218,7 @@ import {
 	registerUser
 } from "./user.js";
 import { getParser, type Parser, type Reviver, type DateKeySpec } from "./util.js";
+import { getVaultKeyBucketValue, pingVault } from "./vault.js";
 
 const pkgInfo = await import("./package.json", {assert: {type: "json"}});
 
@@ -1038,6 +1039,10 @@ export class Client extends axios.Axios {
 	public updateTopology = updateTopology;
 	public deleteTopology = deleteTopology;
 	public queueTopologyUpdates = queueTopologyUpdates;
+
+	// Traffic Vault
+	public pingVault = pingVault;
+	public getVaultKeyBucketValue = getVaultKeyBucketValue;
 
 	// Users
 	public getUsers = getUsers;
