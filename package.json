@@ -16,7 +16,10 @@
 		"lint": "eslint --ext .ts .",
 		"test": "npm run build && ./test.js",
 		"clean": "rm ./*.js bin/*.js",
-		"publish": "npm run build && npm run lint && npm publish --access public"
+		"prepare": "npm run build && npm run lint"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"keywords": [
 		"trafficcontrol",
