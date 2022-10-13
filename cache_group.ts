@@ -6,14 +6,19 @@ import type {
 	CacheGroupQueueResponse,
 	RequestCacheGroup,
 	RequestCacheGroupParameter,
+	RequestTopology,
+	RequestTopologyNode,
+	RequestTopologyResponse,
 	ResponseCacheGroup,
 	ResponseCacheGroupParameters,
 	ResponseCDN,
-	ResponseParameter
+	ResponseParameter,
+	ResponseTopology,
+	Topology
 } from "trafficops-types";
 
 import { APIError, ClientError } from "./api.error.js";
-import type { PaginationParams } from "./util";
+import { getSingleResponse, type PaginationParams } from "./util.js";
 
 import type { Client } from "./index";
 
@@ -56,8 +61,8 @@ type SingleCGPParams = PaginationParams & {
  * @param o The object to check.
  * @returns `true` if `o` is a {@link ResponseCacheGroup}, `false` otherwise.
  */
-function isCG(o: ResponseCacheGroup | CGPParams | undefined): o is ResponseCacheGroup {
-	return o !== undefined && Object.prototype.hasOwnProperty.call(o, "id");
+function isCG<T extends ResponseCacheGroup | ResponseTopology | RequestTopologyResponse>(o: T | CGPParams | undefined): o is T {
+	return o !== undefined && Object.prototype.hasOwnProperty.call(o, "lastUpdated");
 }
 
 /**
@@ -515,4 +520,204 @@ export async function assignCacheGroupToDS(
 	const payload = Array.isArray(dss) ? {deliveryServices: dss} : dss;
 	const id = typeof(cgOrID) === "number" ? cgOrID : cgOrID.id;
 	return (await this.apiPost<APIResponse<CacheGroupDeliveryServiceAssignmentResponse>>(`cachegroups/${id}/deliveryservices`, payload)).data;
+}
+
+/**
+ * Creates a new Topology.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topologyOrName The full definition of the Topology to be created.
+ * @returns The server's response.
+ */
+export async function createTopology(
+	this: Client,
+	topology: RequestTopology
+): Promise<APIResponse<RequestTopologyResponse>>;
+/**
+ * Creates a new Topology.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param name The Name of the Topology to be created.
+ * @param description A description of the Topology being created. This cannot
+ * be blank.
+ * @param nodes The Nodes that comprise the new Topology.
+ * @returns The server's response.
+ */
+export async function createTopology(
+	this: Client,
+	name: string,
+	description: string,
+	...nodes: [RequestTopologyNode, ...RequestTopologyNode[]]
+): Promise<APIResponse<RequestTopologyResponse>>;
+/**
+ * Creates a new Topology.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topologyOrName Either the full definition of the Topology to be
+ * created, or just its Name.
+ * @param description A description of the Topology being created. This is
+ * required if `topologyOrName` is the new Topology's Name, and ignored
+ * otherwise. This cannot be blank.
+ * @param nodes The Nodes that comprise the new Topology. This is required if
+ * `topologyOrName` is the new Topology's Name, and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function createTopology(
+	this: Client,
+	topologyOrName: string | RequestTopology,
+	description?: string,
+	...nodes: RequestTopologyNode[]
+): Promise<APIResponse<RequestTopologyResponse>> {
+	let req: RequestTopology;
+	if (typeof(topologyOrName) === "string") {
+		if (!description) {
+			throw new ClientError("createTopology", "description");
+		}
+		if (nodes.length < 1) {
+			throw new ClientError("Topologies cannot be created without any Nodes");
+		}
+		req = {
+			description,
+			name: topologyOrName,
+			nodes
+		};
+	} else {
+		req = topologyOrName;
+	}
+	return (await this.apiPost<APIResponse<RequestTopologyResponse>>("topologies", req)).data;
+}
+
+/**
+ * Optional settings that affect the behavior/output of {@link getTopologies}.
+ */
+type TopologyParams = PaginationParams & {
+	name?: string;
+	/** @default "name" */
+	orderby?: "name" | "lastUpdated";
+};
+
+/**
+ * Retrieves Topologies from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getTopologies(
+	this: Client,
+	params?: TopologyParams
+): Promise<APIResponse<Array<ResponseTopology>>>;
+/**
+ * Retrieves a single Topology from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param name The name of a single Topology to retrieve.
+ * @param params Any and all optional settings for the request.
+ * @returns The server's response.
+ */
+export async function getTopologies(
+	this: Client,
+	name: string,
+	params?: TopologyParams
+): Promise<APIResponse<ResponseTopology>>;
+/**
+ * Retrieves one or more Topologies from Traffic Ops.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param paramsOrName Either the name of a single Topology to retrieve, or any
+ * and all optional settings for the request when fetching multiple.
+ * @param params Any and all optional settings for the request. This is ignored
+ * if options were specified in `paramsOrName`.
+ * @returns The server's response.
+ */
+export async function getTopologies(
+	this: Client,
+	paramsOrName?: string | TopologyParams,
+	params?: TopologyParams
+): Promise<APIResponse<ResponseTopology | Array<ResponseTopology>>> {
+	if (typeof(paramsOrName) === "string") {
+		const resp = await this.apiGet<APIResponse<[ResponseTopology]>>("topologies", {...params, name: paramsOrName});
+		return getSingleResponse(resp, "Topology", paramsOrName);
+	}
+	return (await this.apiGet<APIResponse<Array<ResponseTopology>>>("topologies", params)).data;
+}
+
+/**
+ * Replaces an existing Topology with the provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topology The Topology being modified, or just its (current) Name.
+ * @param request The full, new, desired definition of the Topology.
+ * @returns The server's response.
+ */
+export async function updateTopology(this: Client, topology: string | Topology, request: Topology): Promise<APIResponse<ResponseTopology>>;
+/**
+ * Replaces an existing Topology with the provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topology The Topology being modified, or just its (current) Name.
+ * @param newName The new, desired Name of the Topology,
+ * or just its new desired Name.
+ * @param description The new description of the Topology. This cannot be blank.
+ * @param nodes The Topology's new Node structure.
+ * @returns The server's response.
+ */
+export async function updateTopology(
+	this: Client,
+	topology: string | Topology,
+	newName: string,
+	description: string,
+	...nodes: [RequestTopologyNode, ...RequestTopologyNode[]]
+): Promise<APIResponse<ResponseTopology>>;
+/**
+ * Replaces an existing Topology with the provided new definition.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topology The Topology being modified, or just its (current) Name.
+ * @param reqOrNewName Either the full, new, desired definition of the Topology,
+ * or just its new desired Name.
+ * @param description The new description of the Topology. This cannot be blank.
+ * This is required if `reqOrNewName` is the new Name of the Topology, and
+ * ignored otherwise.
+ * @param nodes The Topology's new Node structure. This is required if
+ * `reqOrNewName` is the new Name of the Topology, and ignored otherwise.
+ * @returns The server's response.
+ */
+export async function updateTopology(
+	this: Client,
+	topology: string | Topology,
+	reqOrNewName: string | Topology,
+	description?: string,
+	...nodes: RequestTopologyNode[]
+): Promise<APIResponse<ResponseTopology>> {
+	const name = typeof(topology) === "string" ? topology : topology.name;
+	let req;
+	if (typeof(reqOrNewName) === "string") {
+		if (!description) {
+			throw new ClientError("updateTopology", "description");
+		}
+		if (nodes.length < 1) {
+			throw new ClientError("Topologies must have at least one Node");
+		}
+		req = {
+			description,
+			name: reqOrNewName,
+			nodes
+		};
+	} else {
+		req = reqOrNewName;
+	}
+	return (await this.apiPut<APIResponse<ResponseTopology>>("topologies", req, {name})).data;
+}
+
+/**
+ * Deletes a given Topology.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param topology The Topology to delete, or just its name.
+ * @returns The server's response.
+ */
+export async function deleteTopology(this: Client, topology: string | Topology): Promise<APIResponse<undefined>> {
+	const name = typeof(topology) === "string" ? topology : topology.name;
+	return (await this.apiDelete("topologies", {name})).data;
 }

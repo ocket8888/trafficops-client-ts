@@ -19,13 +19,17 @@ import {
 	assignCacheGroupToDS,
 	assignParameterToCacheGroup,
 	createCacheGroup,
+	createTopology,
 	deleteCacheGroup,
+	deleteTopology,
 	dequeueCacheGroupUpdates,
 	getCacheGroupParameters,
 	getCacheGroups,
+	getTopologies,
 	queueCacheGroupUpdates,
 	removeParameterFromCacheGroup,
-	updateCacheGroup
+	updateCacheGroup,
+	updateTopology
 } from "./cache_group.js";
 import {
 	createCDN,
@@ -1024,6 +1028,12 @@ export class Client extends axios.Axios {
 	public getStatsSummary = getStatsSummary;
 	public getStatsSummaryLastUpdatedTime = getStatsSummaryLastUpdatedTime;
 	public uploadStatsSummary = uploadStatsSummary;
+
+	// Topologies
+	public getToplogies = getTopologies;
+	public createTopology = createTopology;
+	public updateTopology = updateTopology;
+	public deleteTopology = deleteTopology;
 
 	// Users
 	public getUsers = getUsers;

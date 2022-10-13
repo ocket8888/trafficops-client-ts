@@ -740,6 +740,13 @@ async function main(): Promise<number> {
 	checkAlerts("GET", "servers/{{Host Name}}/update_status", await client.getServerUpdateStatus(newServer.response) as {alerts?: Alert[]});
 	checkAlerts("PUT", "servers/{{ID}}/status", await client.setServerStatus(newServer.response, "ADMIN_DOWN", "testquest"));
 
+	const newTopology = await client.createTopology("test", "quest", {cachegroup: newCG.response.name});
+	checkAlerts("POST", "topologies", newTopology);
+	newTopology.response.description = "testquest";
+	checkAlerts("PUT", "topologies?name={{name}}", await client.updateTopology(newTopology.response.name, newTopology.response));
+	checkAlerts("GET", "topologies?name={{name}}", await client.getToplogies(newTopology.response.name));
+	checkAlerts("DELETE", "topologies?name={{name}}", await client.deleteTopology(newTopology.response));
+
 	// Only the "extension" user can do these. In later API versions, this...
 	// oversight will be fixed.
 	// checkAlerts("POST", "servercheck", await client.uploadServercheckResult({
