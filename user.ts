@@ -17,6 +17,8 @@ import { getSingleResponse, type PaginationParams } from "./util.js";
 
 import type { Client } from "./index";
 
+const USER_DATE_KEYS = {dateString: ["lastUpdated", "registrationSent"]};
+
 /**
  * Creates a new user.
  *
@@ -25,7 +27,7 @@ import type { Client } from "./index";
  * @returns The server's response.
  */
 export async function createUser(this: Client, user: PostRequestUser): Promise<APIResponse<PutOrPostResponseUser>> {
-	return (await this.apiPost<APIResponse<PutOrPostResponseUser>>("users", user)).data;
+	return (await this.apiPost<APIResponse<PutOrPostResponseUser>>("users", user, undefined, USER_DATE_KEYS)).data;
 }
 
 /**
@@ -84,7 +86,7 @@ export async function getUsers(
 		default:
 			p = paramsOrIdentifier;
 	}
-	const resp = await this.apiGet<APIResponse<Array<GetResponseUser>>>("users", p);
+	const resp = await this.apiGet<APIResponse<Array<GetResponseUser>>>("users", p, USER_DATE_KEYS);
 	if (typeof(paramsOrIdentifier) === "number" || typeof(paramsOrIdentifier) === "string") {
 		return getSingleResponse(resp, "user", paramsOrIdentifier);
 	}
@@ -134,7 +136,7 @@ export async function updateUser(
 		({id} = userOrID);
 		p = userOrID;
 	}
-	return (await this.apiPut<APIResponse<PutOrPostResponseUser>>(`users/${id}`, p)).data;
+	return (await this.apiPut<APIResponse<PutOrPostResponseUser>>(`users/${id}`, p, undefined, USER_DATE_KEYS)).data;
 }
 
 /**
@@ -144,7 +146,7 @@ export async function updateUser(
  * @returns The server's response.
  */
 export async function getCurrentUser(this: Client): Promise<APIResponse<ResponseCurrentUser>> {
-	return (await this.apiGet<APIResponse<ResponseCurrentUser>>("user/current")).data;
+	return (await this.apiGet<APIResponse<ResponseCurrentUser>>("user/current", undefined, USER_DATE_KEYS)).data;
 }
 
 /**
