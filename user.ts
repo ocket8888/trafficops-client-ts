@@ -4,6 +4,7 @@ import type {
 	PostRequestUser,
 	PutOrPostResponseUser,
 	PutRequestUser,
+	RequestCurrentUser,
 	RequestRole,
 	RequestTenant,
 	ResponseCurrentUser,
@@ -147,6 +148,17 @@ export async function updateUser(
  */
 export async function getCurrentUser(this: Client): Promise<APIResponse<ResponseCurrentUser>> {
 	return (await this.apiGet<APIResponse<ResponseCurrentUser>>("user/current", undefined, USER_DATE_KEYS)).data;
+}
+
+/**
+ * Updates the currently authenticated user.
+ *
+ * @param this Tells TypeScript that this is a Client method.
+ * @param request The new user details as desired.
+ * @returns The server's response.
+ */
+export async function updateCurrentUser(this: Client, request: RequestCurrentUser): Promise<APIResponse<ResponseCurrentUser>> {
+	return (await this.apiPut<APIResponse<ResponseCurrentUser>>("user/current", {user: request}, undefined, USER_DATE_KEYS)).data;
 }
 
 /**

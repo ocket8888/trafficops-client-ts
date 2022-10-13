@@ -300,6 +300,13 @@ async function main(): Promise<number> {
 		console.error("testing cannot continue due to insufficient permissions");
 		return 1;
 	}
+	if (me.addressLine1 === null) {
+		me.addressLine1 = "123 testquest avenue";
+	} else {
+		me.addressLine1 = null;
+	}
+	checkAlerts("PUT", "user/current", await client.updateCurrentUser({...me, username: undefined}));
+
 	checkAlerts("GET", "about", await client.about() as {});
 	checkAlerts("GET", "system/info", await client.systemInfo());
 
