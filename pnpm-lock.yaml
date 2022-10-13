@@ -11,13 +11,14 @@ specifiers:
   eslint-plugin-import: ^2.26.0
   eslint-plugin-jsdoc: ^39.2.9
   eslint-plugin-prefer-arrow: ^1.2.3
-  trafficops-types: ^3.1.0-beta-26
+  trafficops-types: ^3.1.1
   typedoc: ^0.23.16
   typescript: ^4.6.3
 
 dependencies:
   argparse: 2.0.1
   axios: 0.27.2
+  trafficops-types: 3.1.1
 
 optionalDependencies:
   typedoc: 0.23.16_typescript@4.8.4
@@ -31,7 +32,6 @@ devDependencies:
   eslint-plugin-import: 2.26.0_zb5prbqp7qzcgafjm73dfpyyvm
   eslint-plugin-jsdoc: 39.3.6_eslint@8.25.0
   eslint-plugin-prefer-arrow: 1.2.3_eslint@8.25.0
-  trafficops-types: 3.1.0-beta-26
   typescript: 4.8.4
 
 packages:
@@ -1490,9 +1490,9 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /trafficops-types/3.1.0-beta-26:
-    resolution: {integrity: sha512-kj752jD9whE7zutR0yPZiHwHAF2NLmQssacn3/aAFFQZrXk14HH5jSls29//5W7jWgyH50/yyLDk9N8kZp1vhg==}
-    dev: true
+  /trafficops-types/3.1.1:
+    resolution: {integrity: sha512-PpuNLtRq68By/ukV1JFLIV9bl9FmmY5UtElNAsg1CXJ0U9gTY7PmpwmiIxKsHXm1bLG+z/EwIrEDP/EhVJrruQ==}
+    dev: false
 
   /tsconfig-paths/3.14.1:
     resolution: {integrity: sha512-fxDhWnFSLt3VuTwtvJt5fpwxBHg5AdKWMsgcPOOIilyjymcYVZoCQF8fvFRezCNfblEXmi+PcM1eYHeOAgXCOQ==}

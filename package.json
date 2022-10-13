@@ -1,6 +1,6 @@
 {
 	"name": "trafficops-client",
-	"version": "3.1.1",
+	"version": "3.1.2",
 	"description": "A Javascript client for use in Node or a browser, that can be used to interact with Traffic Ops.",
 	"bin": {
 		"toget": "bin/toget.js",
@@ -43,13 +43,13 @@
 		"eslint-plugin-import": "^2.26.0",
 		"eslint-plugin-jsdoc": "^39.2.9",
 		"eslint-plugin-prefer-arrow": "^1.2.3",
-		"trafficops-types": "^3.1.0-beta-26",
 		"typescript": "^4.6.3"
 	},
 	"type": "module",
 	"dependencies": {
 		"argparse": "^2.0.1",
-		"axios": "^0.27.2"
+		"axios": "^0.27.2",
+		"trafficops-types": "^3.1.1"
 	},
 	"optionalDependencies": {
 		"typedoc": "^0.23.16"
