@@ -37,6 +37,8 @@ import {
 	APIResponse,
 } from "trafficops-types";
 
+import { APIError } from "./api.error.js";
+
 import { Client } from "./index.js";
 
 const erroredRequests = new Set<string>();
@@ -161,8 +163,12 @@ async function getOrCreateTSClientTestingUser(client: Client): Promise<ResponseU
 	try {
 		return (await client.getUsers(testingUsername)).response;
 	} catch (e) {
-		console.warn("testing user doesn't exist; it will be created - will NOT be removed by these tests!");
-		console.error(e);
+		if (e instanceof APIError && e.responseCode === 200) {
+			console.warn("testing user doesn't exist; it will be created - will NOT be removed by these tests!");
+		} else {
+			const msg = e instanceof Error ? e.message : String(e);
+			throw new Error(`unknown error ocurred trying to check for existing testing user: ${msg}`);
+		}
 	}
 
 	const me = await getCurrentUser(client);
