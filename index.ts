@@ -350,7 +350,7 @@ export class Client extends axios.Axios {
 	/**
 	 * The headers that are passed in API requests.
 	 */
-	protected get headers(): Record<PropertyKey, string> {
+	public get headers(): Record<PropertyKey, string> {
 		return {
 			// This naming convention is standard practice for HTTP headers.
 			/* eslint-disable @typescript-eslint/naming-convention*/

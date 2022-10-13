@@ -8,8 +8,8 @@
 	},
 	"scripts": {
 		"build": "tsc",
-		"start": "./main.js",
-		"lint": "eslint --ext .ts ."
+		"lint": "eslint --ext .ts .",
+		"test": "npm run build && ./test.js"
 	},
 	"keywords": [],
 	"author": "",
