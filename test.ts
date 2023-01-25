@@ -116,7 +116,9 @@ let cachedCurrentUser: ResponseCurrentUser | null = null;
  */
 async function getCurrentUser(client: Client): Promise<ResponseCurrentUser> {
 	if (cachedCurrentUser === null) {
-		cachedCurrentUser = (await client.getCurrentUser()).response;
+		const me = await client.getCurrentUser();
+		checkAlerts("GET", "user/current", me);
+		cachedCurrentUser = me.response;
 	}
 	return cachedCurrentUser;
 }
