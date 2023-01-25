@@ -1,6 +1,6 @@
 {
 	"name": "trafficops-client",
-	"version": "3.1.2",
+	"version": "3.1.3",
 	"description": "A Javascript client for use in Node or a browser, that can be used to interact with Traffic Ops.",
 	"bin": {
 		"toget": "bin/toget.js",
@@ -53,7 +53,7 @@
 	"dependencies": {
 		"argparse": "^2.0.1",
 		"axios": "^0.27.2",
-		"trafficops-types": "^3.1.1"
+		"trafficops-types": "^3.1.4"
 	},
 	"optionalDependencies": {
 		"typedoc": "^0.23.16"
