@@ -349,6 +349,7 @@ const TEST_CAPABILITY_NAME = "testing-capability";
  */
 async function main(): Promise<number> {
 	const client = new Client("https://localhost:6443", {logAlerts: false, logger: null, raiseErrorAlerts: false});
+	console.log(`testing for compatibility with API v${client.version}`);
 	console.log("GET /ping");
 	console.log((await client.ping()).data);
 	console.log();
